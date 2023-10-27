@@ -3,7 +3,7 @@ import {
   insv_equirectangular,
   merge_insv,
 } from "../services/FFmpegCameraProcess.services.js";
-import { process_gopro } from "../services/FullProcess.services.js";
+import { full_process_gopro } from "../services/FullProcess.services.js";
 
 export const insv_process = (req, res) => {
   const idProjectVideo = req.body?.idProjectVideo;
@@ -26,7 +26,7 @@ export const gopro_process = (req, res) => {
   //`${__dirname}/uploads/${filename}`
   try {
     // ws.to(channel_id).emit("hello");
-    process_gopro(fileObject);
+    full_process_gopro(fileObject);
     return res.json({ message: "processus en cours" });
   } catch (error) {
     return res.status(500).json({

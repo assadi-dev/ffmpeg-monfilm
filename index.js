@@ -3,6 +3,7 @@ import app from "./app.js";
 import dotenv from "dotenv";
 import { Server } from "socket.io";
 import corsOptions from "./config/cors.config.js";
+import os from "os";
 
 dotenv.config();
 
@@ -21,4 +22,5 @@ ws.on("connection", (socket) => {
 
 server.listen(port, () => {
   console.log(`server on port ${port}`);
+  console.log(os.platform());
 });

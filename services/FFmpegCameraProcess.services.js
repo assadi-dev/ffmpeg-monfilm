@@ -1,7 +1,8 @@
 import ffmpegOnProgress from "ffmpeg-on-progress";
 import Ffmpeg from "fluent-ffmpeg";
 import { gopropArgs } from "../config/ffmpegComand.js";
-import { __dirname } from "../config/constent.config.js";
+import { __dirname } from "../config/constant.js";
+import os from "os";
 
 /**
  * **Process Insta360**
@@ -102,6 +103,9 @@ export const gopro_equirectangular = (fileObject) => {
   const output = filename.replace(".360", ".mp4");
   const destination = `${__dirname}/uploads/${output}`;
 
+  console.log(ffmpeg.path, ffmpeg.version);
+  return;
+
   const ffmpegCommand = Ffmpeg();
 
   return new Promise((resolve, reject) => {
@@ -152,6 +156,8 @@ export const gopro_equirectangular = (fileObject) => {
  */
 export const video_compress = (fileObjetct) => {
   const ffmpegCommand = Ffmpeg();
+
+  //ffmpegCommand.setFfmpegPath()
 
   return new Promise((resolve, reject) => {});
 };

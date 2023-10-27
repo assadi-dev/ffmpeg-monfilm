@@ -1,9 +1,17 @@
 version: "3"
 services:
+
   app:
     container_name: ffmpeg-process-monfilm360
     build:
       context: .
-      dockerfile: ./Dockerfile
+      dockerfile: Dockerfile
     ports:
       - "5500:5500"
+    volumes:
+      - "./uploads:/var/www/app/uploads"
+      - "./bin/:/usr/local/bin/ffmpeg"
+      - "./bin/:/usr/local/bin/ffprobe"
+   
+volumes:
+  data:
