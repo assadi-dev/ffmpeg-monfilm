@@ -22,5 +22,13 @@ ws.on("connection", (socket) => {
 
 server.listen(port, () => {
   console.log(`server on port ${port}`);
-  console.log(os.platform());
+  const system = {
+    platform: os.platform(),
+    cpu: os.cpus()[0].model,
+    threads: os.cpus().length,
+    os: os.version(),
+    realease: os.release(),
+  };
+
+  console.table(system);
 });

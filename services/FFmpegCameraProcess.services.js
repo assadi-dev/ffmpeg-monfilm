@@ -1,8 +1,11 @@
 import ffmpegOnProgress from "ffmpeg-on-progress";
 import Ffmpeg from "fluent-ffmpeg";
-import { gopropArgs } from "../config/ffmpegComand.js";
-import { __dirname } from "../config/constant.js";
-import os from "os";
+import { ffmpegPath, gopropArgs } from "../config/ffmpegComand.js";
+import { __dirname, platform } from "../config/constant.js";
+
+const ffmpeg = Ffmpeg()
+  .setFfmpegPath(ffmpegPath[platform].ffmpegPath)
+  .setFfprobePath(ffmpegPath[platform].ffprobePath);
 
 /**
  * **Process Insta360**
@@ -35,7 +38,7 @@ export const merge_insv = async (fileObject) => {
   const destination = `${__dirname}/uploads/${output}`;
   const fileProcessEnded = [];
 
-  const ffmpegCommand = Ffmpeg();
+  const ffmpegCommand = ffmpeg;
   ffmpegCommand
     .addInput(front)
     .addInput(back)
@@ -69,9 +72,10 @@ export const insv_equirectangular = async (filepath) => {
   const input = filepath;
 
   const output = filepath.replace("_dualfisheye.mp4", ".mp4");
-  const ffmpegCommand = Ffmpeg(input);
+  const ffmpegCommand = ffmpeg;
 
   ffmpegCommand
+    .addInput(input)
     .videoFilters("v360=dfisheye:equirect:ih_fov=190:iv_fov=190:roll=90")
     .outputOptions(["-c:v", "libx264"])
     .saveToFile(output)
@@ -103,10 +107,7 @@ export const gopro_equirectangular = (fileObject) => {
   const output = filename.replace(".360", ".mp4");
   const destination = `${__dirname}/uploads/${output}`;
 
-  console.log(ffmpeg.path, ffmpeg.version);
-  return;
-
-  const ffmpegCommand = Ffmpeg();
+  const ffmpegCommand = ffmpeg;
 
   return new Promise((resolve, reject) => {
     ffmpegCommand
@@ -155,11 +156,21 @@ export const gopro_equirectangular = (fileObject) => {
  *
  */
 export const video_compress = (fileObjetct) => {
-  const ffmpegCommand = Ffmpeg();
+  const ffmpegCommand = ffmpeg;
 
   //ffmpegCommand.setFfmpegPath()
 
   return new Promise((resolve, reject) => {});
+};
+
+export const test_ffmpeg = (req, res) => {
+  ffmpeg
+    .saveToFile("./test.mp4")
+    .on("start", (cmdLine) => console.log(cmdLine))
+    .on("error", (error) => {
+      console.log(error.message);
+    });
+  res.json("test");
 };
 
 /**

@@ -9,9 +9,9 @@ services:
     ports:
       - "5500:5500"
     volumes:
-      - "./uploads:/var/www/app/uploads"
-      - "./bin/:/usr/local/bin/ffmpeg"
-      - "./bin/:/usr/local/bin/ffprobe"
+      - ".:/var/www/app"
+ 
    
 volumes:
-  data:
+  data: 
+
