@@ -1,0 +1,9 @@
+version: "3"
+services:
+  app:
+    container_name: ffmpeg-process-monfilm360
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    ports:
+      - "5500:5500"
