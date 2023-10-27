@@ -1,5 +1,5 @@
 {
-  "name": "ffmpeg-monfilm",
+  "name": "ffmpeg-traiment-video",
   "version": "1.0.0",
   "description": "traitement des videos insta360 et gopro en format equirectangulaire",
   "main": "index.js",
