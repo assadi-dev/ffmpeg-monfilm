@@ -1,9 +1,9 @@
 import { ws } from "../index.js";
 import {
-  gopro_equirectangular,
   insv_equirectangular,
   merge_insv,
 } from "../services/FFmpegCameraProcess.services.js";
+import { process_gopro } from "../services/FullProcess.services.js";
 
 export const insv_process = (req, res) => {
   const idProjectVideo = req.body?.idProjectVideo;
@@ -18,14 +18,15 @@ export const insv_process = (req, res) => {
   return res.json({ message: "processus en cours" });
 };
 
-export const gopro_process = async (req, res) => {
+export const gopro_process = (req, res) => {
   const idProjectVideo = req.body?.idProjectVideo;
   let room = req.body?.room;
   let filename = req.body?.filename;
-
+  const fileObject = req.body?.fileObject;
+  //`${__dirname}/uploads/${filename}`
   try {
     // ws.to(channel_id).emit("hello");
-    gopro_equirectangular({ filename });
+    process_gopro(fileObject);
     return res.json({ message: "processus en cours" });
   } catch (error) {
     return res.status(500).json({

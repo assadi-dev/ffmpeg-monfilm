@@ -104,46 +104,57 @@ export const gopro_equirectangular = (fileObject) => {
 
   const ffmpegCommand = Ffmpeg();
 
-  ffmpegCommand
-    .addInput(input)
-    .complexFilter([
-      {
-        filter: "crop",
-        inputs: "0:0",
-        options: gopropArgs,
-        outputs: `tkorp`,
-      },
-    ])
-    .outputOptions([
-      "-map",
-      "[tkorp]",
-      "-map",
-      "0:a:0",
-      "-c:v",
-      "libx264",
-      "-c:a",
-      "aac",
-    ])
-    .saveToFile(destination)
-    .on("stderr", function (stderrLine) {
-      console.log("Stderr output: " + stderrLine);
-    })
-    /*     .on("start", (cmdline) => console.log(cmdline)) */
-    .on("progress", logProgress)
-    .on("end", () => {
-      console.log("Finished processing");
-    })
-    .on("error", (error) => {
-      throw new Error(error.message);
-    });
+  return new Promise((resolve, reject) => {
+    ffmpegCommand
+      .addInput(input)
+      .complexFilter([
+        {
+          filter: "crop",
+          inputs: "0:0",
+          options: gopropArgs,
+          outputs: `tkorp`,
+        },
+      ])
+      .outputOptions([
+        "-map",
+        "[tkorp]",
+        "-map",
+        "0:a:0",
+        "-c:v",
+        "libx264",
+        "-c:a",
+        "aac",
+      ])
+      .saveToFile(destination)
+      .on("stderr", function (stderrLine) {
+        console.log("Stderr output: " + stderrLine);
+      })
+      /*     .on("start", (cmdline) => console.log(cmdline)) */
+      .on("progress", logProgress)
+      .on("end", () => {
+        console.log("Finished processing");
+        resolve({ filename: output, output: destination });
+      })
+      .on("error", (error) => {
+        reject(error.message);
+      });
+  });
 };
 
 /**
  * **Compression de la video**
+ * ```js
  *
+ * fileObjetct = { input:"", output: ""}
+ *
+ * ```
  *
  */
-export const video_compress = () => {};
+export const video_compress = (fileObjetct) => {
+  const ffmpegCommand = Ffmpeg();
+
+  return new Promise((resolve, reject) => {});
+};
 
 /**
  * Obtention de la progression du process
