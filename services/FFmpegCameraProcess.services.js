@@ -1,8 +1,14 @@
 import ffmpegOnProgress from "ffmpeg-on-progress";
 import Ffmpeg from "fluent-ffmpeg";
 import { ffmpegPath, gopropArgs } from "../config/ffmpegComand.js";
-import { __dirname, platform } from "../config/constant.js";
+import { __dirname, platform, upload_dir } from "../config/constant.js";
+import os from "os";
+import { unlink } from "fs/promises";
+import FFmpegInstance from "./FFmpegInstance.services.js";
 
+/**
+ * Instance FFMPEG
+ */
 const ffmpeg = Ffmpeg()
   .setFfmpegPath(ffmpegPath[platform].ffmpegPath)
   .setFfprobePath(ffmpegPath[platform].ffprobePath);
@@ -101,12 +107,13 @@ export const insv_equirectangular = async (filepath) => {
  *
  * @return Fichier mp4 en vue equirectangulaire
  */
-export const gopro_equirectangular = (fileObject) => {
+export const gopro_equirectangular = async (fileObject) => {
   const filename = fileObject.filename;
   const input = fileObject.path;
   const output = filename.replace(".360", ".mp4");
-  const destination = `${__dirname}/uploads/${output}`;
+  const destination = `${__dirname}\\uploads\\${output}`;
 
+  const { ffmpeg } = new FFmpegInstance();
   const ffmpegCommand = ffmpeg;
 
   return new Promise((resolve, reject) => {
@@ -131,17 +138,18 @@ export const gopro_equirectangular = (fileObject) => {
         "aac",
       ])
       .saveToFile(destination)
-      .on("stderr", function (stderrLine) {
+      /*       .on("stderr", function (stderrLine) {
         console.log("Stderr output: " + stderrLine);
-      })
+      }) */
       /*     .on("start", (cmdline) => console.log(cmdline)) */
       .on("progress", logProgress)
-      .on("end", () => {
+      .on("end", async () => {
         console.log("Finished processing");
+        await unlink(`${upload_dir}\\${filename}`);
         resolve({ filename: output, output: destination });
       })
       .on("error", (error) => {
-        reject(error.message);
+        console.log(error.message);
       });
   });
 };
@@ -156,35 +164,61 @@ export const gopro_equirectangular = (fileObject) => {
  *
  */
 export const video_compress = (fileObjetct) => {
+  const { ffmpeg } = new FFmpegInstance();
   const ffmpegCommand = ffmpeg;
-
-  //ffmpegCommand.setFfmpegPath()
-
-  return new Promise((resolve, reject) => {});
+  const { input, output } = fileObjetct;
+  return new Promise((resolve, reject) => {
+    ffmpegCommand
+      .addInput(input)
+      .size("820x410")
+      .addOutputOptions(["-preset", "fast", "-crf", "22"])
+      .saveToFile(output)
+      .on("start", (cmdline) => console.log(cmdline))
+      .on("progress", logProgress)
+      .on("end", () => {
+        console.log(`Finished compressing for ${input}`);
+        resolve({ input, output });
+      })
+      .on("error", (error) => {
+        console.log(error.message);
+      });
+  });
 };
 
 export const test_ffmpeg = async (req, res) => {
-  let cmd = "";
-  let line = "";
   const promise = new Promise((resolve, reject) => {
     ffmpeg
-      .saveToFile("./test.mp4")
-      /*  .on("start", (cmdLine) => (cmdLine = cmd)) */
+      .save("output.test")
+      /*.on("start", (cmdLine) => (cmdLine = cmd))*/
       .on("stderr", function (stderrLine) {
         resolve(stderrLine);
       })
       .on("error", (error) => {
         // console.log(error.message);
-        reject(error.message);
       });
   });
 
   try {
-    const version = await promise;
-    return res.json({ version });
+    return res.json({
+      platform,
+      ffmpeg: await promise,
+    });
   } catch (error) {
     return res.code(500).json({ message: error.message });
   }
+};
+
+/**
+ * Obtenir la durée de la video
+ */
+
+export const extrat_duration = (input) => {
+  return new Promise((resolve, reject) => {
+    ffmpeg.ffprobe(input, (err, metadata) => {
+      if (err) reject(err);
+      resolve(metadata.format.duration);
+    });
+  });
 };
 
 /**

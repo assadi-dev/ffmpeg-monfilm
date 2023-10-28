@@ -1,9 +1,14 @@
+import { __dirname, domain } from "../config/constant.js";
+import { extrat_duration } from "../services/FFmpegCameraProcess.services.js";
+
 export const upload_gopro = (req, res) => {
-  const file = req?.files;
-  const filename = file?.filename;
   const idProjectvideo = req.body?.idProjectvideo;
 
-  let filesData = [...req?.files].map((item) => item.filename);
+  let filesData = [...req?.files].map((item) => ({
+    filename: item.filename,
+    path: `${domain}/uploads/${item.filename}`,
+  }));
+
   let jsonRes = { idProjectvideo, filesData };
-  res.json(jsonRes);
+  return res.json(jsonRes);
 };
