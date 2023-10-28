@@ -3,6 +3,7 @@ import path from "path";
 import corsOptions from "./config/cors.config.js";
 import cors from "cors";
 import videoProcessRouter from "./routes/videoProcess.routes.js";
+import { test_ffmpeg } from "./services/FFmpegCameraProcess.services.js";
 
 const app = express();
 
@@ -15,6 +16,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use("/uploads", express.static(path.join("uploads")));
 
 //Endpoint
+app.get("/", test_ffmpeg);
 //traitementVideo
 app.use("/api", videoProcessRouter);
 

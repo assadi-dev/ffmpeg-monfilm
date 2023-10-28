@@ -163,14 +163,28 @@ export const video_compress = (fileObjetct) => {
   return new Promise((resolve, reject) => {});
 };
 
-export const test_ffmpeg = (req, res) => {
-  ffmpeg
-    .saveToFile("./test.mp4")
-    .on("start", (cmdLine) => console.log(cmdLine))
-    .on("error", (error) => {
-      console.log(error.message);
-    });
-  res.json("test");
+export const test_ffmpeg = async (req, res) => {
+  let cmd = "";
+  let line = "";
+  const promise = new Promise((resolve, reject) => {
+    ffmpeg
+      .saveToFile("./test.mp4")
+      /*  .on("start", (cmdLine) => (cmdLine = cmd)) */
+      .on("stderr", function (stderrLine) {
+        resolve(stderrLine);
+      })
+      .on("error", (error) => {
+        // console.log(error.message);
+        reject(error.message);
+      });
+  });
+
+  try {
+    const version = await promise;
+    return res.json({ version });
+  } catch (error) {
+    return res.code(500).json({ message: error.message });
+  }
 };
 
 /**
