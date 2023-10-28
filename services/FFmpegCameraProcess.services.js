@@ -7,13 +7,6 @@ import { unlink } from "fs/promises";
 import FFmpegInstance from "./FFmpegInstance.services.js";
 
 /**
- * Instance FFMPEG
- */
-const ffmpeg = Ffmpeg()
-  .setFfmpegPath(ffmpegPath[platform].ffmpegPath)
-  .setFfprobePath(ffmpegPath[platform].ffprobePath);
-
-/**
  * **Process Insta360**
  *
  * Fusion des videos
@@ -34,6 +27,7 @@ const ffmpeg = Ffmpeg()
  * @return Fichier mp4 en vue dualfisheye
  */
 export const merge_insv = async (fileObject) => {
+  const { ffmpeg } = new FFmpegInstance();
   /*  const filename = files.filename;
   const input = `${__dirname}/uploads/${filename}`; */
   const front = `${__dirname}/uploads/insv/VID_20181108_115140_00_012.insv`;
@@ -75,8 +69,9 @@ export const merge_insv = async (fileObject) => {
  * @return Fichier mp4 en vue equirectangulare
  */
 export const insv_equirectangular = async (filepath) => {
-  const input = filepath;
+  const { ffmpeg } = new FFmpegInstance();
 
+  const input = filepath;
   const output = filepath.replace("_dualfisheye.mp4", ".mp4");
   const ffmpegCommand = ffmpeg;
 
