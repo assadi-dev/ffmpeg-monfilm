@@ -82,7 +82,7 @@ export const insv_equirectangular = async (fileObject) => {
     ffmpegCommand
       .addInput(input)
       .videoFilters("v360=dfisheye:equirect:ih_fov=190:iv_fov=190:roll=90")
-      .outputOptions(["-c:v", "libx264"])
+      .outputOptions(["-c:v", "libx264", "-c:a", "aac"])
       .saveToFile(output)
       /*  .on("start", (cmdline) => console.log(cmdline)) */
       /*    .on("stderr", function (stderrLine) {
@@ -125,7 +125,7 @@ export const gopro_equirectangular = async (fileObject) => {
   const { ffmpeg } = new FFmpegInstance();
   const ffmpegCommand = ffmpeg;
 
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     ffmpegCommand
       .addInput(input)
       .complexFilter([
@@ -142,9 +142,9 @@ export const gopro_equirectangular = async (fileObject) => {
         "-map",
         "0:a:0",
         "-c:v",
-        "libx264",
+        "copy",
         "-c:a",
-        "aac",
+        "copy",
       ])
       .saveToFile(destination)
       /*       .on("stderr", function (stderrLine) {

@@ -44,6 +44,7 @@ export const full_process_insv = async (fileObject) => {
     };
     const compress_response = await video_compress(fileObjetctCompress);
 
+    console.log(compress_response);
     let high_quality = response.output;
     let low_quality = compress_response.output;
 
