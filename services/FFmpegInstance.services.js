@@ -1,6 +1,6 @@
 import Ffmpeg from "fluent-ffmpeg";
-import { ffmpegPath } from "../config/ffmpegComand.js";
-import { __dirname, platform } from "../config/constant.js";
+import { ffmpegPath } from "../config/ffmpegComand.config.js";
+import { __dirname, platform } from "../config/constant.config.js";
 
 /**
  * Instance FFMPEG

@@ -1,4 +1,4 @@
-import { upload_dir } from "../config/constant.js";
+import { upload_dir } from "../config/constant.config.js";
 import {
   gopro_equirectangular,
   insv_equirectangular,

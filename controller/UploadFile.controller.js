@@ -1,4 +1,4 @@
-import { __dirname, domain } from "../config/constant.js";
+import { __dirname, domain } from "../config/constant.config.js";
 import { extrat_duration } from "../services/FFmpegCameraProcess.services.js";
 
 export const upload_gopro = (req, res) => {

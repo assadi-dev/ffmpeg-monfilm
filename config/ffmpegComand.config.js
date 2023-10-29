@@ -1,4 +1,4 @@
-import { __dirname } from "./constant.js";
+import { __dirname } from "./constant.config.js";
 
 const div = 65;
 /**

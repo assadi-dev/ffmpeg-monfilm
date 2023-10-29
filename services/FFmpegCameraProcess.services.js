@@ -1,7 +1,7 @@
 import ffmpegOnProgress from "ffmpeg-on-progress";
 import Ffmpeg from "fluent-ffmpeg";
-import { ffmpegPath, gopropArgs } from "../config/ffmpegComand.js";
-import { __dirname, platform, upload_dir } from "../config/constant.js";
+import { ffmpegPath, gopropArgs } from "../config/ffmpegComand.config.js";
+import { __dirname, platform, upload_dir } from "../config/constant.config.js";
 import os from "os";
 import { unlink } from "fs/promises";
 import FFmpegInstance from "./FFmpegInstance.services.js";
