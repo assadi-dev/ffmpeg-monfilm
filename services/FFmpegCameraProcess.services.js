@@ -176,8 +176,9 @@ export const gopro_equirectangular = async (fileObject) => {
 export const video_compress = (fileObjetct) => {
   const { ffmpeg } = new FFmpegInstance();
   const ffmpegCommand = ffmpeg;
-  const { input, output } = fileObjetct;
-  return new Promise((resolve, reject) => {
+
+  return new Promise((resolve) => {
+    const { input, output } = fileObjetct;
     ffmpegCommand
       .addInput(input)
       .size("820x410")
@@ -196,6 +197,7 @@ export const video_compress = (fileObjetct) => {
 };
 
 export const test_ffmpeg = async (req, res) => {
+  const { ffmpeg } = new FFmpegInstance();
   const promise = new Promise((resolve, reject) => {
     ffmpeg
       .save("output.test")
