@@ -1,4 +1,5 @@
 node_modules
 uploads/*
 .env
-bin/ffmpeg
+bin/ffmpeg/*
+public/*

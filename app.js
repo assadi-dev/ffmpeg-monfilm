@@ -14,6 +14,7 @@ app.use(express.urlencoded({ extended: true }));
 
 //Static Files
 app.use("/uploads", express.static(path.join("uploads")));
+app.use("/", express.static(path.join("public")));
 
 //Endpoint
 app.get("/", test_ffmpeg);

@@ -30,64 +30,78 @@ export const merge_insv = async (fileObject) => {
   const { ffmpeg } = new FFmpegInstance();
   /*  const filename = files.filename;
   const input = `${__dirname}/uploads/${filename}`; */
-  const front = `${__dirname}/uploads/insv/VID_20181108_115140_00_012.insv`;
-  const back = `${__dirname}/uploads/insv/VID_20181108_115140_10_012.insv`;
-  const output = "VID_20181108_115140_00_012.insv"
-    .replace(".insv", "_dualfisheye.mp4")
-    .replace("_00_", "_");
-  const destination = `${__dirname}/uploads/${output}`;
-  const fileProcessEnded = [];
+  const finalFilename = fileObject?.filename.replace(
+    ".insv",
+    "_dualfisheye.mp4"
+  );
+
+  const front = fileObject?.front;
+  const back = fileObject?.back;
+  const output = `${__dirname}\\uploads\\${finalFilename}`;
 
   const ffmpegCommand = ffmpeg;
-  ffmpegCommand
-    .addInput(front)
-    .addInput(back)
+  return new Promise((resolve) => {
+    ffmpegCommand
+      .addInput(front)
+      .addInput(back)
+      .complexFilter("hstack")
+      .outputOptions(["-c:v", "libx264", "-c:a", "aac"])
+      .saveToFile(output)
+      /*   .on("start", (cmdline) => console.log(cmdline)) */
 
-    .complexFilter("hstack")
-    .outputOptions(["-c:v libx264"])
-    .on("start", (cmdline) => console.log(cmdline))
-    .saveToFile(destination)
-    /*.on("stderr", function (stderrLine) {
-      console.log("Stderr output: " + stderrLine);
-    })*/
-    .on("progress", logProgress)
-    .on("end", () => {
-      console.log("Finished processing");
-      // insv_equirectangular(destination);
-    })
-    .on("error", (error) => {
-      console.log(error.message);
-      //throw new Error(error.message);
-    });
+      /*      .on("stderr", function (stderrLine) {
+        console.log("Stderr output: " + stderrLine);
+      }) */
+      .on("progress", logProgress)
+      .on("end", () => {
+        console.log(`Finished fusion for ${fileObject?.filename}`);
+        // unlink(`${upload_dir}\\${filename}`);
+        const result = { filename: finalFilename, output };
+        resolve(result);
+      })
+      .on("error", (error) => {
+        console.log(error.message);
+      });
+  });
 };
 
 /**
  * **Process Insta360**
  *
  * Transformation des videos dualfisheye en equirectangulare
- * @param {*} files contient les données des fichiers à traiter, format attendu .mp4
+ * @param {*} fileObject contient les données des fichiers à traiter, format attendu .mp4
  * @return Fichier mp4 en vue equirectangulare
  */
-export const insv_equirectangular = async (filepath) => {
+export const insv_equirectangular = async (fileObject) => {
   const { ffmpeg } = new FFmpegInstance();
 
-  const input = filepath;
-  const output = filepath.replace("_dualfisheye.mp4", ".mp4");
+  const input = fileObject.output;
+  const output = fileObject.output.replace("_dualfisheye.mp4", ".mp4");
   const ffmpegCommand = ffmpeg;
-
-  ffmpegCommand
-    .addInput(input)
-    .videoFilters("v360=dfisheye:equirect:ih_fov=190:iv_fov=190:roll=90")
-    .outputOptions(["-c:v", "libx264"])
-    .saveToFile(output)
-    .on("start", (cmdline) => console.log(cmdline))
-    .on("progress", logProgress)
-    .on("end", () => {
-      console.log("Finished processing");
-    })
-    .on("error", (error) => {
-      console.log(error.message);
-    });
+  return new Promise((resolve) => {
+    ffmpegCommand
+      .addInput(input)
+      .videoFilters("v360=dfisheye:equirect:ih_fov=190:iv_fov=190:roll=90")
+      .outputOptions(["-c:v", "libx264"])
+      .saveToFile(output)
+      /*  .on("start", (cmdline) => console.log(cmdline)) */
+      /*    .on("stderr", function (stderrLine) {
+        console.log("Stderr output: " + stderrLine);
+      }) */
+      .on("progress", (progress) => console.log(progress))
+      .on("end", () => {
+        console.log(`Finished processing for ${fileObject.filename}`);
+        const result = {
+          filename: fileObject.filename.replace("_dualfisheye.mp4", ".mp4"),
+          output,
+        };
+        unlink(input);
+        resolve(result);
+      })
+      .on("error", (error) => {
+        console.log(error.message);
+      });
+  });
 };
 
 /**
@@ -138,10 +152,11 @@ export const gopro_equirectangular = async (fileObject) => {
       }) */
       /*     .on("start", (cmdline) => console.log(cmdline)) */
       .on("progress", logProgress)
-      .on("end", async () => {
+      .on("end", () => {
         console.log("Finished processing");
-        await unlink(`${upload_dir}\\${filename}`);
-        resolve({ filename: output, output: destination });
+        // unlink(`${upload_dir}\\${filename}`);
+        const result = { filename: output, output: destination };
+        resolve(result);
       })
       .on("error", (error) => {
         console.log(error.message);
@@ -168,7 +183,7 @@ export const video_compress = (fileObjetct) => {
       .size("820x410")
       .addOutputOptions(["-preset", "fast", "-crf", "22"])
       .saveToFile(output)
-      .on("start", (cmdline) => console.log(cmdline))
+      /*    .on("start", (cmdline) => console.log(cmdline)) */
       .on("progress", logProgress)
       .on("end", () => {
         console.log(`Finished compressing for ${input}`);
@@ -208,6 +223,7 @@ export const test_ffmpeg = async (req, res) => {
  */
 
 export const extrat_duration = (input) => {
+  const { ffmpeg } = new FFmpegInstance();
   return new Promise((resolve, reject) => {
     ffmpeg.ffprobe(input, (err, metadata) => {
       if (err) reject(err);
@@ -221,5 +237,5 @@ export const extrat_duration = (input) => {
  */
 const logProgress = (progress) => {
   // let percent = (progress * 100).toFixed();
-  console.table(progress);
+  // console.table(progress);
 };
