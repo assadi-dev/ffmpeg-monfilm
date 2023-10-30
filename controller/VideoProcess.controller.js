@@ -30,6 +30,9 @@ export const test_gopro_process = (req, res) => {
   const idProjectVideo = req.body?.idProjectVideo;
   const room = req.body?.room;
   const fileObject = new ObjectFileTest("gopro").get_random_project();
+  fileObject.room = room;
+
+  console.log(room);
 
   try {
     // ws.to(channel_id).emit("hello");
@@ -45,10 +48,14 @@ export const test_gopro_process = (req, res) => {
 export const gopro_process = (req, res) => {
   const idProjectVideo = req.body?.idProjectVideo;
   const room = req.body?.room;
+  const camera = req.body?.camera;
   const fileObject = req.body?.fileObject;
 
+  fileObject.room = room.toString();
+  fileObject.camera = camera;
+
   try {
-    // ws.to(room).emit("hello");
+    // ws.to(room).emit("start", { message: "test" });
     full_process_gopro(fileObject);
     return res.json({ message: "processus en cours" });
   } catch (error) {
