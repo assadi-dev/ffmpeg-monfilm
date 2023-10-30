@@ -16,8 +16,12 @@ export const server = http.createServer(app);
 export const ws = new Server(server, { cors: corsOptions });
 
 ws.on("connection", (socket) => {
-  console.log(socket.id);
-  socket.join("255");
+  socket.on("join_server", (data) => {
+    const room = data;
+    socket.join(room);
+    let message = `client with id ${socket.id} has join the room ${room}`;
+    console.log(message);
+  });
 });
 
 server.listen(port, () => {
