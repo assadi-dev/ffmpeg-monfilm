@@ -14,11 +14,10 @@ export const platform = os.platform();
 
 export const hostname = os.hostname();
 
+export const DIRECTORY_SEPARATOR = getDelimiter();
 /**
  * Emplacement des traitement des fichiers
  */
-export const upload_dir = `${__dirname}\\uploads`;
+export const upload_dir = `${__dirname}${DIRECTORY_SEPARATOR}uploads`;
 
 export const domain = `${process.env.SERVER_HOST}:${process.env.PORT || 5500}`;
-
-export const DIRECTORY_SEPARATOR = getDelimiter();
