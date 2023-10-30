@@ -1,7 +1,12 @@
 import ffmpegOnProgress from "ffmpeg-on-progress";
 import Ffmpeg from "fluent-ffmpeg";
 import { ffmpegPath, gopropArgs } from "../config/ffmpegComand.config.js";
-import { __dirname, platform, upload_dir } from "../config/constant.config.js";
+import {
+  DIRECTORY_SEPARATOR,
+  __dirname,
+  platform,
+  upload_dir,
+} from "../config/constant.config.js";
 import os from "os";
 import { unlink } from "fs/promises";
 import FFmpegInstance from "./FFmpegInstance.services.js";
@@ -37,7 +42,7 @@ export const merge_insv = async (fileObject) => {
 
   const front = fileObject?.front;
   const back = fileObject?.back;
-  const output = `${__dirname}\\uploads\\${finalFilename}`;
+  const output = `${__dirname}${DIRECTORY_SEPARATOR}uploads${DIRECTORY_SEPARATOR}${finalFilename}`;
 
   const ffmpegCommand = ffmpeg;
   return new Promise((resolve) => {
@@ -120,7 +125,7 @@ export const gopro_equirectangular = async (fileObject) => {
   const filename = fileObject.filename;
   const input = fileObject.path;
   const output = filename.replace(".360", ".mp4");
-  const destination = `${__dirname}\\uploads\\${output}`;
+  const destination = `${__dirname}${DIRECTORY_SEPARATOR}uploads${DIRECTORY_SEPARATOR}${output}`;
 
   const { ffmpeg } = new FFmpegInstance();
   const ffmpegCommand = ffmpeg;

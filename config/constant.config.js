@@ -1,6 +1,7 @@
 import path from "path";
 import os from "os";
 import dotenv from "dotenv";
+import { getDelimiter } from "../services/Filestype.services.js";
 dotenv.config();
 
 export const __dirname = path.resolve();
@@ -19,3 +20,5 @@ export const hostname = os.hostname();
 export const upload_dir = `${__dirname}\\uploads`;
 
 export const domain = `${process.env.SERVER_HOST}:${process.env.PORT || 5500}`;
+
+export const DIRECTORY_SEPARATOR = getDelimiter();

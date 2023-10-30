@@ -1,4 +1,4 @@
-import { upload_dir } from "../config/constant.config.js";
+import { DIRECTORY_SEPARATOR, upload_dir } from "../config/constant.config.js";
 import {
   gopro_equirectangular,
   insv_equirectangular,
@@ -14,7 +14,7 @@ export const full_process_gopro = async (fileObject) => {
 
     const fileObjetctCompress = {
       input: equirectangular.output,
-      output: `${upload_dir}\\${lowFilename}`,
+      output: `${upload_dir}${DIRECTORY_SEPARATOR}${lowFilename}`,
     };
 
     console.log(`start compress for ${equirectangular.filename}`);
