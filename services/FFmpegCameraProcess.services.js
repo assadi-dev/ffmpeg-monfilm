@@ -198,7 +198,7 @@ export const video_compress = (fileObjetct) => {
 
 export const test_ffmpeg = async (req, res) => {
   const { ffmpeg } = new FFmpegInstance();
-  const promise = new Promise((resolve, reject) => {
+  const promise = new Promise((resolve) => {
     ffmpeg
       .save("output.test")
       /*.on("start", (cmdLine) => (cmdLine = cmd))*/
