@@ -10,6 +10,7 @@ import {
 import os from "os";
 import { unlink } from "fs/promises";
 import FFmpegInstance from "./FFmpegInstance.services.js";
+import { ws } from "../index.js";
 
 /**
  * **Process Insta360**
@@ -126,9 +127,21 @@ export const gopro_equirectangular = async (fileObject) => {
   const input = fileObject.path;
   const output = filename.replace(".360", ".mp4");
   const destination = `${__dirname}${DIRECTORY_SEPARATOR}uploads${DIRECTORY_SEPARATOR}${output}`;
+  const room = fileObject?.room;
+  let totalDuration = 0;
 
   const { ffmpeg } = new FFmpegInstance();
   const ffmpegCommand = ffmpeg;
+
+  const status = {
+    camera: fileObject?.camera,
+    step: "",
+    message: "",
+    filename,
+    progress: 0,
+    url: "",
+    error: "",
+  };
 
   return new Promise((resolve) => {
     ffmpegCommand
@@ -151,21 +164,48 @@ export const gopro_equirectangular = async (fileObject) => {
         "-c:a",
         "aac",
       ])
-      .saveToFile(destination)
+      .output(destination)
       /*       .on("stderr", function (stderrLine) {
         console.log("Stderr output: " + stderrLine);
       }) */
-      /*     .on("start", (cmdline) => console.log(cmdline)) */
-      .on("progress", logProgress)
+      .on("start", () => {
+        console.log(`start gopro process for ${room}`);
+        status.camera = "gopro";
+        status.step = "equirectangular";
+        ws.to(room).emit("start", status);
+      })
+      .on("codecData", (data) => {
+        // HERE YOU GET THE TOTAL TIME
+        totalDuration = parseInt(data.duration.replace(/:/g, ""));
+        console.log(totalDuration);
+      })
+      .on(
+        "progress",
+        ffmpegOnProgress((progress) => emitProgress(progress, room, status)),
+        totalDuration
+      )
+      .on("codecData", (data) => {
+        totalDuration = parseInt(data.duration.replace(/:/g, ""));
+        console.log(totalDuration);
+      })
       .on("end", () => {
         console.log("Finished processing");
         // unlink(`${upload_dir}\\${filename}`);
+
         const result = { filename: output, output: destination };
+        status.progress = 100;
+        status.step = "equirectangular done";
+        ws.to(room).emit("end", status);
         resolve(result);
       })
       .on("error", (error) => {
         console.log(error.message);
-      });
+
+        status.error = error.message;
+        status.message = "traitement interompus";
+        ws.to(room).emit("error", status);
+      })
+      .run();
   });
 };
 
@@ -181,6 +221,17 @@ export const gopro_equirectangular = async (fileObject) => {
 export const video_compress = (fileObjetct) => {
   const { ffmpeg } = new FFmpegInstance();
   const ffmpegCommand = ffmpeg;
+  let totalDuration = 0;
+  const room = fileObjetct?.room;
+  const status = {
+    camera: "",
+    step: "",
+    message: "",
+    filename,
+    progress: 0,
+    url: "",
+    error: "",
+  };
 
   return new Promise((resolve) => {
     const { input, output } = fileObjetct;
@@ -188,7 +239,7 @@ export const video_compress = (fileObjetct) => {
       .addInput(input)
       .size("820x410")
       .addOutputOptions(["-preset", "fast", "-crf", "22"])
-      .saveToFile(output)
+      .output(output)
       /*    .on("start", (cmdline) => console.log(cmdline)) */
       .on("progress", logProgress)
       .on("end", () => {
@@ -197,7 +248,8 @@ export const video_compress = (fileObjetct) => {
       })
       .on("error", (error) => {
         console.log(error.message);
-      });
+      })
+      .run();
   });
 };
 
@@ -243,6 +295,11 @@ export const extrat_duration = (input) => {
  * Obtention de la progression du process
  */
 const logProgress = (progress) => {
-  // let percent = (progress * 100).toFixed();
-  // console.table(progress);
+  let percent = (progress * 100).toFixed();
+};
+
+const emitProgress = (progress, room, status) => {
+  console.log("start progress", status.filename);
+  status.progress = Number((progress * 100).toFixed());
+  ws.to(room).emit("progress", status);
 };
