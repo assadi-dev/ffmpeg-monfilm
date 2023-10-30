@@ -20,7 +20,7 @@ export const full_process_gopro = async (fileObject) => {
     console.log(`start compress for ${equirectangular.filename}`);
     const compress_response = await video_compress(fileObjetctCompress);
 
-    let high_quality = response.output;
+    let high_quality = equirectangular.output;
     let low_quality = compress_response.output;
 
     console.table({ high_quality, low_quality });
@@ -43,9 +43,7 @@ export const full_process_insv = async (fileObject) => {
       output: `${upload_dir}\\${lowFilename}`,
     };
     const compress_response = await video_compress(fileObjetctCompress);
-
-    console.log(compress_response);
-    let high_quality = response.output;
+    let high_quality = equirectantangular.output;
     let low_quality = compress_response.output;
 
     console.table({ high_quality, low_quality });

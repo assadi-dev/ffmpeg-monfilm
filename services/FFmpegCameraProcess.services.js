@@ -142,9 +142,9 @@ export const gopro_equirectangular = async (fileObject) => {
         "-map",
         "0:a:0",
         "-c:v",
-        "copy",
+        "libx264",
         "-c:a",
-        "copy",
+        "aac",
       ])
       .saveToFile(destination)
       /*       .on("stderr", function (stderrLine) {
