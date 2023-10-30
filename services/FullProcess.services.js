@@ -13,6 +13,9 @@ export const full_process_gopro = async (fileObject) => {
     const lowFilename = equirectangular.filename.replace(".mp4", "_low.mp4");
 
     const fileObjetctCompress = {
+      camera: fileObject.camera,
+      room: fileObject.room,
+      filename: fileObject.filename,
       input: equirectangular.output,
       output: `${upload_dir}${DIRECTORY_SEPARATOR}${lowFilename}`,
     };

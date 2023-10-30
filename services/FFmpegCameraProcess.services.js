@@ -52,12 +52,16 @@ export const merge_insv = async (fileObject) => {
       .addInput(back)
       .complexFilter("hstack")
       .outputOptions(["-c:v", "libx264", "-c:a", "aac"])
-      .saveToFile(output)
+      .output(output)
       /*   .on("start", (cmdline) => console.log(cmdline)) */
 
       /*      .on("stderr", function (stderrLine) {
         console.log("Stderr output: " + stderrLine);
       }) */
+      .on("codecData", (data) => {
+        totalDuration = parseInt(data.duration.replace(/:/g, ""));
+        console.log(totalDuration);
+      })
       .on("progress", logProgress)
       .on("end", () => {
         console.log(`Finished fusion for ${fileObject?.filename}`);
@@ -67,7 +71,8 @@ export const merge_insv = async (fileObject) => {
       })
       .on("error", (error) => {
         console.log(error.message);
-      });
+      })
+      .run();
   });
 };
 
@@ -89,7 +94,7 @@ export const insv_equirectangular = async (fileObject) => {
       .addInput(input)
       .videoFilters("v360=dfisheye:equirect:ih_fov=190:iv_fov=190:roll=90")
       .outputOptions(["-c:v", "libx264", "-c:a", "aac"])
-      .saveToFile(output)
+      .output(output)
       /*  .on("start", (cmdline) => console.log(cmdline)) */
       /*    .on("stderr", function (stderrLine) {
         console.log("Stderr output: " + stderrLine);
@@ -106,7 +111,8 @@ export const insv_equirectangular = async (fileObject) => {
       })
       .on("error", (error) => {
         console.log(error.message);
-      });
+      })
+      .run();
   });
 };
 
@@ -135,8 +141,8 @@ export const gopro_equirectangular = async (fileObject) => {
 
   const status = {
     camera: fileObject?.camera,
-    step: "",
-    message: "",
+    step: "equirectangular",
+    message: "idle",
     filename,
     progress: 0,
     url: "",
@@ -170,7 +176,7 @@ export const gopro_equirectangular = async (fileObject) => {
       }) */
       .on("start", () => {
         console.log(`start gopro process for ${room}`);
-        status.camera = "gopro";
+        status.message = "start";
         status.step = "equirectangular";
         ws.to(room).emit("start", status);
       })
@@ -181,20 +187,21 @@ export const gopro_equirectangular = async (fileObject) => {
       })
       .on(
         "progress",
-        ffmpegOnProgress((progress) => emitProgress(progress, room, status)),
+        ffmpegOnProgress((progress) => {
+          status.message = "progress";
+          return emitProgress(progress, room, status);
+        }),
         totalDuration
       )
-      .on("codecData", (data) => {
-        totalDuration = parseInt(data.duration.replace(/:/g, ""));
-        console.log(totalDuration);
-      })
+
       .on("end", () => {
         console.log("Finished processing");
         // unlink(`${upload_dir}\\${filename}`);
 
         const result = { filename: output, output: destination };
+        status.message = "done";
         status.progress = 100;
-        status.step = "equirectangular done";
+
         ws.to(room).emit("end", status);
         resolve(result);
       })
@@ -202,7 +209,7 @@ export const gopro_equirectangular = async (fileObject) => {
         console.log(error.message);
 
         status.error = error.message;
-        status.message = "traitement interompus";
+        status.message = "error";
         ws.to(room).emit("error", status);
       })
       .run();
@@ -213,7 +220,7 @@ export const gopro_equirectangular = async (fileObject) => {
  * **Compression de la video**
  * ```js
  *
- * fileObjetct = { input:"", output: ""}
+ * fileObjetct = {filename:"", input:"", output: ""}
  *
  * ```
  *
@@ -223,11 +230,12 @@ export const video_compress = (fileObjetct) => {
   const ffmpegCommand = ffmpeg;
   let totalDuration = 0;
   const room = fileObjetct?.room;
+  const camera = fileObjetct?.camera;
   const status = {
-    camera: "",
-    step: "",
-    message: "",
-    filename,
+    camera: camera,
+    step: "compress",
+    message: "idle",
+    filename: fileObjetct.filename,
     progress: 0,
     url: "",
     error: "",
@@ -240,14 +248,34 @@ export const video_compress = (fileObjetct) => {
       .size("820x410")
       .addOutputOptions(["-preset", "fast", "-crf", "22"])
       .output(output)
-      /*    .on("start", (cmdline) => console.log(cmdline)) */
-      .on("progress", logProgress)
+      .on("start", (cmdline) => {
+        status.message = "start";
+        ws.to(room).emit("start", status);
+      })
+      .on("codecData", (data) => {
+        totalDuration = parseInt(data.duration.replace(/:/g, ""));
+        console.log(totalDuration);
+      })
+      .on(
+        "progress",
+        ffmpegOnProgress((progress) => {
+          status.message = "progress";
+          return emitProgress(progress, room, status);
+        }),
+        totalDuration
+      )
       .on("end", () => {
         console.log(`Finished compressing for ${input}`);
+        status.message = "done";
+        status.progress = 100;
+        ws.to(room).emit("end", status);
         resolve({ input, output });
       })
       .on("error", (error) => {
         console.log(error.message);
+        status.message = "erreur";
+        status.error = error.message;
+        ws.to(room).emit("error", status);
       })
       .run();
   });
