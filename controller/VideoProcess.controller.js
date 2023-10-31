@@ -14,8 +14,6 @@ export const insv_process = (req, res) => {
   fileObject.room = room.toString();
   fileObject.camera = req.body?.camera;
 
-  console.log(fileObject);
-
   full_process_insv(fileObject);
 
   return res.json({ message: "processus en cours" });
