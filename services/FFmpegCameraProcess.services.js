@@ -254,7 +254,6 @@ export const video_compress = (fileObjetct) => {
       })
       .on("codecData", (data) => {
         totalDuration = parseInt(data.duration.replace(/:/g, ""));
-        console.log(totalDuration);
       })
       .on(
         "progress",
