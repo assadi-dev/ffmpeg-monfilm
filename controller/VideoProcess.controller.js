@@ -24,15 +24,16 @@ export const test_insv_process = (req, res) => {
   const room = req.body?.room;
   // ws.to(room).emit("hello");
   const fileObject = new ObjectFileTest("insv").get_random_project();
+  fileObject.room = "test";
+  fileObject.camera = "insv";
   full_process_insv(fileObject);
   return res.json({ message: "processus en cours", fileObject });
 };
 
 export const test_gopro_process = (req, res) => {
-  const idProjectVideo = req.body?.idProjectVideo;
-  const room = req.body?.room;
   const fileObject = new ObjectFileTest("gopro").get_random_project();
-
+  fileObject.room = "test";
+  fileObject.camera = "insv";
   fileObject.room = room.toString();
   fileObject.camera = camera;
 

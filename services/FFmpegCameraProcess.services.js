@@ -41,6 +41,7 @@ export const merge_insv = async (fileObject) => {
   const finalFilename = filename.replace(".insv", "_dualfisheye.mp4");
 
   const status = {
+    id: fileObject.id,
     camera: fileObject?.camera,
     step: "fusion",
     message: "wait",
@@ -118,8 +119,10 @@ export const insv_equirectangular = async (fileObject) => {
   const output = fileObject.input.replace("_dualfisheye.mp4", ".mp4");
   const room = fileObject.room;
   let totalDuration = 0;
+  const id = fileObject.id;
 
   const status = {
+    id,
     camera: fileObject?.camera,
     step: "equirectangular",
     message: "wait",
@@ -195,89 +198,95 @@ export const insv_equirectangular = async (fileObject) => {
  * @return Fichier mp4 en vue equirectangulaire
  */
 export const gopro_equirectangular = async (fileObject) => {
-  const filename = fileObject.filename;
-  const input = fileObject.path;
-  const output = filename.replace(".360", ".mp4");
-  const destination = `${__dirname}${DIRECTORY_SEPARATOR}uploads${DIRECTORY_SEPARATOR}${output}`;
-  const room = fileObject?.room;
-  let totalDuration = 0;
+  try {
+    const filename = fileObject.filename;
+    const id = fileObject.id;
+    const input = fileObject.path;
+    const output = filename.replace(".360", ".mp4");
+    const destination = `${__dirname}${DIRECTORY_SEPARATOR}uploads${DIRECTORY_SEPARATOR}${output}`;
+    const room = fileObject?.room;
+    let totalDuration = 0;
 
-  const { ffmpeg } = new FFmpegInstance();
-  const ffmpegCommand = ffmpeg;
+    const { ffmpeg } = new FFmpegInstance();
+    const ffmpegCommand = ffmpeg;
 
-  const status = {
-    camera: fileObject?.camera,
-    step: "equirectangular",
-    message: "wait",
-    filename,
-    progress: 0,
-    url: "",
-    error: "",
-  };
+    const status = {
+      id,
+      camera: fileObject?.camera,
+      step: "equirectangular",
+      message: "wait",
+      filename,
+      progress: 0,
+      url: "",
+      error: "",
+    };
 
-  return new Promise((resolve) => {
-    ffmpegCommand
-      .addInput(input)
-      .complexFilter([
-        {
-          filter: "crop",
-          inputs: "0:0",
-          options: gopropArgs,
-          outputs: `tkorp`,
-        },
-      ])
-      .outputOptions([
-        "-map",
-        "[tkorp]",
-        "-map",
-        "0:a:0",
-        "-c:v",
-        "libx264",
-        "-c:a",
-        "aac",
-      ])
-      .output(destination)
-      /*       .on("stderr", function (stderrLine) {
+    return new Promise((resolve) => {
+      ffmpegCommand
+        .addInput(input)
+        .complexFilter([
+          {
+            filter: "crop",
+            inputs: "0:0",
+            options: gopropArgs,
+            outputs: `tkorp`,
+          },
+        ])
+        .outputOptions([
+          "-map",
+          "[tkorp]",
+          "-map",
+          "0:a:0",
+          "-c:v",
+          "libx264",
+          "-c:a",
+          "aac",
+        ])
+        .output(destination)
+        /*       .on("stderr", function (stderrLine) {
         console.log("Stderr output: " + stderrLine);
       }) */
-      .on("start", () => {
-        console.log(`start gopro equirectangular for ${filename}`);
-        status.message = "start";
-        status.step = "equirectangular";
-        ws.to(room).emit("start", status);
-      })
-      .on("codecData", (data) => {
-        // HERE YOU GET THE TOTAL TIME
-        totalDuration = parseInt(data.duration.replace(/:/g, ""));
-      })
-      .on(
-        "progress",
-        ffmpegOnProgress((progress) => {
-          status.message = "progress";
-          return emitProgress(progress, room, status);
-        }),
-        totalDuration
-      )
+        .on("start", () => {
+          console.log(`start gopro equirectangular for ${filename}`);
+          status.message = "start";
+          status.step = "equirectangular";
+          ws.to(room).emit("start", status);
+        })
+        .on("codecData", (data) => {
+          // HERE YOU GET THE TOTAL TIME
+          totalDuration = parseInt(data.duration.replace(/:/g, ""));
+        })
+        .on(
+          "progress",
+          ffmpegOnProgress((progress) => {
+            status.message = "progress";
+            return emitProgress(progress, room, status);
+          }),
+          totalDuration
+        )
 
-      .on("end", () => {
-        console.log(`Finished equirectangular for ${filename}`);
+        .on("end", () => {
+          console.log(`Finished equirectangular for ${filename}`);
 
-        const result = { filename: output, output: destination };
-        status.message = "done";
-        status.progress = 100;
+          const result = { filename: output, output: destination };
+          status.message = "done";
+          status.progress = 100;
 
-        ws.to(room).emit("end", status);
-        resolve(result);
-      })
-      .on("error", (error) => {
-        console.log(error.message);
+          ws.to(room).emit("end", status);
+          resolve(result);
+        })
+        .on("error", (error) => {
+          console.log(error.message);
 
-        status.error = error.message;
-        status.message = "error";
-        ws.to(room).emit("error", status);
-      })
-      .run();
-  });
+          status.error = error.message;
+          status.message = "error";
+          ws.to(room).emit("error", status);
+        })
+        .run();
+    });
+  } catch (error) {
+    console.log(error.message);
+  }
 };
 
 /**
@@ -290,58 +299,65 @@ export const gopro_equirectangular = async (fileObject) => {
  *
  */
 export const video_compress = (fileObjetct) => {
-  const { ffmpeg } = new FFmpegInstance();
-  const ffmpegCommand = ffmpeg;
-  let totalDuration = 0;
-  const room = fileObjetct?.room;
-  const camera = fileObjetct?.camera;
-  const status = {
-    camera: camera,
-    step: "compress",
-    message: "idle",
-    filename: fileObjetct.filename,
-    progress: 0,
-    url: "",
-    error: "",
-  };
+  try {
+    const { ffmpeg } = new FFmpegInstance();
+    const ffmpegCommand = ffmpeg;
+    const id = fileObjetct?.id;
+    let totalDuration = 0;
+    const room = fileObjetct?.room;
+    const camera = fileObjetct?.camera;
 
-  return new Promise((resolve) => {
-    const { input, output } = fileObjetct;
-    ffmpegCommand
-      .addInput(input)
-      .size("820x410")
-      .addOutputOptions(["-preset", "fast", "-crf", "22"])
-      .output(output)
-      .on("start", (cmdline) => {
-        status.message = "start";
-        ws.to(room).emit("start", status);
-      })
-      .on("codecData", (data) => {
-        totalDuration = parseInt(data.duration.replace(/:/g, ""));
-      })
-      .on(
-        "progress",
-        ffmpegOnProgress((progress) => {
-          status.message = "progress";
-          return emitProgress(progress, room, status);
-        }),
-        totalDuration
-      )
-      .on("end", () => {
-        console.log(`Finished compressing for ${input}`);
-        status.message = "done";
-        status.progress = 100;
-        ws.to(room).emit("end", status);
-        resolve({ input, output });
-      })
-      .on("error", (error) => {
-        console.log(error.message);
-        status.message = "erreur";
-        status.error = error.message;
-        ws.to(room).emit("error", status);
-      })
-      .run();
-  });
+    const status = {
+      id,
+      camera: camera,
+      step: "compress",
+      message: "idle",
+      filename: fileObjetct.filename,
+      progress: 0,
+      url: "",
+      error: "",
+    };
+
+    return new Promise((resolve) => {
+      const { input, output } = fileObjetct;
+      ffmpegCommand
+        .addInput(input)
+        .size("820x410")
+        .addOutputOptions(["-preset", "fast", "-crf", "22"])
+        .output(output)
+        .on("start", (cmdline) => {
+          status.message = "start";
+          ws.to(room).emit("start", status);
+        })
+        .on("codecData", (data) => {
+          totalDuration = parseInt(data.duration.replace(/:/g, ""));
+        })
+        .on(
+          "progress",
+          ffmpegOnProgress((progress) => {
+            status.message = "progress";
+            return emitProgress(progress, room, status);
+          }),
+          totalDuration
+        )
+        .on("end", () => {
+          console.log(`Finished compressing for ${input}`);
+          status.message = "done";
+          status.progress = 100;
+          ws.to(room).emit("end", status);
+          resolve({ input, output });
+        })
+        .on("error", (error) => {
+          console.log(error.message);
+          status.message = "erreur";
+          status.error = error.message;
+          ws.to(room).emit("error", status);
+        })
+        .run();
+    });
+  } catch (error) {
+    console.log(error.message);
+  }
 };
 
 export const test_ffmpeg = async (req, res) => {

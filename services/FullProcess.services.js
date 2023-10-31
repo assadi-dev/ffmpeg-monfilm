@@ -10,20 +10,23 @@ import {
 import { unlinkSync } from "fs";
 
 export const full_process_gopro = async (fileObject) => {
-  const room = fileObject?.room;
-
   try {
-    console.log(`wait gopro equirectangular for ${fileObject.filename}`);
-    let status = feedbackStatus;
-    status.camera = "gopro";
-    status.step = "equirectangular";
-    status.filename = fileObject.filename;
+    const room = fileObject?.room;
+    const id = fileObject.id;
 
-    ws.to(room).emit("start", status);
+    console.log(`wait gopro equirectangular for ${fileObject.filename}`);
+    let statusStep = feedbackStatus;
+    statusStep.id = id;
+    statusStep.camera = "gopro";
+    statusStep.step = "equirectangular";
+    statusStep.filename = fileObject.filename;
+
+    ws.to(room).emit("start", statusStep);
     const equirectangular = await gopro_equirectangular(fileObject);
     const lowFilename = equirectangular.filename.replace(".mp4", "_low.mp4");
 
     const fileObjetctCompress = {
+      id,
       camera: fileObject.camera,
       room: fileObject.room,
       filename: fileObject.filename,
@@ -40,8 +43,8 @@ export const full_process_gopro = async (fileObject) => {
     console.table({ high_quality, low_quality });
   } catch (error) {
     console.log(error.message);
-    status.error = error.message;
-    status.message = "error";
+    statusStep.error = error.message;
+    statusStep.message = "error";
     ws.to(room).emit("error", status);
     return error;
   }
@@ -51,6 +54,9 @@ export const full_process_insv = async (fileObject) => {
   const room = fileObject?.room;
   let status = feedbackStatus;
   const filename = fileObject.filename;
+  const id = fileObject.id;
+
+  status.id = id;
   status.camera = "insv";
   status.step = "fusion";
   status.filename = filename;
@@ -60,6 +66,7 @@ export const full_process_insv = async (fileObject) => {
     ws.to(room).emit("start", status);
     const fusion = await merge_insv(fileObject);
     let toEquirectangular = {
+      id,
       room,
       filename: fusion.filename,
       finalFilename: fusion.finalFilename,
@@ -74,6 +81,7 @@ export const full_process_insv = async (fileObject) => {
     const lowFilename = equirectantangular.filename.replace(".mp4", "_low.mp4");
 
     const fileObjetctCompress = {
+      id,
       camera: fileObject.camera,
       room,
       filename: filename,
@@ -83,7 +91,6 @@ export const full_process_insv = async (fileObject) => {
     const compress_response = await video_compress(fileObjetctCompress);
     let high_quality = equirectantangular.output;
     let low_quality = compress_response.output;
-
     console.table({ high_quality, low_quality });
   } catch (error) {
     console.log(error.message);
