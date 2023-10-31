@@ -16,8 +16,8 @@ app.use(express.urlencoded({ extended: true }));
 app.use("/uploads", express.static(path.join("uploads")));
 app.use("/", express.static(path.join("public")));
 
-//Endpoint
 app.get("/", test_ffmpeg);
+//Endpoint
 //traitementVideo
 app.use("/api", videoProcessRouter);
 
