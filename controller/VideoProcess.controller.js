@@ -49,14 +49,13 @@ export const gopro_process = (req, res) => {
   const idProjectVideo = req.body?.idProjectVideo;
   const room = req.body?.room;
   const camera = req.body?.camera;
-  console.log(req.body);
   const fileObject = req.body?.fileObject;
 
   fileObject.room = room.toString();
   fileObject.camera = camera;
 
   try {
-    // ws.to(room).emit("start", { message: "test" });
+    //  ws.to(room).emit("start", );
     full_process_gopro(fileObject);
     return res.json({ message: "processus en cours" });
   } catch (error) {

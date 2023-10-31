@@ -1,4 +1,6 @@
 import { DIRECTORY_SEPARATOR, upload_dir } from "../config/constant.config.js";
+import { feedbackStatus } from "../config/ffmpegComand.config.js";
+import { ws } from "../index.js";
 import {
   gopro_equirectangular,
   insv_equirectangular,
@@ -7,8 +9,16 @@ import {
 } from "./FFmpegCameraProcess.services.js";
 
 export const full_process_gopro = async (fileObject) => {
+  const room = fileObject?.room;
+
   try {
     console.log(`start gopro equirectangular for ${fileObject.filename}`);
+    let status = feedbackStatus;
+    status.camera = "gopro";
+    status.step = "equirectangular";
+    status.filename = fileObject.filename;
+
+    ws.to(room).emit("start", status);
     const equirectangular = await gopro_equirectangular(fileObject);
     const lowFilename = equirectangular.filename.replace(".mp4", "_low.mp4");
 

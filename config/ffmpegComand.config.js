@@ -20,3 +20,15 @@ export const ffmpegPath = {
     ffprobePath: `${__dirname}/bin/ffmpeg/darwin/ffprobe`,
   },
 };
+
+export const feedbackStatus = {
+  id: "",
+  camera: "",
+  step: "",
+  message: "wait",
+  filename: "",
+  progress: 0,
+  url: "",
+  low: "",
+  error: "",
+};

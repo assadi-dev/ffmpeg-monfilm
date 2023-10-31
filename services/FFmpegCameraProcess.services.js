@@ -142,7 +142,7 @@ export const gopro_equirectangular = async (fileObject) => {
   const status = {
     camera: fileObject?.camera,
     step: "equirectangular",
-    message: "idle",
+    message: "waiting",
     filename,
     progress: 0,
     url: "",
