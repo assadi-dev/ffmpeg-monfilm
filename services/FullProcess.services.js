@@ -78,7 +78,7 @@ export const full_process_insv = async (fileObject) => {
       room,
       filename: filename,
       input: equirectantangular.output,
-      output: `${upload_dir}\\${lowFilename}`,
+      output: `${upload_dir}${DIRECTORY_SEPARATOR}${lowFilename}`,
     };
     const compress_response = await video_compress(fileObjetctCompress);
     let high_quality = equirectantangular.output;
