@@ -11,6 +11,10 @@ export const insv_process = (req, res) => {
   const room = req.body?.room;
 
   const fileObject = req.body?.fileObject;
+  fileObject.room = room.toString();
+  fileObject.camera = req.body?.camera;
+
+  console.log(fileObject);
 
   full_process_insv(fileObject);
 
@@ -30,9 +34,9 @@ export const test_gopro_process = (req, res) => {
   const idProjectVideo = req.body?.idProjectVideo;
   const room = req.body?.room;
   const fileObject = new ObjectFileTest("gopro").get_random_project();
-  fileObject.room = room;
 
-  console.log(room);
+  fileObject.room = room.toString();
+  fileObject.camera = camera;
 
   try {
     // ws.to(channel_id).emit("hello");
@@ -55,7 +59,6 @@ export const gopro_process = (req, res) => {
   fileObject.camera = camera;
 
   try {
-    //  ws.to(room).emit("start", );
     full_process_gopro(fileObject);
     return res.json({ message: "processus en cours" });
   } catch (error) {

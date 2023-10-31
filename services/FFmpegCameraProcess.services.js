@@ -34,12 +34,21 @@ import { ws } from "../index.js";
  */
 export const merge_insv = async (fileObject) => {
   const { ffmpeg } = new FFmpegInstance();
-  /*  const filename = files.filename;
-  const input = `${__dirname}/uploads/${filename}`; */
-  const finalFilename = fileObject?.filename.replace(
-    ".insv",
-    "_dualfisheye.mp4"
-  );
+  const room = fileObject?.room;
+  let totalDuration = 0;
+  const filename = fileObject?.filename;
+
+  const finalFilename = filename.replace(".insv", "_dualfisheye.mp4");
+
+  const status = {
+    camera: fileObject?.camera,
+    step: "fusion",
+    message: "wait",
+    filename,
+    progress: 0,
+    url: "",
+    error: "",
+  };
 
   const front = fileObject?.front;
   const back = fileObject?.back;
@@ -53,7 +62,12 @@ export const merge_insv = async (fileObject) => {
       .complexFilter("hstack")
       .outputOptions(["-c:v", "libx264", "-c:a", "aac"])
       .output(output)
-      /*   .on("start", (cmdline) => console.log(cmdline)) */
+      .on("start", (cmdline) => {
+        console.log(`start fusion insv process for ${filename}`);
+        status.message = "start";
+        status.step = "fusion";
+        ws.to(room).emit("start", status);
+      })
 
       /*      .on("stderr", function (stderrLine) {
         console.log("Stderr output: " + stderrLine);
@@ -62,15 +76,30 @@ export const merge_insv = async (fileObject) => {
         totalDuration = parseInt(data.duration.replace(/:/g, ""));
         console.log(totalDuration);
       })
-      .on("progress", logProgress)
+      .on(
+        "progress",
+        ffmpegOnProgress((progress) => {
+          status.message = "progress";
+          return emitProgress(progress, room, status);
+        }),
+        totalDuration
+      )
+
       .on("end", () => {
         console.log(`Finished fusion for ${fileObject?.filename}`);
-        // unlink(`${upload_dir}\\${filename}`);
+
+        status.message = "done";
+        status.progress = 100;
+        ws.to(room).emit("end", status);
+
         const result = { filename: finalFilename, output };
         resolve(result);
       })
       .on("error", (error) => {
         console.log(error.message);
+        status.error = error.message;
+        status.message = "error";
+        ws.to(room).emit("error", status);
       })
       .run();
   });
@@ -85,9 +114,20 @@ export const merge_insv = async (fileObject) => {
  */
 export const insv_equirectangular = async (fileObject) => {
   const { ffmpeg } = new FFmpegInstance();
-
+  const filename = fileObject.filename;
   const input = fileObject.output;
   const output = fileObject.output.replace("_dualfisheye.mp4", ".mp4");
+
+  const status = {
+    camera: fileObject?.camera,
+    step: "equirectangular",
+    message: "wait",
+    filename,
+    progress: 0,
+    url: "",
+    error: "",
+  };
+
   const ffmpegCommand = ffmpeg;
   return new Promise((resolve) => {
     ffmpegCommand
@@ -95,22 +135,40 @@ export const insv_equirectangular = async (fileObject) => {
       .videoFilters("v360=dfisheye:equirect:ih_fov=190:iv_fov=190:roll=90")
       .outputOptions(["-c:v", "libx264", "-c:a", "aac"])
       .output(output)
-      /*  .on("start", (cmdline) => console.log(cmdline)) */
+      .on("start", (cmdline) => {
+        console.log(`start equirectangular insv process for ${filename}`);
+        status.message = "start";
+        status.step = "equirectangular";
+        ws.to(room).emit("start", status);
+      })
       /*    .on("stderr", function (stderrLine) {
         console.log("Stderr output: " + stderrLine);
       }) */
-      .on("progress", (progress) => console.log(progress))
+      .on(
+        "progress",
+        ffmpegOnProgress((progress) => {
+          status.message = "progress";
+          return emitProgress(progress, room, status);
+        }),
+        totalDuration
+      )
       .on("end", () => {
-        console.log(`Finished processing for ${fileObject.filename}`);
+        console.log(`Finished equrectangular insv processing for ${filename}`);
         const result = {
           filename: fileObject.filename.replace("_dualfisheye.mp4", ".mp4"),
           output,
         };
-        unlink(input);
+        status.message = "done";
+        status.progress = 100;
+        ws.to(room).emit("end", status);
+
         resolve(result);
       })
       .on("error", (error) => {
         console.log(error.message);
+        status.error = error.message;
+        status.message = "error";
+        ws.to(room).emit("error", status);
       })
       .run();
   });
@@ -142,7 +200,7 @@ export const gopro_equirectangular = async (fileObject) => {
   const status = {
     camera: fileObject?.camera,
     step: "equirectangular",
-    message: "waiting",
+    message: "wait",
     filename,
     progress: 0,
     url: "",
@@ -175,7 +233,7 @@ export const gopro_equirectangular = async (fileObject) => {
         console.log("Stderr output: " + stderrLine);
       }) */
       .on("start", () => {
-        console.log(`start gopro process for ${room}`);
+        console.log(`start gopro process for ${rofilenameom}`);
         status.message = "start";
         status.step = "equirectangular";
         ws.to(room).emit("start", status);
@@ -195,8 +253,7 @@ export const gopro_equirectangular = async (fileObject) => {
       )
 
       .on("end", () => {
-        console.log("Finished processing");
-        // unlink(`${upload_dir}\\${filename}`);
+        console.log(`Finished equirectangular for ${filename}`);
 
         const result = { filename: output, output: destination };
         status.message = "done";

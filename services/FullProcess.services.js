@@ -43,8 +43,15 @@ export const full_process_gopro = async (fileObject) => {
 };
 
 export const full_process_insv = async (fileObject) => {
+  const room = fileObject?.room;
+  let status = feedbackStatus;
+  status.camera = "insv";
+  status.step = "fusion";
+  status.filename = fileObject.filename;
+
   try {
     console.log(`start Fusion insv for ${fileObject.filename}`);
+    ws.to(room).emit("start", status);
     const fusion = await merge_insv(fileObject);
     console.log(`start equirectangular insv for ${fusion.filename}`);
     const equirectantangular = await insv_equirectangular(fusion);
