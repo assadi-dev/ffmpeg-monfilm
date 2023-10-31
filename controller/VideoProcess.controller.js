@@ -49,6 +49,7 @@ export const gopro_process = (req, res) => {
   const idProjectVideo = req.body?.idProjectVideo;
   const room = req.body?.room;
   const camera = req.body?.camera;
+  console.log(req.body);
   const fileObject = req.body?.fileObject;
 
   fileObject.room = room.toString();
