@@ -74,7 +74,6 @@ export const merge_insv = async (fileObject) => {
       }) */
       .on("codecData", (data) => {
         totalDuration = parseInt(data.duration.replace(/:/g, ""));
-        console.log(totalDuration);
       })
       .on(
         "progress",
@@ -146,7 +145,6 @@ export const insv_equirectangular = async (fileObject) => {
       .on("codecData", (data) => {
         // HERE YOU GET THE TOTAL TIME
         totalDuration = parseInt(data.duration.replace(/:/g, ""));
-        console.log(totalDuration);
       })
       /*    .on("stderr", function (stderrLine) {
         console.log("Stderr output: " + stderrLine);
@@ -251,7 +249,6 @@ export const gopro_equirectangular = async (fileObject) => {
       .on("codecData", (data) => {
         // HERE YOU GET THE TOTAL TIME
         totalDuration = parseInt(data.duration.replace(/:/g, ""));
-        console.log(totalDuration);
       })
       .on(
         "progress",
