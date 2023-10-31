@@ -52,18 +52,18 @@ export const full_process_insv = async (fileObject) => {
   status.filename = filename;
 
   try {
-    // console.log(`wait fusion insv for ${filename}`);
+    console.log(`wait fusion insv for ${filename}`);
     ws.to(room).emit("start", status);
-    //const fusion = await merge_insv(fileObject);
-    let test = {
+    const fusion = await merge_insv(fileObject);
+    let toEquirectangular = {
       room,
-      filename,
-      finalFilename: "VID_20181108_115140_00_012_dualfisheye.mp4",
-      input: `${upload_dir}${DIRECTORY_SEPARATOR}VID_20181108_115140_00_012_dualfisheye.mp4`,
+      filename: fusion.filename,
+      finalFilename: fusion.finalFilename,
+      input: fusion.output,
     };
     console.log(`wait equirectangular insv for ${filename}`);
 
-    const equirectantangular = await insv_equirectangular(test);
+    const equirectantangular = await insv_equirectangular(toEquirectangular);
     unlinkSync(test.input);
 
     console.log(`wait compress insv for ${filename}`);
