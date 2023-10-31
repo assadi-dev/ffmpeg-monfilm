@@ -16,7 +16,7 @@ export const insv_process = (req, res) => {
 
   full_process_insv(fileObject);
 
-  return res.json({ message: "processus en cours" });
+  return res.json({ message: "processus en cours", fileObject });
 };
 
 export const test_insv_process = (req, res) => {
@@ -59,7 +59,7 @@ export const gopro_process = (req, res) => {
 
   try {
     full_process_gopro(fileObject);
-    return res.json({ message: "processus en cours" });
+    return res.json({ message: "processus en cours", fileObject });
   } catch (error) {
     return res.status(500).json({
       message: error?.message,
