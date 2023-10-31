@@ -39,6 +39,10 @@ export const full_process_gopro = async (fileObject) => {
 
     console.table({ high_quality, low_quality });
   } catch (error) {
+    console.log(error.message);
+    status.error = error.message;
+    status.message = "error";
+    ws.to(room).emit("error", status);
     return error;
   }
 };
@@ -64,7 +68,7 @@ export const full_process_insv = async (fileObject) => {
     console.log(`wait equirectangular insv for ${filename}`);
 
     const equirectantangular = await insv_equirectangular(toEquirectangular);
-    unlinkSync(test.input);
+    unlinkSync(toEquirectangular.input);
 
     console.log(`wait compress insv for ${filename}`);
     const lowFilename = equirectantangular.filename.replace(".mp4", "_low.mp4");
@@ -85,7 +89,7 @@ export const full_process_insv = async (fileObject) => {
     console.log(error.message);
     status.error = error.message;
     status.message = "error";
-    ws.to(room).emit("error");
+    ws.to(room).emit("error", status);
     return error;
   }
 };
