@@ -233,7 +233,7 @@ export const gopro_equirectangular = async (fileObject) => {
         console.log("Stderr output: " + stderrLine);
       }) */
       .on("start", () => {
-        console.log(`start gopro process for ${rofilenameom}`);
+        console.log(`start gopro process for ${filename}`);
         status.message = "start";
         status.step = "equirectangular";
         ws.to(room).emit("start", status);
@@ -383,7 +383,7 @@ const logProgress = (progress) => {
 };
 
 const emitProgress = (progress, room, status) => {
-  console.log("start progress", status.filename);
+  //console.log("start progress", status.filename);
   status.progress = Number((progress * 100).toFixed());
   ws.to(room).emit("progress", status);
 };
