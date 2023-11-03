@@ -12,8 +12,6 @@ import request from "request";
 import { writeFile } from "fs/promises";
 import path from "path";
 import streamToArray from "stream-to-array";
-import Context from "swift/context.js";
-import storage from "swift/storage.js";
 
 export const upload_gopro = (req, res) => {
   const idProjectvideo = req.body?.idProjectvideo;
@@ -38,7 +36,17 @@ export const upload_ovh = async (req, res) => {
     };
 
     let authToken;
-    //const tinyStorage = TinyStorage(credentials);
+    const tinyStorage = TinyStorage(credentials);
+
+    tinyStorage.connection(async (err) => {
+      if (err) {
+        console.log(err);
+      }
+      console.log("connected");
+      authToken = tinyStorage.getConfig().token;
+
+      uploadLargeFile();
+    });
 
     const container = "media";
     const endpoint =
@@ -58,17 +66,59 @@ export const upload_ovh = async (req, res) => {
         "X-Object-Manifest": `${container}/${remoteFileName}`,
       };
 
-      const ctx = await Context.build(credentials);
+      let offset = 0;
+      let segmentNumber = 1;
 
-      const res = await storage.putFile(
-        ctx,
-        localFilePath,
-        container,
-        remoteFileName
-      );
-      console.log(res);
+      const readAndUploadChunk = async () => {
+        const start = offset;
+        const end = Math.min(offset + chunkSize, totalFileSize) - 1;
+        const contentLength = end - start + 1;
+
+        const fileStream = fs.createReadStream(localFilePath, { start, end });
+
+        streamToArray(fileStream)
+          .then((array) => {
+            const chunkBuffer = Buffer.concat(array);
+            const formData = new FormData();
+            formData.append(remoteFileName, chunkBuffer, {
+              filename: remoteFileName,
+              knownLength: contentLength,
+            });
+            const uploadUrl = `${endpoint}/${remoteFileName}`;
+            fetch(uploadUrl, {
+              method: "PUT",
+              headers,
+              body: formData,
+            })
+              .then((response) => {
+                if (response.ok) {
+                  console.log(
+                    `Uploaded chunk starting at offset ${start} - ${end}`
+                  );
+                  offset = end + 1;
+
+                  if (offset < totalFileSize) {
+                    readAndUploadChunk(); // Continue with the next chunk
+                  } else {
+                    console.log("Large video uploaded successfully.");
+                  }
+                } else {
+                  console.error(
+                    `Failed to upload chunk starting at offset ${start} - ${end}`
+                  );
+                }
+              })
+              .catch((error) => {
+                console.error("Error uploading chunk:", error);
+              });
+          })
+          .catch((err) => {
+            console.error("Error reading the chunk:", err);
+          });
+      };
+      readAndUploadChunk();
     };
-    uploadLargeFile();
+
     res.json("ok");
   } catch (error) {
     const message = error.message;
