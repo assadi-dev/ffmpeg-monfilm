@@ -29,8 +29,9 @@ export const flow_upload = (req, res) => {
     }
 
     // Check if all chunks have been received
+    const expectedChunks = Math.ceil(flowTotalSize / flowChunkSize);
     const chunkNumbers = Array.from(
-      { length: Math.ceil(flowTotalSize / flowChunkSize) },
+      { length: expectedChunks },
       (_, i) => i + 1
     );
     const allChunksReceived = chunkNumbers.every((num) =>
@@ -46,6 +47,8 @@ export const flow_upload = (req, res) => {
       chunkNumbers.forEach((num) => {
         const chunkPath = path.join(chunkDirectory, `${flowIdentifier}.${num}`);
         const chunkData = fs.readFileSync(chunkPath);
+
+        // Append the chunk data to the complete file
         writeStream.write(chunkData);
         if (existsSync(chunkPath)) {
           fs.unlinkSync(chunkPath); // Clean up the chunk after assembling it
@@ -56,6 +59,7 @@ export const flow_upload = (req, res) => {
 
       console.log(`File ${filename_timestamp} has been successfully assembled`);
 
+      // Respond with success
       return res.status(200).json({
         message: "File successfully uploaded",
         filename: filename_timestamp,
