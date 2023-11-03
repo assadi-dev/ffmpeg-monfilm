@@ -12,16 +12,11 @@ export const flow_upload = (req, res) => {
     flowFilename,
   } = req.body;
 
-  console.log(
-    flowChunkNumber,
-    flowChunkSize,
-    flowTotalSize,
-    flowIdentifier,
-    flowFilename
-  );
-
   const chunkDirectory = `${upload_dir}${DIRECTORY_SEPARATOR}chunk`;
   const completeDirectory = `${upload_dir}`;
+
+  const dt = new Date();
+  const filename_timestamp = `${dt.getTime()}_${flowFilename}`;
 
   const chunkFilename = `${flowIdentifier}.${flowChunkNumber}`;
   const chunkPath = path.join(chunkDirectory, chunkFilename);
@@ -44,7 +39,7 @@ export const flow_upload = (req, res) => {
 
     if (allChunksReceived) {
       // All chunks have been received; assemble the complete file
-      const completeFilePath = path.join(completeDirectory, flowFilename);
+      const completeFilePath = path.join(completeDirectory, filename_timestamp);
       const writeStream = fs.createWriteStream(completeFilePath);
       writeStream.setMaxListeners(chunkNumbers.length + 1);
 
@@ -59,9 +54,12 @@ export const flow_upload = (req, res) => {
 
       writeStream.end();
 
-      console.log(`File ${flowFilename} has been successfully assembled`);
+      console.log(`File ${filename_timestamp} has been successfully assembled`);
 
-      return res.status(200).json({ message: "File successfully uploaded" });
+      return res.status(200).json({
+        message: "File successfully uploaded",
+        filename: filename_timestamp,
+      });
     } else {
       return res.status(200).json({ message: "Chunk uploaded successfully" });
     }
