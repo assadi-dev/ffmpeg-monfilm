@@ -4,6 +4,8 @@ import dotenv from "dotenv";
 import { Server } from "socket.io";
 import corsOptions from "./config/cors.config.js";
 import os from "os";
+import { existsSync, mkdirSync } from "fs";
+import { upload_dir } from "./config/constant.config.js";
 
 dotenv.config();
 
@@ -23,6 +25,11 @@ ws.on("connection", (socket) => {
     console.log(message);
   });
 });
+
+//Init folder
+if (!existsSync(upload_dir)) {
+  mkdirSync(upload_dir);
+}
 
 server.listen(port, () => {
   console.log(`server on port ${port}`);
