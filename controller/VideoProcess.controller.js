@@ -39,6 +39,7 @@ export const test_gopro_process = (req, res) => {
 
   try {
     // ws.to(channel_id).emit("hello");
+
     full_process_gopro(fileObject);
     return res.json({ message: "processus en cours", fileObject });
   } catch (error) {
@@ -51,15 +52,36 @@ export const test_gopro_process = (req, res) => {
 export const gopro_process = (req, res) => {
   const idProjectVideo = req.body?.idProjectVideo;
   const room = req.body?.room;
+  const files = req?.body.files;
   const camera = req.body?.camera;
-  const fileObject = req.body?.fileObject;
-
-  fileObject.room = room.toString();
-  fileObject.camera = camera;
+  const count = files.length;
 
   try {
-    full_process_gopro(fileObject);
-    return res.json({ message: "processus en cours", fileObject });
+    const filesProcess = [];
+
+    for (const fileObject of files) {
+      fileObject.room = room.toString();
+      fileObject.camera = camera;
+
+      const value = {
+        id: fileObject.id,
+        filename: fileObject.filename,
+        camera: fileObject.camera,
+        progress: 0,
+      };
+
+      filesProcess.push(value);
+
+      full_process_gopro(fileObject);
+    }
+
+    return res.json({
+      message: "processus en cours",
+      room,
+      camera,
+      filesProcess,
+      count,
+    });
   } catch (error) {
     return res.status(500).json({
       message: error?.message,

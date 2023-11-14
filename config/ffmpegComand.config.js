@@ -31,4 +31,5 @@ export const feedbackStatus = {
   url: "",
   low: "",
   error: "",
+  files: [],
 };

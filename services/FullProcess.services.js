@@ -10,16 +10,16 @@ import {
 import { unlinkSync } from "fs";
 
 export const full_process_gopro = async (fileObject) => {
-  try {
-    const room = fileObject?.room;
-    const id = fileObject.id;
+  const room = fileObject?.room;
+  const id = fileObject.id;
+  let statusStep = feedbackStatus;
+  statusStep.id = id;
+  statusStep.camera = "gopro";
+  statusStep.step = "equirectangular";
+  statusStep.filename = fileObject.filename;
 
+  try {
     console.log(`wait gopro equirectangular for ${fileObject.filename}`);
-    let statusStep = feedbackStatus;
-    statusStep.id = id;
-    statusStep.camera = "gopro";
-    statusStep.step = "equirectangular";
-    statusStep.filename = fileObject.filename;
 
     ws.to(room).emit("start", statusStep);
     const equirectangular = await gopro_equirectangular(fileObject);
@@ -45,7 +45,7 @@ export const full_process_gopro = async (fileObject) => {
     console.log(error.message);
     statusStep.error = error.message;
     statusStep.message = "error";
-    ws.to(room).emit("error", status);
+    ws.to(room).emit("error", statusStep);
     return error;
   }
 };
