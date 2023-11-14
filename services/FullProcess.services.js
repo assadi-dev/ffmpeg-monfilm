@@ -75,7 +75,7 @@ export const full_process_insv = async (fileObject) => {
     console.log(`wait equirectangular insv for ${filename}`);
 
     const equirectantangular = await insv_equirectangular(toEquirectangular);
-    unlinkSync(toEquirectangular.input);
+    //unlinkSync(toEquirectangular.input);
 
     console.log(`wait compress insv for ${filename}`);
     const lowFilename = equirectantangular.filename.replace(".mp4", "_low.mp4");

@@ -25,6 +25,8 @@ export const insv_process = (req, res) => {
 
       filesProcess.push(value);
 
+      // console.log(files);
+
       full_process_insv(fileObject);
     }
 
