@@ -8,6 +8,10 @@ import {
 import upload from "../middlewares/upload.middleware.js";
 import { upload_gopro } from "../controller/UploadFile.controller.js";
 import { test_ffmpeg } from "../services/FFmpegCameraProcess.services.js";
+import {
+  export_project,
+  merges_input,
+} from "../controller/VideoExport.controller.js";
 
 const videoProcessRouter = Router();
 
@@ -22,5 +26,7 @@ videoProcessRouter.post("/upload/gopro", upload.any("file"), upload_gopro);
 //Process
 videoProcessRouter.post("/process/insv", insv_process);
 videoProcessRouter.post("/process/gopro", gopro_process);
+videoProcessRouter.post("/export/process", export_project);
+videoProcessRouter.post("/concatenate/process", merges_input);
 
 export default videoProcessRouter;
