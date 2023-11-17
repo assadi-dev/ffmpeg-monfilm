@@ -18,7 +18,7 @@ import { resolve } from "path";
  * @param {*} scene
  * @param {*} output
  */
-export const splitPart = async (scene, projectName, output) => {
+export const split_videos = async (scene, projectName, output) => {
   const { ffmpeg } = new FFmpegInstance();
 
   const export_file = `${upload_dir}${DIRECTORY_SEPARATOR}export_file${DIRECTORY_SEPARATOR}${projectName}`;
@@ -54,6 +54,8 @@ export const splitPart = async (scene, projectName, output) => {
           "make_zero",
           "-async",
           "1",
+          "-r",
+          "30",
           "-c:v",
           "libx264",
           "-c:a",
@@ -101,7 +103,7 @@ export const splitPart = async (scene, projectName, output) => {
  * @param {*} projetFolder
  * @param {*} output
  */
-export const concatenate_inputs = (listInput, projetFolder, output) => {
+export const concatenate_videos = (listInput, projetFolder, output) => {
   try {
     const { ffmpeg } = new FFmpegInstance();
     const export_file = `${upload_dir}${DIRECTORY_SEPARATOR}export_file${DIRECTORY_SEPARATOR}${projetFolder}`;
@@ -180,47 +182,95 @@ export const splitAudioPart = (audio, projectName, output) => {
 
   try {
     const volumeDefault = audio.volume ? 0.5 : 0;
-    const promise = new Promise((resolve) => {});
+    const promise = new Promise((resolve) => {
+      ffmpeg
+        .addInput(input)
+        .seekInput(timeToStart)
+        .withDuration(timeDuration)
+        .withAudioFilters([`volume=${volumeDefault}`])
+        .outputOptions([
+          "-avoid_negative_ts",
+          "make_zero",
+          "-async",
+          "1",
+          "-c:a",
+          "libmp3lame",
+        ])
+        .output(destination)
+        .on("codecData", (data) => {
+          totalDuration = parseInt(data.duration.replace(/:/g, ""));
+        })
+        .on(
+          "progress",
+          ffmpegOnProgress((progress) => {
+            console.log(Math.round(progress * 100));
+          }),
+          totalDuration
+        )
 
-    ffmpeg
-      .addInput(input)
-      .seekInput(timeToStart)
-      .withDuration(timeDuration)
-      .withAudioFilters([`volume=${volumeDefault}`])
-      .outputOptions([
-        "-avoid_negative_ts",
-        "make_zero",
-        "-async",
-        "1",
-        "-c:a",
-        "libmp3lame",
-      ])
-      .output(destination)
-      .on("codecData", (data) => {
-        totalDuration = parseInt(data.duration.replace(/:/g, ""));
-      })
-      .on(
-        "progress",
-        ffmpegOnProgress((progress) => {
-          console.log(Math.round(progress * 100));
-        }),
-        totalDuration
-      )
+        .on("end", () => {
+          console.log(`Finished split`);
+          console.log(100);
 
-      .on("end", () => {
-        console.log(`Finished split`);
-        console.log(100);
+          // ws.to(room).emit("end", status);
 
-        // ws.to(room).emit("end", status);
+          resolve(destination);
+        })
+        .on("error", (error) => {
+          console.log(error.message);
+          // ws.to(room).emit("error", status);
+        })
 
-        resolve(destination);
-      })
-      .on("error", (error) => {
-        console.log(error.message);
-        // ws.to(room).emit("error", status);
-      })
+        .run();
+    });
 
-      .run();
+    return promise;
+  } catch (error) {
+    console.log(error.message);
+  }
+};
+
+export const concatenate_audios = (splited_audios, projectName, output) => {
+  const { ffmpeg } = new FFmpegInstance();
+
+  const export_file = `${upload_dir}${DIRECTORY_SEPARATOR}export_file${DIRECTORY_SEPARATOR}${projectName}`;
+  const destination = `${export_file}${DIRECTORY_SEPARATOR}${output}`;
+
+  const count = splited_audios.length;
+  let filterCommandIn = "";
+  let filterConcatComand = `concat=n=${count}:v=0:a=1[aout]`;
+
+  try {
+    const promise = new Promise((resolve) => {
+      for (const index in splited_audios) {
+        const input = splited_audios[index];
+        ffmpeg.addInput(input);
+
+        filterCommandIn += `[${index}:a]`;
+      }
+      filterConcatComand = `${filterCommandIn}${filterConcatComand}`;
+      ffmpeg
+        .complexFilter(filterConcatComand)
+        .outputOptions(["-map [aout]"])
+
+        .output(destination)
+        .on("start", (cmdline) => {
+          console.log(`start concate`, cmdline);
+        })
+        .on("progress", () => {
+          console.log("progress");
+        })
+        .on("end", () => {
+          console.log(`Finished audio concate`);
+          console.log(100);
+        })
+        .on("error", (error) => {
+          console.log(error.message);
+          // ws.to(room).emit("error", status);
+        })
+
+        .run();
+    });
 
     return promise;
   } catch (error) {
@@ -237,3 +287,5 @@ function getToSecondes($seconds) {
   return $timeFormat;
 }
  */
+
+//Final filter: -y -filter_complex "[1:a]volume=0.1[music];[music][0:a]amix=inputs=2[outa]"-map 0:v -map "[outa]" output_video.mp4

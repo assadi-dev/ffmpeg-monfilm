@@ -1,7 +1,8 @@
 import {
-  concatenate_inputs,
-  splitPart,
+  concatenate_videos,
   splitAudioPart,
+  concatenate_audios,
+  split_videos,
 } from "../services/FFmpegExportProcess.services.js";
 
 export const export_project = (req, res) => {
@@ -42,20 +43,22 @@ export const generate_finalOutput = async (
   const splited_videos = [];
   const splited_audios = [];
   console.log("des fichier videos");
-  /*   for (const scenePos in scenes) {
+  for (const scenePos in scenes) {
     let scene = scenes[scenePos];
     const sceneOut = `${projectName}-video-part-${scenePos}.mp4`;
-    const spliFile = await splitPart(scene, projectName, sceneOut);
+    const spliFile = await split_videos(scene, projectName, sceneOut);
     splited_videos.push(spliFile);
   }
-  const outputFile = `${projectName}.mp4`;
+  const outputConcatenateVideo = `final-video-${projectName}.mp4`;
   console.log("Concatenation des fichiers videos");
-  concatenate_inputs(splited_videos, projectName, outputFile); */
+  concatenate_videos(splited_videos, projectName, outputConcatenateVideo);
   console.log("Split des fichiers audios");
   for (const audioPos in audios) {
     let audio = audios[audioPos];
-    const audiOut = `${projectName}-video-part-${audioPos}.mp3`;
+    const audiOut = `${projectName}-audio-part-${audioPos}.mp3`;
     const spliitFileAudio = await splitAudioPart(audio, projectName, audiOut);
     splited_audios.push(spliitFileAudio);
   }
+  const outputConcatenateAudio = `final-audio-${projectName}.mp3`;
+  // concatenate_audios(splited_audios, projectName, outputConcatenateAudio);
 };
