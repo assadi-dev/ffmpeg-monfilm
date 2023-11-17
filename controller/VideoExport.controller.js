@@ -3,6 +3,7 @@ import {
   splitAudioPart,
   concatenate_audios,
   split_videos,
+  files_mapping,
 } from "../services/FFmpegExportProcess.services.js";
 
 export const export_project = (req, res) => {
@@ -42,7 +43,7 @@ export const generate_finalOutput = async (
 ) => {
   const splited_videos = [];
   const splited_audios = [];
-  console.log("des fichier videos");
+  console.log("split des fichier videos");
   for (const scenePos in scenes) {
     let scene = scenes[scenePos];
     const sceneOut = `${projectName}-video-part-${scenePos}.mp4`;
@@ -51,7 +52,12 @@ export const generate_finalOutput = async (
   }
   const outputConcatenateVideo = `final-video-${projectName}.mp4`;
   console.log("Concatenation des fichiers videos");
-  concatenate_videos(splited_videos, projectName, outputConcatenateVideo);
+  const mergedVideos = await concatenate_videos(
+    splited_videos,
+    projectName,
+    outputConcatenateVideo
+  );
+  console.log("mergedVideos:", mergedVideos);
   console.log("Split des fichiers audios");
   for (const audioPos in audios) {
     let audio = audios[audioPos];
@@ -60,5 +66,20 @@ export const generate_finalOutput = async (
     splited_audios.push(spliitFileAudio);
   }
   const outputConcatenateAudio = `final-audio-${projectName}.mp3`;
-  // concatenate_audios(splited_audios, projectName, outputConcatenateAudio);
+  const mergedAudio = await concatenate_audios(
+    splited_audios,
+    projectName,
+    outputConcatenateAudio
+  );
+  console.log("mergedAudio:", mergedAudio);
+
+  console.log("Mapping fichiers video eet audios");
+  const finalOutput = `${projectName}.mp4`;
+  const final_result = await files_mapping(
+    mergedVideos,
+    mergedAudio,
+    projectName,
+    finalOutput
+  );
+  console.log("final:", final_result);
 };

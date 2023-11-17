@@ -107,50 +107,51 @@ export const concatenate_videos = (listInput, projetFolder, output) => {
   try {
     const { ffmpeg } = new FFmpegInstance();
     const export_file = `${upload_dir}${DIRECTORY_SEPARATOR}export_file${DIRECTORY_SEPARATOR}${projetFolder}`;
-    const tempFolder = `${export_file}${DIRECTORY_SEPARATOR}/tmp`;
-
     if (!existsSync(export_file)) {
       mkdirSync(export_file, { recursive: true });
       chmodSync(export_file, 777);
     }
 
-    const destination = `${export_file}${DIRECTORY_SEPARATOR}${output}`;
-    const count = listInput.length;
-    let filterCommandIn = "";
-    let filterCommandOut = "";
-    let filterConcatComand = `concat=n=${count}:v=1:a=1`;
-    const resolution = "720:406";
+    const promise = new Promise((resolve) => {
+      const destination = `${export_file}${DIRECTORY_SEPARATOR}${output}`;
+      const count = listInput.length;
+      let filterCommandIn = "";
+      let filterCommandOut = "";
+      let filterConcatComand = `concat=n=${count}:v=1:a=1`;
+      const resolution = "720:406";
 
-    for (const index in listInput) {
-      const input = listInput[index];
-      ffmpeg.addInput(input);
+      for (const index in listInput) {
+        const input = listInput[index];
+        ffmpeg.addInput(input);
 
-      filterCommandIn += `scale=${resolution},pad=${resolution},setsar=1[v${index}];`;
-      filterCommandOut += `[v${index}][${index}:a]`;
-    }
-    filterConcatComand = `${filterCommandIn}${filterCommandOut}${filterConcatComand}[v][a]`;
+        filterCommandIn += `scale=${resolution},pad=${resolution},setsar=1[v${index}];`;
+        filterCommandOut += `[v${index}][${index}:a]`;
+      }
+      filterConcatComand = `${filterCommandIn}${filterCommandOut}${filterConcatComand}[v][a]`;
 
-    ffmpeg
-      .complexFilter(filterConcatComand)
-      .outputOptions(["-map [v]", "-map [a]", "-vsync 2"])
+      ffmpeg
+        .complexFilter(filterConcatComand)
+        .outputOptions(["-map [v]", "-map [a]", "-vsync 2"])
+        .output(destination)
+        .on("start", (cmdline) => {
+          //console.log(`start concate`, cmdline);
+        })
+        .on("progress", () => {
+          console.log("progress");
+        })
+        .on("end", () => {
+          console.log(`Finished concate`);
+          console.log(100);
+          resolve(destination);
+        })
+        .on("error", (error) => {
+          console.log(error.message);
+          // ws.to(room).emit("error", status);
+        })
+        .run();
+    });
 
-      .output(destination)
-      .on("start", (cmdline) => {
-        //console.log(`start concate`, cmdline);
-      })
-      .on("progress", () => {
-        console.log("progress");
-      })
-      .on("end", () => {
-        console.log(`Finished concate`);
-        console.log(100);
-      })
-      .on("error", (error) => {
-        console.log(error.message);
-        // ws.to(room).emit("error", status);
-      })
-
-      .run();
+    return promise;
   } catch (error) {
     console.log(error.message);
   }
@@ -252,10 +253,9 @@ export const concatenate_audios = (splited_audios, projectName, output) => {
       ffmpeg
         .complexFilter(filterConcatComand)
         .outputOptions(["-map [aout]"])
-
         .output(destination)
         .on("start", (cmdline) => {
-          console.log(`start concate`, cmdline);
+          //console.log(`start concate`, cmdline);
         })
         .on("progress", () => {
           console.log("progress");
@@ -263,6 +263,54 @@ export const concatenate_audios = (splited_audios, projectName, output) => {
         .on("end", () => {
           console.log(`Finished audio concate`);
           console.log(100);
+          resolve(destination);
+        })
+        .on("error", (error) => {
+          console.log(error.message);
+          // ws.to(room).emit("error", status);
+        })
+
+        .run();
+    });
+
+    return promise;
+  } catch (error) {
+    console.log(error.message);
+  }
+};
+
+export const files_mapping = (videoFile, audioFile, projectName, output) => {
+  try {
+    const { ffmpeg } = new FFmpegInstance();
+
+    const export_file = `${upload_dir}${DIRECTORY_SEPARATOR}export_file${DIRECTORY_SEPARATOR}${projectName}`;
+    const destination = `${export_file}${DIRECTORY_SEPARATOR}${output}`;
+    const filterComand = `[1:a]adelay=1000|1000[a];[0:a]adelay=1000|1000[va];[a][va]amix=inputs=2[out]`;
+
+    const promise = new Promise((resolve) => {
+      ffmpeg
+        .addInput(videoFile)
+        .addInput(audioFile)
+        .complexFilter(filterComand)
+        .outputOptions([
+          "-map [out]",
+          "-map 0:v",
+          "-c:v",
+          "libx264",
+          "-c:a",
+          "aac",
+        ])
+        .output(destination)
+        .on("start", (cmdline) => {
+          // console.log(`start concate`, cmdline);
+        })
+        .on("progress", () => {
+          console.log("progress");
+        })
+        .on("end", () => {
+          console.log(`Finished audio concate`);
+          console.log(100);
+          resolve(destination);
         })
         .on("error", (error) => {
           console.log(error.message);
