@@ -33,3 +33,11 @@ export const feedbackStatus = {
   error: "",
   files: [],
 };
+
+/**
+ * nom des different etape du process ffmpeg à publier
+ */
+export const eventFeedbackPublish = {
+  export: "export-project-video",
+  error: "error",
+};
