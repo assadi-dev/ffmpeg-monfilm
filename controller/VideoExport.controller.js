@@ -12,6 +12,7 @@ export const export_project = (req, res) => {
     //Génération des split videos
     generate_finalOutput(room, scenes, audios, projectName, maxDuration);
     const content = {
+      room,
       message: "process en cours",
       scenes,
       audios,
@@ -96,7 +97,8 @@ export const generate_finalOutput = async (
     mergedAudio,
     projectName,
     finalOutput,
-    room
+    room,
+    maxDuration
   );
   console.log("final:", final_result);
 };

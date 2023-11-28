@@ -39,8 +39,8 @@ export const split_videos = async (scene, projectName, output, room) => {
   const durationEstimate = secToMill(timeDuration);
 
   const status = {
-    id: scene.id,
     step: "split-video",
+    id: scene.id,
     message: "wait",
     progress: 0,
     filename: scene.filename,
@@ -230,8 +230,8 @@ export const splitAudioPart = (audio, projectName, output, room) => {
   const durationEstimate = timeDuration * 1000;
 
   const status = {
-    id: audio.id,
     step: "split-audio",
+    id: audio.id,
     message: "wait",
     progress: 0,
     filename: "",
@@ -383,14 +383,24 @@ export const files_mapping = (
   audioFile,
   projectName,
   output,
-  room
+  room,
+  maxDuration
 ) => {
+  const export_file = `${upload_dir}${DIRECTORY_SEPARATOR}export_file${DIRECTORY_SEPARATOR}${projectName}`;
+  const destination = `${export_file}${DIRECTORY_SEPARATOR}${output}`;
+  const filterComand = `[1:a]adelay=1000|1000[a];[0:a]adelay=1000|1000[va];[a][va]amix=inputs=2[out]`;
+  const durationEstimate = secToMill(maxDuration);
+  const status = {
+    step: "mapping-video",
+    message: "wait",
+    progress: 0,
+    filename: output,
+    duration: maxDuration,
+    error: "",
+  };
+
   try {
     const { ffmpeg } = new FFmpegInstance();
-
-    const export_file = `${upload_dir}${DIRECTORY_SEPARATOR}export_file${DIRECTORY_SEPARATOR}${projectName}`;
-    const destination = `${export_file}${DIRECTORY_SEPARATOR}${output}`;
-    const filterComand = `[1:a]adelay=1000|1000[a];[0:a]adelay=1000|1000[va];[a][va]amix=inputs=2[out]`;
 
     const promise = new Promise((resolve) => {
       ffmpeg
@@ -408,19 +418,28 @@ export const files_mapping = (
         .output(destination)
         .on("start", (cmdline) => {
           // console.log(`start concate`, cmdline);
+          status.message = "start";
+          ws.to(room).emit(eventFeedbackPublish.export, status);
         })
-        .on("progress", () => {
-          console.log("progress");
-        })
+        .on(
+          "progress",
+          ffmpegOnProgress(
+            (progress, event) => logProgress(room, progress, event, status),
+            durationEstimate
+          )
+        )
         .on("end", () => {
           console.log(`Finished audio concate`);
-          console.log(100);
-
+          status.message = "done";
+          status.progress = 100;
+          ws.to(room).emit(eventFeedbackPublish.export, status);
           resolve(destination);
         })
         .on("error", (error) => {
           console.log(error.message);
-          // ws.to(room).emit("error", status);
+          status.message = "error";
+          status.error = error.message;
+          ws.to(room).emit(eventFeedbackPublish.error, status);
         })
 
         .run();
@@ -429,6 +448,9 @@ export const files_mapping = (
     return promise;
   } catch (error) {
     console.log(error.message);
+    status.message = "error";
+    status.error = error.message;
+    ws.to(room).emit(eventFeedbackPublish.error, status);
   }
 };
 
@@ -446,21 +468,17 @@ function getToSecondes($seconds) {
 
 const logSplitProgress = (room, progress, event, status) => {
   const percent = Math.round(progress * 100);
-  const timeElapsed = Math.round(
-    status?.duration - timecodeToSec(event.timemark)
-  );
+  const timeElapsed = timecodeToSec(event.timemark);
 
+  status.elapsed = timeElapsed;
   status.message = "progress";
   status.progress = percent;
-  status.remain = timeElapsed;
   ws.to(room).emit(eventFeedbackPublish.export, status);
 };
 const logProgress = (room, progress, event, status) => {
   const percent = Math.round(progress * 100);
-  const timeElapsed = Math.round(
-    status?.duration - timecodeToSec(event.timemark)
-  );
-  status.remain = timeElapsed;
+  const timeElapsed = timecodeToSec(event.timemark);
+  status.elapsed = timeElapsed;
   status.message = "progress";
   status.progress = percent;
   ws.to(room).emit(eventFeedbackPublish.export, status);
