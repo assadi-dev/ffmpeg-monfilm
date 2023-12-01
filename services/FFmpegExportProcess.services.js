@@ -298,7 +298,7 @@ export const concatenate_combined_videos = (
           )
         )
         .on("end", () => {
-          console.log(`Finished concate`);
+          console.log(`Finished concate video`);
           status.progress = 100;
           status.message = "done";
           ws.to(room).emit(eventFeedbackPublish.export, status);
@@ -729,7 +729,6 @@ export const files_mapping_no_audio = (
           status.error = error.message;
           ws.to(room).emit(eventFeedbackPublish.error, status);
         })
-
         .run();
     });
 

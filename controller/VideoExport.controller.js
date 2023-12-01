@@ -1,8 +1,4 @@
 import {
-  concatenate_videos,
-  splitAudioPart,
-  concatenate_audios,
-  split_videos,
   files_mapping,
   concatenate_combined_videos,
   concatenate_combined_audios,
@@ -51,30 +47,13 @@ export const generate_finalOutput = async (
   projectName,
   maxDuration
 ) => {
-  const splited_videos = [];
-  const splited_audios = [];
-  const listVideosDurations = [];
-  const listAudiosDurations = [];
-  console.log("split des fichier videos");
-  for (const scenePos in scenes) {
-    let scene = scenes[scenePos];
-
-    const { src, start, end, rotate, duration, volume } = scene;
-    const value = { src, start, end, rotate, duration, volume };
-    listVideosDurations.push(duration);
-    splited_videos.push(value);
-  }
-  const outputConcatenateVideo = `${timestamp()}-final-video-${projectName}.mp4`;
   console.log("Concatenation des fichiers videos");
-  const totalPartVideoDuration = calculatSumDuration(listVideosDurations);
-  const mergedVideos = await concatenate_combined_videos(
-    splited_videos,
-    projectName,
-    outputConcatenateVideo,
+  const final_video_input = await concate_process_videos(
     room,
-    totalPartVideoDuration
+    scenes,
+    projectName
   );
-  console.log("mergedVideos:", mergedVideos);
+  console.log("mergedVideos:", final_video_input);
 
   if (audios.length == 0) {
     console.log("Mapping fichiers video no audio");
@@ -88,31 +67,19 @@ export const generate_finalOutput = async (
     );
     console.log("final:", final_result);
   } else {
-    for (const audioPos in audios) {
-      let audio = audios[audioPos];
-
-      const { src, start, end, duration, volume } = audio;
-      const value = { src, start, end, duration, volume };
-      listAudiosDurations.push(duration);
-      splited_audios.push(value);
-    }
-    const outputConcatenateAudio = `${timestamp()}-final-audio-${projectName}.mp3`;
-    const totalPartAudioDuration = calculatSumDuration(listAudiosDurations);
     console.log("Concatenation des fichiers audios");
-    const mergedAudio = await concatenate_combined_audios(
-      splited_audios,
-      projectName,
-      outputConcatenateAudio,
+    const final_audio_output = await concate_process_audio(
       room,
-      totalPartAudioDuration
+      audios,
+      projectName
     );
-    console.log("mergedAudio:", mergedAudio);
+    console.log("mergedAudio:", final_audio_output);
 
     console.log("Mapping fichiers video et audios");
     const finalOutput = `${projectName}.mp4`;
     const final_result = await files_mapping(
-      mergedVideos,
-      mergedAudio,
+      final_video_input,
+      final_audio_output,
       projectName,
       finalOutput,
       room,
@@ -133,4 +100,55 @@ const calculatSumDuration = (inputs = []) => {
 const timestamp = () => {
   const dt = new Date();
   return dt.getTime();
+};
+
+const concate_process_videos = async (room, scenes, projectName) => {
+  const splited_videos = [];
+  const listVideosDurations = [];
+
+  for (const scenePos in scenes) {
+    let scene = scenes[scenePos];
+
+    const { src, start, end, rotate, duration, volume } = scene;
+    const value = { src, start, end, rotate, duration, volume };
+    listVideosDurations.push(duration);
+    splited_videos.push(value);
+  }
+  const outputConcatenateVideo = `final-video-${projectName}.mp4`;
+  const totalPartVideoDuration = calculatSumDuration(listVideosDurations);
+  const mergedVideos = await concatenate_combined_videos(
+    splited_videos,
+    projectName,
+    outputConcatenateVideo,
+    room,
+    totalPartVideoDuration
+  );
+
+  return mergedVideos;
+};
+
+const concate_process_audio = async (room, audios, projectName) => {
+  const splited_audios = [];
+  const listAudiosDurations = [];
+
+  for (const audioPos in audios) {
+    let audio = audios[audioPos];
+
+    const { src, start, end, duration, volume } = audio;
+    const value = { src, start, end, duration, volume };
+    listAudiosDurations.push(duration);
+    splited_audios.push(value);
+  }
+  const outputConcatenateAudio = `final-audio-${projectName}.mp3`;
+  const totalPartAudioDuration = calculatSumDuration(listAudiosDurations);
+
+  const mergedAudio = await concatenate_combined_audios(
+    splited_audios,
+    projectName,
+    outputConcatenateAudio,
+    room,
+    totalPartAudioDuration
+  );
+
+  return mergedAudio;
 };
