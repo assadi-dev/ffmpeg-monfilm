@@ -49,7 +49,7 @@ export const split_videos = async (scene, projectName, output, room) => {
   };
 
   try {
-    const volumeDefault = scene.volume ? 0.5 : 0;
+    const volumeDefault = scene.volume ? 1 : 0;
 
     return new Promise((resolve) => {
       ffmpeg.input(input).withAudioFilters([`volume=${volumeDefault}`]);
@@ -253,7 +253,7 @@ export const concatenate_combined_videos = (
         const timeToStart = Number(scene.start);
         const timeToEnd = Number(scene.end);
         const timeDuration = Math.round(timeToEnd - timeToStart);
-        const volumeDefault = scene.volume ? 0.5 : 0;
+        const volumeDefault = scene.volume ? 1 : 0;
         const rotate = scene.rotate
           ? `,transpose=1,transpose=1[v${index}]`
           : `[v${index}]`;
@@ -356,7 +356,7 @@ export const splitAudioPart = (audio, projectName, output, room) => {
   };
 
   try {
-    const volumeDefault = audio.volume ? 0.5 : 0;
+    const volumeDefault = audio.volume ? 1 : 0;
     const promise = new Promise((resolve) => {
       ffmpeg
         .addInput(input)
@@ -526,7 +526,7 @@ export const concatenate_combined_audios = (
         const timeToStart = Number(audio?.start);
         const timeToEnd = Number(audio?.end);
         const timeDuration = Math.round(timeToEnd - timeToStart);
-        const volumeDefault = audio.volume ? 0.5 : 0;
+        const volumeDefault = audio.volume ? 1 : 0;
 
         const input = audio.src;
         ffmpeg
