@@ -6,6 +6,7 @@ import {
   files_mapping,
   concatenate_combined_videos,
   concatenate_combined_audios,
+  files_mapping_no_audio,
 } from "../services/FFmpegExportProcess.services.js";
 
 export const export_project = (req, res) => {
@@ -63,7 +64,7 @@ export const generate_finalOutput = async (
     listVideosDurations.push(duration);
     splited_videos.push(value);
   }
-  const outputConcatenateVideo = `final-video-${projectName}.mp4`;
+  const outputConcatenateVideo = `${timestamp()}-final-video-${projectName}.mp4`;
   console.log("Concatenation des fichiers videos");
   const totalPartVideoDuration = calculatSumDuration(listVideosDurations);
   const mergedVideos = await concatenate_combined_videos(
@@ -75,37 +76,50 @@ export const generate_finalOutput = async (
   );
   console.log("mergedVideos:", mergedVideos);
 
-  for (const audioPos in audios) {
-    let audio = audios[audioPos];
+  if (audios.length == 0) {
+    console.log("Mapping fichiers video no audio");
+    const finalOutput = `${projectName}.mp4`;
+    const final_result = await files_mapping_no_audio(
+      mergedVideos,
+      projectName,
+      finalOutput,
+      room,
+      maxDuration
+    );
+    console.log("final:", final_result);
+  } else {
+    for (const audioPos in audios) {
+      let audio = audios[audioPos];
 
-    const { src, start, end, duration, volume } = audio;
-    const value = { src, start, end, duration, volume };
-    listAudiosDurations.push(duration);
-    splited_audios.push(value);
+      const { src, start, end, duration, volume } = audio;
+      const value = { src, start, end, duration, volume };
+      listAudiosDurations.push(duration);
+      splited_audios.push(value);
+    }
+    const outputConcatenateAudio = `${timestamp()}-final-audio-${projectName}.mp3`;
+    const totalPartAudioDuration = calculatSumDuration(listAudiosDurations);
+    console.log("Concatenation des fichiers audios");
+    const mergedAudio = await concatenate_combined_audios(
+      splited_audios,
+      projectName,
+      outputConcatenateAudio,
+      room,
+      totalPartAudioDuration
+    );
+    console.log("mergedAudio:", mergedAudio);
+
+    console.log("Mapping fichiers video et audios");
+    const finalOutput = `${projectName}.mp4`;
+    const final_result = await files_mapping(
+      mergedVideos,
+      mergedAudio,
+      projectName,
+      finalOutput,
+      room,
+      maxDuration
+    );
+    console.log("final:", final_result);
   }
-  const outputConcatenateAudio = `final-audio-${projectName}.mp3`;
-  const totalPartAudioDuration = calculatSumDuration(listAudiosDurations);
-  console.log("Concatenation des fichiers audios");
-  const mergedAudio = await concatenate_combined_audios(
-    splited_audios,
-    projectName,
-    outputConcatenateAudio,
-    room,
-    totalPartAudioDuration
-  );
-  console.log("mergedAudio:", mergedAudio);
-
-  console.log("Mapping fichiers video eet audios");
-  const finalOutput = `${projectName}.mp4`;
-  const final_result = await files_mapping(
-    mergedVideos,
-    mergedAudio,
-    projectName,
-    finalOutput,
-    room,
-    maxDuration
-  );
-  console.log("final:", final_result);
 };
 
 const retrieveDuration = (inputs) => {
@@ -114,4 +128,9 @@ const retrieveDuration = (inputs) => {
 
 const calculatSumDuration = (inputs = []) => {
   return inputs.reduce((a, b) => Math.ceil(a + b));
+};
+
+const timestamp = () => {
+  const dt = new Date();
+  return dt.getTime();
 };

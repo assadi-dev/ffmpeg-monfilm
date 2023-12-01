@@ -136,6 +136,7 @@ export const concatenate_videos = (
     message: "wait",
     progress: 0,
     duration: maxDuration,
+    elapsed: 0,
     error: "",
   };
 
@@ -224,6 +225,7 @@ export const concatenate_combined_videos = (
   const status = {
     step: "concat-video",
     message: "wait",
+    elapsed: 0,
     progress: 0,
     duration: maxDuration,
     error: "",
@@ -349,6 +351,7 @@ export const splitAudioPart = (audio, projectName, output, room) => {
     step: "split-audio",
     id: audio.id,
     message: "wait",
+    elapsed: 0,
     progress: 0,
     filename: "",
     duration: timeDuration,
@@ -437,6 +440,7 @@ export const concatenate_audios = (
   const status = {
     step: "concat-audio",
     message: "wait",
+    elapsed: 0,
     progress: 0,
     duration: maxDuration,
     error: "",
@@ -511,6 +515,7 @@ export const concatenate_combined_audios = (
     step: "concat-audio",
     message: "wait",
     progress: 0,
+    elapsed: 0,
     duration: maxDuration,
     error: "",
   };
@@ -554,6 +559,8 @@ export const concatenate_combined_audios = (
         .on("start", (cmdline) => {
           //console.log(`start concate`, cmdline);
           status.message = "start";
+          status.elapsed = 0;
+
           ws.to(room).emit(eventFeedbackPublish.export, status);
         })
         .on(
@@ -606,6 +613,7 @@ export const files_mapping = (
     step: "mapping-video",
     message: "wait",
     progress: 0,
+    elapsed: 0,
     filename: output,
     duration: maxDuration,
     error: "",
@@ -626,8 +634,74 @@ export const files_mapping = (
           "libx264",
           "-c:a",
           "aac",
-          `-metadata title=${projectName}`,
         ])
+        .output(destination)
+        .on("start", (cmdline) => {
+          //console.log(`start concate`, cmdline);
+          status.message = "start";
+          ws.to(room).emit(eventFeedbackPublish.export, status);
+        })
+        .on(
+          "progress",
+          ffmpegOnProgress(
+            (progress, event) => logProgress(room, progress, event, status),
+            durationEstimate
+          )
+        )
+        .on("end", () => {
+          console.log(`Finished mapping files`);
+          status.message = "done";
+          status.progress = 100;
+          ws.to(room).emit(eventFeedbackPublish.export, status);
+          resolve(destination);
+        })
+        .on("error", (error) => {
+          console.log(error.message);
+          status.message = "error";
+          status.error = error.message;
+          ws.to(room).emit(eventFeedbackPublish.error, status);
+        })
+
+        .run();
+    });
+
+    return promise;
+  } catch (error) {
+    console.log(error.message);
+    status.message = "error";
+    status.error = error.message;
+    ws.to(room).emit(eventFeedbackPublish.error, status);
+  }
+};
+
+export const files_mapping_no_audio = (
+  videoFile,
+  projectName,
+  output,
+  room,
+  maxDuration
+) => {
+  const export_file = `${upload_dir}${DIRECTORY_SEPARATOR}export_file${DIRECTORY_SEPARATOR}${projectName}`;
+  const destination = `${export_file}${DIRECTORY_SEPARATOR}${output}`;
+  const filterComand = `[1:a]adelay=1000|1000[a];[0:a]adelay=1000|1000[va];[a][va]amix=inputs=2[out]`;
+  const durationEstimate = secToMill(maxDuration);
+  const status = {
+    step: "mapping-video",
+    message: "wait",
+    progress: 0,
+    elapsed: 0,
+    filename: output,
+    duration: maxDuration,
+    error: "",
+  };
+
+  try {
+    const { ffmpeg } = new FFmpegInstance();
+
+    const promise = new Promise((resolve) => {
+      ffmpeg
+        .addInput(videoFile)
+        .outputOptions(["-c:v", "libx264", "-c:a", "aac"])
         .output(destination)
         .on("start", (cmdline) => {
           //console.log(`start concate`, cmdline);
