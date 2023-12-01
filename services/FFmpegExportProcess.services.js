@@ -607,7 +607,9 @@ export const files_mapping = (
 ) => {
   const export_file = `${upload_dir}${DIRECTORY_SEPARATOR}export_file${DIRECTORY_SEPARATOR}${projectName}`;
   const destination = `${export_file}${DIRECTORY_SEPARATOR}${output}`;
-  const filterComand = `[1:a]adelay=1000|1000[a];[0:a]adelay=1000|1000[va];[a][va]amix=inputs=2[out]`;
+  // const filterComand = `[1:a]adelay=1000|1000[a];[0:a]adelay=1000|1000[va];[a][va]amix=inputs=2[out]`;
+  const filterComand = `[1:a][0:a]amix=inputs=2[out]`;
+
   const durationEstimate = secToMill(maxDuration);
   const status = {
     step: "mapping-video",
@@ -683,7 +685,6 @@ export const files_mapping_no_audio = (
 ) => {
   const export_file = `${upload_dir}${DIRECTORY_SEPARATOR}export_file${DIRECTORY_SEPARATOR}${projectName}`;
   const destination = `${export_file}${DIRECTORY_SEPARATOR}${output}`;
-  const filterComand = `[1:a]adelay=1000|1000[a];[0:a]adelay=1000|1000[va];[a][va]amix=inputs=2[out]`;
   const durationEstimate = secToMill(maxDuration);
   const status = {
     step: "mapping-video",
