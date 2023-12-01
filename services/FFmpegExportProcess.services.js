@@ -630,7 +630,7 @@ export const files_mapping = (
         ])
         .output(destination)
         .on("start", (cmdline) => {
-          console.log(`start concate`, cmdline);
+          //console.log(`start concate`, cmdline);
           status.message = "start";
           ws.to(room).emit(eventFeedbackPublish.export, status);
         })
