@@ -205,6 +205,122 @@ export const concatenate_videos = (
 };
 
 /**
+ * Split et Concatenation des fichier video
+ * @param {*} listInput
+ * @param {*} projetFolder
+ * @param {*} output
+ */
+export const concatenate_combined_videos = (
+  listInput,
+  projetFolder,
+  output,
+  room,
+  maxDuration
+) => {
+  const export_file = `${upload_dir}${DIRECTORY_SEPARATOR}export_file${DIRECTORY_SEPARATOR}${projetFolder}`;
+
+  const durationEstimate = secToMill(maxDuration);
+
+  const status = {
+    step: "concat-video",
+    message: "wait",
+    progress: 0,
+    duration: maxDuration,
+    error: "",
+  };
+
+  try {
+    const { ffmpeg } = new FFmpegInstance();
+    if (!existsSync(export_file)) {
+      mkdirSync(export_file, { recursive: true });
+      chmodSync(export_file, 777);
+    }
+
+    const promise = new Promise((resolve) => {
+      const destination = `${export_file}${DIRECTORY_SEPARATOR}${output}`;
+      const count = listInput.length;
+      let filterCommandIn = "";
+      let filterCommandOut = "";
+      let filterCommandAudio = "";
+      let filterConcatComand = `concat=n=${count}:v=1:a=1`;
+      const resolution = "4096:2048";
+      const fps = 25;
+
+      for (const index in listInput) {
+        const scene = listInput[index];
+
+        const input = scene.src;
+        const timeToStart = Number(scene.start);
+        const timeToEnd = Number(scene.end);
+        const timeDuration = Math.round(timeToEnd - timeToStart);
+        const volumeDefault = scene.volume ? 0.5 : 0;
+        const rotate = scene.rotate
+          ? `,transpose=1,transpose=1[v${index}]`
+          : `[v${index}]`;
+
+        ffmpeg
+          .addInput(input)
+          .seekInput(timeToStart)
+          .inputOptions(["-t", timeDuration]);
+
+        filterCommandIn += `[${index}:v]scale=${resolution},pad=${resolution},setsar=1${rotate};`;
+        filterCommandAudio += `[${index}:a]volume=${volumeDefault}[volume${index}];`;
+        filterCommandOut += `[v${index}][volume${index}]`;
+      }
+      filterConcatComand = `${filterCommandIn}${filterCommandAudio}${filterCommandOut}${filterConcatComand}[v][a]`;
+
+      ffmpeg
+        .complexFilter(filterConcatComand)
+        .outputOptions([
+          "-map [v]",
+          "-map [a]",
+          "-r",
+          fps,
+          "-c:v",
+          "libx264",
+          "-c:a",
+          "aac",
+        ])
+        .output(destination)
+        .withDuration(maxDuration + 1)
+        .on("start", (cmdline) => {
+          //console.log(`start concate`, cmdline);
+          status.message = "start";
+          ws.to(room).emit(eventFeedbackPublish.export, status);
+        })
+        .on(
+          "progress",
+          ffmpegOnProgress(
+            (progress, event) => logProgress(room, progress, event, status),
+            durationEstimate
+          )
+        )
+        .on("end", () => {
+          console.log(`Finished concate`);
+          status.progress = 100;
+          status.message = "done";
+          ws.to(room).emit(eventFeedbackPublish.export, status);
+          resolve(destination);
+        })
+        .on("error", (error) => {
+          console.log(error.message);
+          status.error = error.message;
+          status.message = "error";
+          ws.to(room).emit(eventFeedbackPublish.error, status);
+        })
+        .run();
+    });
+
+    return promise;
+  } catch (error) {
+    console.log(error.message);
+    status.error = error.message;
+    status.message = "error";
+    ws.to(room).emit(eventFeedbackPublish.error, status);
+  }
+};
+
+/**
  * Decoupage des partie audios
  * @param {*} audio
  * @param {*} projectName
@@ -221,7 +337,7 @@ export const splitAudioPart = (audio, projectName, output, room) => {
   }
 
   const destination = `${export_file}${DIRECTORY_SEPARATOR}${output}`;
-  let totalDuration = 0;
+
   const timeToStart = Number(audio?.start);
   const timeToEnd = Number(audio?.end);
   const timeDuration = Math.round(timeToEnd - timeToStart);
@@ -377,6 +493,102 @@ export const concatenate_audios = (
     ws.to(room).emit(eventFeedbackPublish.error, status);
   }
 };
+export const concatenate_combined_audios = (
+  splited_audios,
+  projectName,
+  output,
+  room,
+  maxDuration
+) => {
+  const { ffmpeg } = new FFmpegInstance();
+
+  const export_file = `${upload_dir}${DIRECTORY_SEPARATOR}export_file${DIRECTORY_SEPARATOR}${projectName}`;
+  const destination = `${export_file}${DIRECTORY_SEPARATOR}${output}`;
+
+  const durationEstimate = secToMill(maxDuration);
+
+  const status = {
+    step: "concat-audio",
+    message: "wait",
+    progress: 0,
+    duration: maxDuration,
+    error: "",
+  };
+
+  try {
+    const count = splited_audios.length;
+    let filterCommandIn = "";
+    let filterConcatOut = "";
+    let filterConcatComand = `concat=n=${count}:v=0:a=1[aout]`;
+    const promise = new Promise((resolve) => {
+      for (const index in splited_audios) {
+        const audio = splited_audios[index];
+        const timeToStart = Number(audio?.start);
+        const timeToEnd = Number(audio?.end);
+        const timeDuration = Math.round(timeToEnd - timeToStart);
+        const volumeDefault = audio.volume ? 0.5 : 0;
+
+        const input = audio.src;
+        ffmpeg
+          .addInput(input)
+          .seekInput(timeToStart)
+          .inputOptions(["-t", timeDuration]);
+
+        filterCommandIn += `[${index}:a]volume=${volumeDefault}[volume=${index}];`;
+        filterConcatOut += `[volume=${index}]`;
+      }
+      filterConcatComand = `${filterCommandIn}${filterConcatOut}${filterConcatComand}`;
+      ffmpeg
+        .complexFilter(filterConcatComand)
+        .outputOptions([
+          "-avoid_negative_ts",
+          "make_zero",
+          "-async",
+          "1",
+          "-c:a",
+          "libmp3lame",
+          "-map",
+          "[aout]",
+        ])
+        .output(destination)
+        .on("start", (cmdline) => {
+          //console.log(`start concate`, cmdline);
+          status.message = "start";
+          ws.to(room).emit(eventFeedbackPublish.export, status);
+        })
+        .on(
+          "progress",
+          ffmpegOnProgress(
+            (progress, event) => logProgress(room, progress, event, status),
+            durationEstimate
+          )
+        )
+        .on("end", () => {
+          console.log(`Finished audio concate`);
+          status.progress = 100;
+          status.message = "done";
+          status.remain = 0;
+          ws.to(room).emit(eventFeedbackPublish.export, status);
+          resolve(destination);
+        })
+        .on("error", (error) => {
+          console.log(error.message);
+          status.error = error.message;
+          status.message = "error";
+          ws.to(room).emit(eventFeedbackPublish.error, status);
+        })
+
+        .run();
+    });
+
+    return promise;
+  } catch (error) {
+    console.log(error.message);
+    status.error = error.message;
+    status.message = "error";
+    ws.to(room).emit(eventFeedbackPublish.error, status);
+  }
+};
 
 export const files_mapping = (
   videoFile,
@@ -414,10 +626,11 @@ export const files_mapping = (
           "libx264",
           "-c:a",
           "aac",
+          `-metadata title=${projectName}`,
         ])
         .output(destination)
         .on("start", (cmdline) => {
-          // console.log(`start concate`, cmdline);
+          console.log(`start concate`, cmdline);
           status.message = "start";
           ws.to(room).emit(eventFeedbackPublish.export, status);
         })
@@ -429,7 +642,7 @@ export const files_mapping = (
           )
         )
         .on("end", () => {
-          console.log(`Finished audio concate`);
+          console.log(`Finished mapping files`);
           status.message = "done";
           status.progress = 100;
           ws.to(room).emit(eventFeedbackPublish.export, status);
@@ -481,6 +694,7 @@ const logProgress = (room, progress, event, status) => {
   status.elapsed = timeElapsed;
   status.message = "progress";
   status.progress = percent;
+  console.log("progress:", percent);
   ws.to(room).emit(eventFeedbackPublish.export, status);
 };
 

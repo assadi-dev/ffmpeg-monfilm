@@ -4,6 +4,8 @@ import {
   concatenate_audios,
   split_videos,
   files_mapping,
+  concatenate_combined_videos,
+  concatenate_combined_audios,
 } from "../services/FFmpegExportProcess.services.js";
 
 export const export_project = (req, res) => {
@@ -50,43 +52,46 @@ export const generate_finalOutput = async (
 ) => {
   const splited_videos = [];
   const splited_audios = [];
+  const listVideosDurations = [];
+  const listAudiosDurations = [];
   console.log("split des fichier videos");
   for (const scenePos in scenes) {
     let scene = scenes[scenePos];
 
-    const sceneOut = `${projectName}-video-part-${scenePos}.mp4`;
-    const spliFile = await split_videos(scene, projectName, sceneOut, room);
-    splited_videos.push(spliFile);
+    const { src, start, end, rotate, duration, volume } = scene;
+    const value = { src, start, end, rotate, duration, volume };
+    listVideosDurations.push(duration);
+    splited_videos.push(value);
   }
   const outputConcatenateVideo = `final-video-${projectName}.mp4`;
   console.log("Concatenation des fichiers videos");
-  const mergedVideos = await concatenate_videos(
+  const totalPartVideoDuration = calculatSumDuration(listVideosDurations);
+  const mergedVideos = await concatenate_combined_videos(
     splited_videos,
     projectName,
     outputConcatenateVideo,
     room,
-    maxDuration
+    totalPartVideoDuration
   );
   console.log("mergedVideos:", mergedVideos);
-  console.log("Split des fichiers audios");
+
   for (const audioPos in audios) {
     let audio = audios[audioPos];
-    const audiOut = `${projectName}-audio-part-${audioPos}.mp3`;
-    const spliitFileAudio = await splitAudioPart(
-      audio,
-      projectName,
-      audiOut,
-      room
-    );
-    splited_audios.push(spliitFileAudio);
+
+    const { src, start, end, duration, volume } = audio;
+    const value = { src, start, end, duration, volume };
+    listAudiosDurations.push(duration);
+    splited_audios.push(value);
   }
   const outputConcatenateAudio = `final-audio-${projectName}.mp3`;
-  const mergedAudio = await concatenate_audios(
+  const totalPartAudioDuration = calculatSumDuration(listAudiosDurations);
+  console.log("Concatenation des fichiers audios");
+  const mergedAudio = await concatenate_combined_audios(
     splited_audios,
     projectName,
     outputConcatenateAudio,
     room,
-    maxDuration
+    totalPartAudioDuration
   );
   console.log("mergedAudio:", mergedAudio);
 
@@ -101,4 +106,12 @@ export const generate_finalOutput = async (
     maxDuration
   );
   console.log("final:", final_result);
+};
+
+const retrieveDuration = (inputs) => {
+  return inputs.reduce((a, b) => Math.ceil(a + b));
+};
+
+const calculatSumDuration = (inputs = []) => {
+  return inputs.reduce((a, b) => Math.ceil(a + b));
 };
