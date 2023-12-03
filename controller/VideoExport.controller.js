@@ -89,6 +89,7 @@ export const generate_finalOutput = async (
   }
 };
 
+//Utilitaire
 const retrieveDuration = (inputs) => {
   return inputs.reduce((a, b) => Math.ceil(a + b));
 };
