@@ -7,7 +7,7 @@ import {
 import fs, { createWriteStream, writeFileSync } from "fs";
 import fetch, { FormData } from "node-fetch";
 import { writeFile } from "fs/promises";
-import path from "path";
+import path, { resolve } from "path";
 import streamToArray from "stream-to-array";
 import TinyStorage from "tiny-storage-client";
 
@@ -24,7 +24,7 @@ const CONTAINER = "media";
 const endpoint =
   "https://storage.gra.cloud.ovh.net/v1/AUTH_701ba673d44d4547a615c23a12bbe4e7";
 
-const localFilePath = `${upload_dir}${DIRECTORY_SEPARATOR}test-file.mp4`;
+const localFilePath = `${upload_dir}${DIRECTORY_SEPARATOR}1701167231509_GS010093.mp4`;
 const remoteFileName = "test-pkg-file.mp4";
 
 export const upload_ovh = async (req, res) => {
@@ -61,7 +61,7 @@ const createLargeFile = async (data, storage) => {
   const { authToken, objectName, containerName, filePath } = data;
   const fileStats = fs.statSync(filePath);
   const totalFileSize = fileStats.size;
-  const segmentSize = 1024 * 1024 * 50;
+  const segmentSize = 1024 * 1024 * 100;
   const PREFIX = `${getTimestamp()}/${totalFileSize}`;
 
   console.log(`Check if container segment exist`);
@@ -83,58 +83,73 @@ const createLargeFile = async (data, storage) => {
 
   let offset = 0;
   let segmentNumber = 1;
+  let totalBytes = 0;
 
   const readAndUploadSegment = async () => {
     const headers = {
       "X-Auth-Token": authToken,
     };
 
-    const segmentName = `${objectName}/${PREFIX}/${segmentNumber}`;
+    const segmentName = `${objectName}/${PREFIX}/${segmentNumber
+      .toString()
+      .padStart(8, "0")}`;
 
     const fileStream = fs.createReadStream(filePath, {
       start: offset,
       end: offset + segmentSize - 1,
     });
 
-    const uploadUrl = `${endpoint}/${CONTAINER_SEGMENTS}/${segmentName}`;
+    //Start upload segment
 
-    const response = await fetch(uploadUrl, {
-      method: "PUT",
-      headers: {
-        ...headers,
-        "X-Object-Manifest": `${CONTAINER}/${objectName}`,
+    const CONTAINER_NAME = `${CONTAINER_SEGMENTS}`;
+    await storage.uploadFile(
+      CONTAINER_NAME,
+      `${segmentName}`,
+      () => fileStream,
+
+      {
+        headers: {
+          "X-Object-Manifest": `${CONTAINER}/${objectName}`,
+        },
       },
-      body: fileStream,
-    });
+      (err, res) => {
+        if (err) {
+          console.error(`Failed to upload segment ${segmentName}`);
+          console.log(err);
+          return;
+        }
 
-    if (response.ok) {
-      console.log(`Uploaded segment ${segmentName}`);
-      offset += segmentSize;
-      segmentNumber++;
+        console.log(`Uploaded segment ${segmentName}`);
+        offset += segmentSize;
+        segmentNumber++;
 
-      if (offset < totalFileSize) {
-        readAndUploadSegment(); // Continue with the next segment
-      } else {
-        console.log("All segments uploaded successfully.");
-
-        const manifestUploadUrl = `${endpoint}/${containerName}/${objectName}`;
-        const manifestResponse = await fetch(manifestUploadUrl, {
-          method: "PUT",
-          headers: {
+        if (offset < totalFileSize) {
+          readAndUploadSegment(); // Continue with the next segment
+        } else {
+          console.log("All segments uploaded successfully.");
+          const headerManifest = {
             ...headers,
             "X-Object-Manifest": `${CONTAINER_SEGMENTS}/${objectName}/${PREFIX}`,
-          },
-        });
+          };
 
-        if (manifestResponse.ok) {
-          console.log("Large video uploaded successfully.");
-        } else {
-          console.error("Failed to upload the manifest file.");
+          const manifestUploadUrl = `${endpoint}/${containerName}/${objectName}`;
+          sendManifest(
+            manifestUploadUrl,
+            headerManifest,
+            containerName,
+            objectName
+          ).then((result) => {
+            console.log(result);
+          });
         }
       }
-    } else {
-      console.error(`Failed to upload segment ${segmentName}`);
-    }
+    );
+
+    fileStream.on("data", (chunk) => {
+      totalBytes += chunk.length;
+      const progress = (totalBytes / totalFileSize) * 100;
+      console.log(`Upload progress: ${progress.toFixed(2)}%`);
+    });
   };
 
   readAndUploadSegment();
@@ -191,4 +206,34 @@ const createContainer = (authToken, containerName) => {
   } catch (error) {
     console.log(error.message);
   }
+};
+
+const sendManifest = (
+  manifestUploadUrl,
+  headerManifest,
+  container,
+  objectName
+) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const manifestResponse = await fetch(manifestUploadUrl, {
+        method: "PUT",
+        headers: headerManifest,
+      });
+
+      if (manifestResponse.ok) {
+        console.log("Large video uploaded successfully.");
+        const response = {
+          message: "Large video uploaded successfully.",
+          url: `${endpoint}/${container}/${objectName}`,
+        };
+        resolve(response);
+      } else {
+        throw new Error("Failed to upload the manifest file.");
+      }
+    } catch (error) {
+      reject(error);
+      console.log(error);
+    }
+  });
 };

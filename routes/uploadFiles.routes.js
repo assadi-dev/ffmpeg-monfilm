@@ -6,7 +6,7 @@ import {
 } from "../middlewares/ovhStorage.midleware.js";
 import { flow_upload } from "../controller/FlowUploadController.js";
 import { flow_multer } from "../middlewares/flow_chunckProcess.middleware.js";
-import { upload_ovh } from "../controller/UploadFile.controller copy 5.js";
+import { upload_ovh } from "../controller/UploadFile.controller7.js";
 
 const uploadFiles = Router();
 
