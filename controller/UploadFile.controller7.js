@@ -37,12 +37,14 @@ export const upload_ovh = async (req, res) => {
       filePath: `${upload_dir}${DIRECTORY_SEPARATOR}1701167231509_GS010093.mp4`,
       remoteFilename: "test-objet-file.mp4",
       containerName: "media",
+      segmentSize: 1024 * 1024 * 50,
     };
 
     ovhStorageServices.uploadLargeFile(options);
 
-    const listen = (data) => {
-      console.log("progress upload", data);
+    const listen = (progress) => {
+      const percent = Math.ceil(progress * 100);
+      console.log("progress upload", percent + "%");
     };
     ovhStorageServices.onProgress(listen);
     const finish = (response) => {
