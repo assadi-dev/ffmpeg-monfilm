@@ -42,11 +42,25 @@ export const upload_ovh = async (req, res) => {
 
     const ovhStorageServices = new OvhObjectStorageServices(credentials);
 
-    await ovhStorageServices.connect();
+    const options = {
+      filePath: `${upload_dir}${DIRECTORY_SEPARATOR}1701167231509_GS010093.mp4`,
+      remoteFilename: "test-objet-file.mp4",
+      containerName: "media",
+    };
 
-    console.log(ovhStorageServices.authToken);
+    ovhStorageServices
+      .uploadLargeFile(options)
+      .then((res) => {
+        console.log(res);
+      })
+      .catch((e) => {
+        console.log(e);
+      });
 
-    // createLargeFile(data, tinyStorage);
+    const listen = (data) => {
+      console.log("progress upload", data);
+    };
+    ovhStorageServices.onProgress(listen);
 
     res.json("ok");
   } catch (error) {
