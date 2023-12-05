@@ -284,7 +284,6 @@ export default class OvhObjectStorageServices {
         readStream.on("data", (chunk) => {
           totalReadBytes += chunk.length;
           const progress = (totalReadBytes / totalFileSize) * 100;
-          // console.log(`Upload progress: ${progress.toFixed(2)}%`);
           this.event.emit(PROGRESS, progress);
         });
       } catch (error) {

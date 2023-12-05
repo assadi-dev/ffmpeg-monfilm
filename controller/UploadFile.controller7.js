@@ -39,14 +39,7 @@ export const upload_ovh = async (req, res) => {
       containerName: "media",
     };
 
-    ovhStorageServices
-      .uploadLargeFile(options)
-      .then((res) => {
-        console.log(res);
-      })
-      .catch((e) => {
-        console.log(e);
-      });
+    ovhStorageServices.uploadLargeFile(options);
 
     const listen = (data) => {
       console.log("progress upload", data);
