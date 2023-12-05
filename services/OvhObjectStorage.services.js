@@ -75,7 +75,16 @@ export default class OvhObjectStorageServices {
     this.endpoint = url;
   }
   getAuthToken() {
-    return (this.authToken = this.clientStorage.getConfig().token);
+    return new Promise((resolve) => {
+      this.clientStorage.connection((err) => {
+        if (err) {
+          console.log(err);
+          return;
+        }
+        const token = this.clientStorage.getConfig().token;
+        resolve(token);
+      });
+    });
   }
 
   uploadLargeFile() {}
