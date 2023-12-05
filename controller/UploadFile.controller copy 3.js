@@ -144,7 +144,7 @@ export const upload_ovh = async (req, res) => {
 
 export const read_file = async (req, res) => {
   const remoteVideoUrl =
-    "https://media-s3-storage.s3.sbg.io.cloud.ovh.net/audio2.mp3";
+    "https://storage.gra.cloud.ovh.net/v1/AUTH_701ba673d44d4547a615c23a12bbe4e7/media/test-pkg-file.mp4";
 
   try {
     const remoteRes = await fetch(remoteVideoUrl);
@@ -155,7 +155,7 @@ export const read_file = async (req, res) => {
       return;
     }
 
-    res.setHeader("Content-Type", "video/mp3");
+    res.setHeader("Content-Type", "video/mp4");
 
     remoteRes.body.pipe(res);
   } catch (error) {

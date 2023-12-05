@@ -27,7 +27,7 @@ const endpoint =
 const localFilePath = `${upload_dir}${DIRECTORY_SEPARATOR}1701167231509_GS010093.mp4`;
 const remoteFileName = "test-pkg-file.mp4";
 
-export const upload_ovh_pkg = async (req, res) => {
+export const upload_ovh = async (req, res) => {
   try {
     const data = {
       authToken: "",
