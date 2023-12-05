@@ -51,14 +51,14 @@ export const upload_ovh = async (req, res) => {
     const container = "media";
     const endpoint =
       "https://storage.gra.cloud.ovh.net/v1/AUTH_701ba673d44d4547a615c23a12bbe4e7/media";
-    const localFilePath = `${upload_dir}${DIRECTORY_SEPARATOR}1698769006802_VID_20230414_164335_00_011.mp4`;
+    const localFilePath = `${upload_dir}${DIRECTORY_SEPARATOR}1701167231509_GS010093.mp4`;
     const remoteFileName = "remote_large_file.mp4";
 
     const fileStats = fs.statSync(localFilePath);
     const totalFileSize = fileStats.size;
     // Set the chunk size for uploading
-    const segmentSize = 1024 * 1024 * 10;
-    const outputDir = `${upload_dir}${DIRECTORY_SEPARATOR}tmp${DIRECTORY_SEPARATOR}`;
+    const segmentSize = 1024 * 1024 * 100;
+    const outputDir = `${upload_dir}${DIRECTORY_SEPARATOR}chunk${DIRECTORY_SEPARATOR}`;
 
     const uploadLargeFile = async () => {
       const headers = {
@@ -71,14 +71,13 @@ export const upload_ovh = async (req, res) => {
 
       const readAndUploadSegment = async () => {
         const segmentName = `${remoteFileName}/${segmentNumber}`;
-        segments.push(segmentName);
 
         const fileStream = fs.createReadStream(localFilePath, {
           start: offset,
           end: offset + segmentSize - 1,
         });
 
-        const uploadUrl = `${endpoint}/${segmentName}`;
+        const uploadUrl = `${endpoint}_segments/${segmentName}`;
 
         const response = await fetch(uploadUrl, {
           method: "PUT",
@@ -91,6 +90,9 @@ export const upload_ovh = async (req, res) => {
 
         if (response.ok) {
           console.log(`Uploaded segment ${segmentName}`);
+          const etag = response.headers.get("etag");
+          const object = { path: `${container}_segments/${segmentName}`, etag };
+          segments.push(object);
           offset += segmentSize;
           segmentNumber++;
 
@@ -106,7 +108,7 @@ export const upload_ovh = async (req, res) => {
 
             const manifestFile = fs.writeFileSync(
               manifestDir,
-              segments.join("\n")
+              JSON.stringify(segments)
             );
 
             const manifestUploadUrl = `${endpoint}/${remoteFileName}`;
@@ -114,9 +116,9 @@ export const upload_ovh = async (req, res) => {
               method: "PUT",
               headers: {
                 ...headers,
-                "X-Object-Manifest": `${container}/${remoteFileName}`,
+                "X-Object-Manifest": `${container}_segments/${remoteFileName}`,
               },
-              body: manifestFile,
+              //body: manifestFile,
             });
 
             if (manifestResponse.ok) {
@@ -161,4 +163,9 @@ export const read_file = async (req, res) => {
     res.statusCode = 500;
     res.send("Internal Server Error");
   }
+};
+
+const getTimestamp = () => {
+  const dt = new Date();
+  return dt.getTime();
 };

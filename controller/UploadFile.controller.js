@@ -43,7 +43,7 @@ export const upload_ovh = async (req, res) => {
     const container = "media";
     const endpoint =
       "https://storage.gra.cloud.ovh.net/v1/AUTH_701ba673d44d4547a615c23a12bbe4e7/media";
-    const localFilePath = `${upload_dir}${DIRECTORY_SEPARATOR}1698769006802_VID_20230414_164335_00_011.mp4`;
+    const localFilePath = `${upload_dir}${DIRECTORY_SEPARATOR}1701167231509_GS010093.mp4`;
     const remoteFileName = "remote_large_file.mp4";
 
     const fileStats = fs.statSync(localFilePath);
@@ -73,6 +73,7 @@ export const upload_ovh = async (req, res) => {
   } catch (error) {
     const message = error.message;
     console.error("Upload error:", message);
+    res.json({ message: message });
   }
 };
 
