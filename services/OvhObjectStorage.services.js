@@ -4,6 +4,7 @@ import fetch from "node-fetch";
 import { writeFile } from "fs/promises";
 import path, { resolve } from "path";
 import EventEmitter from "events";
+import { PROGRESS, SUCCESS } from "../config/event.js";
 
 export default class OvhObjectStorageServices {
   /**
@@ -109,7 +110,7 @@ export default class OvhObjectStorageServices {
   }
 
   /**
-   * Fichier disponnible
+   * Obtenir les resultat de 'lupload
    * @param {*} callback
    */
   onSuccess(callback = () => {}) {
@@ -284,7 +285,7 @@ export default class OvhObjectStorageServices {
           totalReadBytes += chunk.length;
           const progress = (totalReadBytes / totalFileSize) * 100;
           // console.log(`Upload progress: ${progress.toFixed(2)}%`);
-          this.event.emit("progress", progress);
+          this.event.emit(PROGRESS, progress);
         });
       } catch (error) {
         reject(error);

@@ -61,6 +61,10 @@ export const upload_ovh = async (req, res) => {
       console.log("progress upload", data);
     };
     ovhStorageServices.onProgress(listen);
+    const finish = (response) => {
+      console.log("finish", response);
+    };
+    ovhStorageServices.onSuccess(finish);
 
     res.json("ok");
   } catch (error) {
