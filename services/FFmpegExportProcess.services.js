@@ -768,7 +768,7 @@ const logProgress = (room, progress, event, status) => {
   status.elapsed = timeElapsed;
   status.message = "progress";
   status.progress = percent;
-  console.log("progress:", percent);
+  // console.log("progress:", percent);
   ws.to(room).emit(eventFeedbackPublish.export, status);
 };
 

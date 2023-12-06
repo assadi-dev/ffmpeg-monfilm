@@ -154,7 +154,7 @@ export const insv_equirectangular = async (fileObject) => {
           // HERE YOU GET THE TOTAL TIME
           totalDuration = parseInt(data.duration.replace(/:/g, ""));
         })
-        /*    .on("stderr", function (stderrLine) {
+        /*.on("stderr", function (stderrLine) {
         console.log("Stderr output: " + stderrLine);
       }) */
         .on(

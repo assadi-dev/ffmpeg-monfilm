@@ -4,6 +4,10 @@ import {
   concatenate_combined_audios,
   files_mapping_no_audio,
 } from "../services/FFmpegExportProcess.services.js";
+import slugify from "slugify";
+import OvhObjectStorageServices from "../services/OvhObjectStorage.services.js";
+import { OVH_CREDENTIALS } from "../config/constant.config.js";
+import { ws } from "../index.js";
 
 export const export_project = (req, res) => {
   try {
@@ -17,6 +21,7 @@ export const export_project = (req, res) => {
       audios,
       maxDuration,
     };
+
     res.json(content);
   } catch (error) {
     return res.status(500).json({
@@ -48,23 +53,22 @@ export const generate_finalOutput = async (
   maxDuration
 ) => {
   console.log("Concatenation des fichiers videos");
-  const final_video_input = await concate_process_videos(
-    room,
-    scenes,
-    projectName
-  );
-  console.log("mergedVideos:", final_video_input);
+  const mergedVideos = await concate_process_videos(room, scenes, projectName);
+
+  let final_result = "";
+  console.log("mergedVideos:", mergedVideos);
 
   if (audios.length == 0) {
     console.log("Mapping fichiers video no audio");
     const finalOutput = `${projectName}.mp4`;
-    const final_result = await files_mapping_no_audio(
+    const final_video_input = await files_mapping_no_audio(
       mergedVideos,
       projectName,
       finalOutput,
       room,
       maxDuration
     );
+    final_result = final_video_input;
     console.log("final:", final_result);
   } else {
     console.log("Concatenation des fichiers audios");
@@ -77,8 +81,8 @@ export const generate_finalOutput = async (
 
     console.log("Mapping fichiers video et audios");
     const finalOutput = `${projectName}.mp4`;
-    const final_result = await files_mapping(
-      final_video_input,
+    final_result = await files_mapping(
+      mergedVideos,
       final_audio_output,
       projectName,
       finalOutput,
@@ -86,7 +90,13 @@ export const generate_finalOutput = async (
       maxDuration
     );
     console.log("final:", final_result);
+    //Envoie ovh
+    console.log("send ovh");
   }
+  const remoteFilename = `${timestamp()}_${clean_filename(projectName)}.mp4`;
+  const FinalObject = { filePath: final_result, remoteFilename };
+  const url = await upload_ovh(room, FinalObject);
+  console.log(url);
 };
 
 //Utilitaire
@@ -152,4 +162,59 @@ const concate_process_audio = async (room, audios, projectName) => {
   );
 
   return mergedAudio;
+};
+
+const upload_ovh = (room, fileObjetct) => {
+  return new Promise(async (resolve, reject) => {
+    const { filePath, remoteFilename } = fileObjetct;
+
+    const status = {
+      step: "ovh",
+      message: "start",
+      filename: fileObjetct.filename,
+      progress: 0,
+      url: "",
+      error: "",
+    };
+
+    try {
+      const ovhStorageServices = new OvhObjectStorageServices(OVH_CREDENTIALS);
+
+      const options = {
+        filePath,
+        remoteFilename,
+        containerName: "media",
+        segmentSize: 1024 * 1024 * 50,
+      };
+      await ovhStorageServices.connect();
+      ovhStorageServices.uploadLargeFile(options);
+      const listen = (progress) => {
+        const percent = Math.ceil(progress * 100);
+        status.progress = percent;
+        status.message = "progress";
+        ws.to(room).emit("progress", status);
+      };
+      ovhStorageServices.onProgress(listen);
+      const finish = (response) => {
+        status.progress = 100;
+        status.message = "done";
+        status.url = response?.url;
+        ws.to(room).emit("end", status);
+        resolve(response?.url);
+      };
+      ovhStorageServices.onSuccess(finish);
+    } catch (error) {
+      const message = error.message;
+      console.error("Upload error:", message);
+      reject(message);
+    }
+  });
+};
+
+const clean_filename = (name) => {
+  return slugify(name, {
+    replacement: "_",
+    lower: true,
+    trime: true,
+  });
 };

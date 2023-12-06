@@ -33,6 +33,7 @@
     "pkgcloud": "^2.2.0",
     "request": "^2.88.2",
     "request-promise-native": "^1.0.9",
+    "slugify": "^1.6.6",
     "socket.io": "^4.7.2",
     "stream-to-array": "^2.3.0",
     "swift": "^2.8.0",
