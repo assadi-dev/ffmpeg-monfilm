@@ -27,7 +27,7 @@ export const sendFTP = (req, res) => {
     const destination = `${FTP_DESTINATION_DIR}/${filename}`;
 
     sendProcess(source, destination, filename);
-    res.json("succes send");
+    res.json("envoie du fichier en cours");
   } catch (error) {
     res.status(500).json(error.message);
   }
