@@ -252,7 +252,7 @@ export default class OvhObjectStorageServices {
               return;
             }
 
-            console.log(`Uploaded segment ${segmentName}`);
+            //  console.log(`Uploaded segment ${segmentName}`);
             offset += segmentSize;
             segmentNumber++;
 
