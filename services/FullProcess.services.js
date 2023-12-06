@@ -1,4 +1,8 @@
-import { DIRECTORY_SEPARATOR, upload_dir } from "../config/constant.config.js";
+import {
+  DIRECTORY_SEPARATOR,
+  FTP_DESTINATION_DIR,
+  upload_dir,
+} from "../config/constant.config.js";
 import { feedbackStatus } from "../config/ffmpegComand.config.js";
 import { ws } from "../index.js";
 import {
@@ -8,6 +12,7 @@ import {
   video_compress,
 } from "./FFmpegCameraProcess.services.js";
 import { unlinkSync } from "fs";
+import FTPServices from "./FTPServices.services.js";
 
 export const full_process_gopro = async (fileObject) => {
   const room = fileObject?.room;
@@ -37,10 +42,19 @@ export const full_process_gopro = async (fileObject) => {
     console.log(`start compress for ${equirectangular.filename}`);
     const compress_response = await video_compress(fileObjetctCompress);
 
-    let high_quality = equirectangular.output;
-    let low_quality = compress_response.output;
+    const high_quality = equirectangular.output;
+    const low_quality = compress_response.output;
 
-    console.table({ high_quality, low_quality });
+    //Envoie FTP
+    console.log("start sen FTP");
+    const ftp_destination = `${FTP_DESTINATION_DIR}/${lowFilename}`;
+    const URL_LOW = await sendProcess(
+      low_quality,
+      ftp_destination,
+      lowFilename
+    );
+    //FIN FTP
+    console.table({ high_quality, low_quality: URL_LOW });
   } catch (error) {
     console.log(error.message);
     statusStep.error = error.message;
@@ -89,14 +103,39 @@ export const full_process_insv = async (fileObject) => {
       output: `${upload_dir}${DIRECTORY_SEPARATOR}${lowFilename}`,
     };
     const compress_response = await video_compress(fileObjetctCompress);
-    let high_quality = equirectantangular.output;
-    let low_quality = compress_response.output;
+    const high_quality = equirectantangular.output;
+    const low_quality = compress_response.output;
     console.table({ high_quality, low_quality });
+    //Envoie FTP
+    console.log("Envoie FTP");
+    const ftp_destination = `${FTP_DESTINATION_DIR}/${lowFilename}`;
+    const URL_LOW = sendProcess(low_quality, ftp_destination, lowFilename);
+    console.log(URL_LOW);
   } catch (error) {
     console.log(error.message);
     status.error = error.message;
     status.message = "error";
     ws.to(room).emit("error", status);
     return error;
+  }
+};
+
+/**
+ *
+ * @param {*} source emplacement du fichier source
+ * @param {*} destination emplacement du fichier de destination
+ * @param {*} filename nom du fichier distant
+ * @returns le liens ftp du fichiers uploadé
+ */
+const sendProcess = async (source, destination, filename) => {
+  try {
+    const ftpservices = new FTPServices(FTP_CREDENTIALS);
+
+    await ftpservices.connect();
+    await ftpservices.send(source, destination);
+    const link = `${FTP_ENDPOINT}/${filename}`;
+    return link;
+  } catch (error) {
+    throw new Error(error);
   }
 };
