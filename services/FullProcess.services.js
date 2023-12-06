@@ -2,6 +2,7 @@ import {
   DIRECTORY_SEPARATOR,
   FTP_CREDENTIALS,
   FTP_DESTINATION_DIR,
+  FTP_ENDPOINT,
   upload_dir,
 } from "../config/constant.config.js";
 import { feedbackStatus } from "../config/ffmpegComand.config.js";
