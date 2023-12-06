@@ -1,33 +1,12 @@
 import {
   DIRECTORY_SEPARATOR,
   __dirname,
-  domain,
+  credentials,
   upload_dir,
 } from "../config/constant.config.js";
-import fs, { createWriteStream, writeFileSync } from "fs";
-import fetch, { FormData } from "node-fetch";
-import { writeFile } from "fs/promises";
-import path, { resolve } from "path";
-import streamToArray from "stream-to-array";
-import TinyStorage from "tiny-storage-client";
 import OvhObjectStorageServices from "../services/OvhObjectStorage.services.js";
-
-const credentials = {
-  authUrl: "https://auth.cloud.ovh.net/v3",
-  username: "user-zcyQM3AANCkh",
-  password: "rjsX3DerQDsG6czQ8nqXNtaPJQPnkTzh",
-  region: "GRA",
-  tenantName: "9853822694419932",
-  endpoint:
-    "https://storage.gra.cloud.ovh.net/v1/AUTH_701ba673d44d4547a615c23a12bbe4e7",
-};
-
-const CONTAINER = "media";
-const endpoint =
-  "https://storage.gra.cloud.ovh.net/v1/AUTH_701ba673d44d4547a615c23a12bbe4e7";
-
-const localFilePath = `${upload_dir}${DIRECTORY_SEPARATOR}1701167231509_GS010093.mp4`;
-const remoteFileName = "test-pkg-file.mp4";
+import { config } from "dotenv";
+config();
 
 export const upload_ovh = async (req, res) => {
   try {
@@ -39,6 +18,7 @@ export const upload_ovh = async (req, res) => {
       containerName: "media",
       segmentSize: 1024 * 1024 * 50,
     };
+    await ovhStorageServices.connect();
 
     ovhStorageServices.uploadLargeFile(options);
 

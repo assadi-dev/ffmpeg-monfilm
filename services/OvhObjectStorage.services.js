@@ -1,5 +1,5 @@
 import tinyStorageClient from "tiny-storage-client";
-import fs, { createWriteStream, writeFileSync } from "fs";
+import fs, { createReadStream, createWriteStream, writeFileSync } from "fs";
 import fetch from "node-fetch";
 import { writeFile } from "fs/promises";
 import path, { resolve } from "path";

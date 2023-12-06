@@ -22,12 +22,13 @@ export const upload_dir = `${__dirname}${DIRECTORY_SEPARATOR}uploads`;
 
 export const domain = `${process.env.SERVER_HOST}:${process.env.PORT || 5500}`;
 
-const config = {
-  provider: "openstack",
-  useServiceCatalog: true,
-  authUrl: "https://auth.cloud.ovh.net",
-  username: "user-zcyQM3AANCkh",
-  password: "rjsX3DerQDsG6czQ8nqXNtaPJQPnkTzh",
-  region: "GRA",
-  tenantName: "701ba673d44d4547a615c23a12bbe4e7",
+/**
+ * Credential ObjectStorage OVH
+ */
+export const credentials = {
+  authUrl: process.env.OVH_OBJECT_STORAGE_AUTH_URL,
+  username: process.env.OVH_OBJECT_STORAGE_USERNAME,
+  password: process.env.OVH_OBJECT_STORAGE_USER_PASSWORD,
+  region: process.env.OVH_OBJECT_STORAGE_REGION,
+  endpoint: process.env.OVH_OBJECT_STORAGE_ENDPOINT,
 };
