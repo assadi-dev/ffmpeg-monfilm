@@ -3,6 +3,7 @@ import {
   FTP_CREDENTIALS,
   FTP_DESTINATION_DIR,
   FTP_ENDPOINT,
+  OVH_CREDENTIALS,
   upload_dir,
 } from "../config/constant.config.js";
 import { feedbackStatus } from "../config/ffmpegComand.config.js";
@@ -15,6 +16,7 @@ import {
 } from "./FFmpegCameraProcess.services.js";
 import { unlinkSync } from "fs";
 import FTPServices from "./FTPServices.services.js";
+import OvhObjectStorageServices from "./OvhObjectStorage.services.js";
 
 export const full_process_gopro = async (fileObject) => {
   const room = fileObject?.room;
@@ -48,15 +50,23 @@ export const full_process_gopro = async (fileObject) => {
     const low_quality = compress_response.output;
 
     //Envoie FTP
-    console.log("start sen FTP");
+    console.log("start send FTP");
     const ftp_destination = `${FTP_DESTINATION_DIR}/${lowFilename}`;
     const URL_LOW = await sendProcess(
       low_quality,
       ftp_destination,
       lowFilename
     );
-    //FIN FTP
-    console.table({ high_quality, low_quality: URL_LOW });
+    //Envoie OVH
+    console.log("start send OVH");
+    const finalFileObject = {
+      id,
+      camera: fileObject.camera,
+      filePath: high_quality,
+      remoteFilename: equirectangular.filename,
+    };
+    const URL_HIGH = await upload_ovh(room, finalFileObject);
+    console.table({ high_quality: URL_HIGH, low_quality: URL_LOW });
   } catch (error) {
     console.log(error.message);
     statusStep.error = error.message;
@@ -107,12 +117,15 @@ export const full_process_insv = async (fileObject) => {
     const compress_response = await video_compress(fileObjetctCompress);
     const high_quality = equirectantangular.output;
     const low_quality = compress_response.output;
-    console.table({ high_quality, low_quality });
     //Envoie FTP
-    console.log("Envoie FTP");
+    console.log("start send FTP");
     const ftp_destination = `${FTP_DESTINATION_DIR}/${lowFilename}`;
-    const URL_LOW = sendProcess(low_quality, ftp_destination, lowFilename);
-    console.log(URL_LOW);
+    const URL_LOW = await sendProcess(
+      low_quality,
+      ftp_destination,
+      lowFilename
+    );
+    console.table({ high_quality, low_quality: URL_LOW });
   } catch (error) {
     console.log(error.message);
     status.error = error.message;
@@ -123,7 +136,7 @@ export const full_process_insv = async (fileObject) => {
 };
 
 /**
- *
+ * Envois du fichier vers le serveur ftp
  * @param {*} source emplacement du fichier source
  * @param {*} destination emplacement du fichier de destination
  * @param {*} filename nom du fichier distant
@@ -140,4 +153,53 @@ const sendProcess = async (source, destination, filename) => {
   } catch (error) {
     throw new Error(error);
   }
+};
+
+const upload_ovh = (room, fileObjetct) => {
+  return new Promise(async (resolve, reject) => {
+    const { id, camera, filePath, remoteFilename } = fileObjetct;
+
+    const status = {
+      id,
+      step: "ovh",
+      camera,
+      message: "idle",
+      filename: fileObjetct.filename,
+      progress: 0,
+      url: "",
+      error: "",
+    };
+
+    try {
+      const ovhStorageServices = new OvhObjectStorageServices(OVH_CREDENTIALS);
+
+      const options = {
+        filePath,
+        remoteFilename,
+        containerName: "media",
+        segmentSize: 1024 * 1024 * 50,
+      };
+      await ovhStorageServices.connect();
+      ovhStorageServices.uploadLargeFile(options);
+      const listen = (progress) => {
+        const percent = Math.ceil(progress * 100);
+        status.progress = percent;
+        status.message = "progress";
+        ws.to(room).emit("progress", status);
+      };
+      ovhStorageServices.onProgress(listen);
+      const finish = (response) => {
+        status.progress = 100;
+        status.message = "done";
+        status.url = response?.url;
+        ws.to(room).emit("end", status);
+        resolve(response?.url);
+      };
+      ovhStorageServices.onSuccess(finish);
+    } catch (error) {
+      const message = error.message;
+      console.error("Upload error:", message);
+      reject(message);
+    }
+  });
 };
