@@ -1,5 +1,6 @@
 import {
   DIRECTORY_SEPARATOR,
+  FTP_CREDENTIALS,
   FTP_DESTINATION_DIR,
   upload_dir,
 } from "../config/constant.config.js";
