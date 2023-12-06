@@ -1,7 +1,7 @@
 import {
   DIRECTORY_SEPARATOR,
   __dirname,
-  credentials,
+  OVH_CREDENTIALS,
   upload_dir,
 } from "../config/constant.config.js";
 import OvhObjectStorageServices from "../services/OvhObjectStorage.services.js";
@@ -10,7 +10,7 @@ config();
 
 export const upload_ovh = async (req, res) => {
   try {
-    const ovhStorageServices = new OvhObjectStorageServices(credentials);
+    const ovhStorageServices = new OvhObjectStorageServices(OVH_CREDENTIALS);
 
     const options = {
       filePath: `${upload_dir}${DIRECTORY_SEPARATOR}1701167231509_GS010093.mp4`,

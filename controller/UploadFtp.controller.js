@@ -1,47 +1,34 @@
-import * as ftp from "basic-ftp";
+import {
+  DIRECTORY_SEPARATOR,
+  FTP_CREDENTIALS,
+  FTP_DESTINATION_DIR,
+  FTP_ENDPOINT,
+  upload_dir,
+} from "../config/constant.config.js";
+import FTPServices from "../services/FTPServices.services.js";
 
-class FTPServices {
-  credentials;
-  client;
+const ftpservices = new FTPServices(FTP_CREDENTIALS);
 
-  /**
-   * Donées de connexions FTP
-   *
-   * ```
-   *      host = "myftpserver.com",
-   *      user = "very",
-   *     password = "password",
-   *     secure = true
-   * ```
-   * @param {*} credentials
-   */
-  constructor(credentials) {
-    this.credential = credentials;
-    this.client = new ftp.Client();
+const sendProcess = async (source, destination, filename) => {
+  try {
+    await ftpservices.connect();
+    await ftpservices.send(source, destination);
+    const link = `${FTP_ENDPOINT}/${filename}`;
+    console.log(link);
+  } catch (error) {
+    throw new Error(error);
   }
+};
 
-  connect() {
-    return this.client.access(this.credential);
-  }
+export const sendFTP = (req, res) => {
+  try {
+    const filename = `1701167231509_GS010093.mp4`;
+    const source = `${upload_dir}${DIRECTORY_SEPARATOR}${filename}`;
+    const destination = `${FTP_DESTINATION_DIR}/${filename}`;
 
-  /**
-   *
-   * @param {*} source_file Chemin source du fichier
-   * @param {*} destination_file Chemin de destination
-   */
-  send(source_file, destination_file) {
-    return new Promise(async (resolve, reject) => {
-      try {
-        await this.client.uploadFrom(source_file, destination_file);
-        resolve("success");
-      } catch (error) {
-        reject(error);
-      }
-      this.client.close();
-    });
+    sendProcess(source, destination, filename);
+    res.json("succes send");
+  } catch (error) {
+    res.status(500).json(error.message);
   }
-
-  async list() {
-    return await this.client.list();
-  }
-}
+};
