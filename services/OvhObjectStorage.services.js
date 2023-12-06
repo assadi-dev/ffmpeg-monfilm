@@ -258,7 +258,13 @@ export default class OvhObjectStorageServices {
 
             if (offset < totalFileSize) {
               // Upload du segment suivant
-              uploadSegment();
+              let updateArgs = {
+                ...args,
+                offset,
+                segmentNumber,
+                totalReadBytes,
+              };
+              this.uploadSegment(updateArgs);
             } else {
               console.log("All segments uploaded successfully.");
               const optionManifest = {
@@ -283,7 +289,7 @@ export default class OvhObjectStorageServices {
 
         readStream.on("data", (chunk) => {
           totalReadBytes += chunk.length;
-          const progress = (totalReadBytes / totalFileSize) * 100;
+          const progress = totalReadBytes / totalFileSize;
           this.event.emit(PROGRESS, progress);
         });
       } catch (error) {
