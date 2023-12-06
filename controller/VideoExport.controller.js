@@ -11,9 +11,17 @@ import { ws } from "../index.js";
 
 export const export_project = (req, res) => {
   try {
-    const { room, projectName, scenes, audios, maxDuration } = req.body;
-    //Génération des split videos
-    generate_finalOutput(room, scenes, audios, projectName, maxDuration);
+    const { idProjectVideo, room, projectName, scenes, audios, maxDuration } =
+      req.body;
+
+    generate_finalOutput(
+      room,
+      scenes,
+      audios,
+      projectName,
+      maxDuration,
+      idProjectVideo
+    );
     const content = {
       room,
       message: "process en cours",
@@ -50,8 +58,10 @@ export const generate_finalOutput = async (
   scenes,
   audios,
   projectName,
-  maxDuration
+  maxDuration,
+  idProjectVideo
 ) => {
+  console.log(`Export project: ${idProjectVideo}`);
   console.log("Concatenation des fichiers videos");
   const mergedVideos = await concate_process_videos(room, scenes, projectName);
 
@@ -97,6 +107,7 @@ export const generate_finalOutput = async (
   const FinalObject = { filePath: final_result, remoteFilename };
   const url = await upload_ovh(room, FinalObject);
   console.log(url);
+  //Update UserProject
 };
 
 //Utilitaire
@@ -192,14 +203,14 @@ const upload_ovh = (room, fileObjetct) => {
         const percent = Math.ceil(progress * 100);
         status.progress = percent;
         status.message = "progress";
-        ws.to(room).emit("progress", status);
+        ws.to(room).emit("export-project-video", status);
       };
       ovhStorageServices.onProgress(listen);
       const finish = (response) => {
         status.progress = 100;
         status.message = "done";
         status.url = response?.url;
-        ws.to(room).emit("end", status);
+        ws.to(room).emit("export-project-video", status);
         resolve(response?.url);
       };
       ovhStorageServices.onSuccess(finish);
