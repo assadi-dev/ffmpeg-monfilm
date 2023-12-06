@@ -3,7 +3,7 @@ import {
   __dirname,
   domain,
   upload_dir,
-} from "../config/constant.config.js";
+} from "../../config/constant.config.js";
 import TinyStorage from "tiny-storage-client";
 import fs, { createWriteStream, writeFileSync } from "fs";
 

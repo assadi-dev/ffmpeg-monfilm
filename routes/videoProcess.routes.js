@@ -6,7 +6,7 @@ import {
   test_insv_process,
 } from "../controller/VideoProcess.controller.js";
 import upload from "../middlewares/upload.middleware.js";
-import { upload_gopro } from "../controller/UploadFile.controller copy 2.js";
+import { upload_gopro } from "../controller/UploadFile.controller.js";
 import { test_ffmpeg } from "../services/FFmpegCameraProcess.services.js";
 import {
   export_project,
