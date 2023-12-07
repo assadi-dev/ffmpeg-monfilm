@@ -138,6 +138,17 @@ export const full_process_insv = async (fileObject) => {
       lowFilename
     );
     console.table({ high_quality, low_quality: URL_LOW });
+    //Update user project
+    const projectData = {
+      idProjectVideo,
+      urlVideo: URL_HIGH,
+      urlVideoLight: URL_LOW,
+      thumbnails: "",
+    };
+    const resUpdateProject = await update_project_360(projectData);
+    resUpdateProject.ok
+      ? console.log("projet disponible")
+      : console.log("Une erreur est survenue");
   } catch (error) {
     console.log(error.message);
     status.error = error.message;
