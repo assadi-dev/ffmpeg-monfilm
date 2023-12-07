@@ -19,7 +19,6 @@ export const upload_ovh = async (req, res) => {
       segmentSize: 1024 * 1024 * 50,
     };
     await ovhStorageServices.connect();
-
     ovhStorageServices.uploadLargeFile(options);
 
     const listen = (progress) => {

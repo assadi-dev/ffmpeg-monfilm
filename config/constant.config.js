@@ -46,3 +46,4 @@ export const FTP_CREDENTIALS = {
 
 export const FTP_ENDPOINT = process.env.FTP_STATIC_LOW_URL;
 export const FTP_DESTINATION_DIR = process.env.FTP_UPLOAD_DIR;
+export const EVASION_API = `${process.env.EVASION_SITE}/api`;
