@@ -1,5 +1,6 @@
 import {
   DIRECTORY_SEPARATOR,
+  EVASION_API,
   FTP_CREDENTIALS,
   FTP_DESTINATION_DIR,
   FTP_ENDPOINT,
@@ -18,7 +19,7 @@ import { unlinkSync } from "fs";
 import FTPServices from "./FTPServices.services.js";
 import OvhObjectStorageServices from "./OvhObjectStorage.services.js";
 
-export const full_process_gopro = async (fileObject) => {
+export const full_process_gopro = async (idProjectVideo, fileObject) => {
   const room = fileObject?.room;
   const id = fileObject.id;
   let statusStep = feedbackStatus;
@@ -67,6 +68,17 @@ export const full_process_gopro = async (fileObject) => {
     };
     const URL_HIGH = await upload_ovh(room, finalFileObject);
     console.table({ high_quality: URL_HIGH, low_quality: URL_LOW });
+    //Update user project
+    const projectData = {
+      idProjectVideo,
+      urlVideo: URL_HIGH,
+      urlVideoLight: URL_LOW,
+      thumbnails: "",
+    };
+    const resUpdateProject = await update_project_360(projectData);
+    resUpdateProject.ok
+      ? console.log("projet disponible")
+      : console.log("Une erreur est survenue");
   } catch (error) {
     console.log(error.message);
     statusStep.error = error.message;
@@ -201,5 +213,13 @@ const upload_ovh = (room, fileObjetct) => {
       console.error("Upload error:", message);
       reject(message);
     }
+  });
+};
+
+const update_project_360 = (body) => {
+  const url = `${EVASION_API}/v2/project/update/import`;
+  return fetch(url, {
+    method: "POST",
+    body: JSON.stringify(body),
   });
 };

@@ -6,7 +6,7 @@ import {
 } from "../services/FFmpegExportProcess.services.js";
 import slugify from "slugify";
 import OvhObjectStorageServices from "../services/OvhObjectStorage.services.js";
-import { OVH_CREDENTIALS } from "../config/constant.config.js";
+import { EVASION_API, OVH_CREDENTIALS } from "../config/constant.config.js";
 import { ws } from "../index.js";
 
 export const export_project = (req, res) => {
@@ -106,8 +106,11 @@ export const generate_finalOutput = async (
   const remoteFilename = `${timestamp()}_${clean_filename(projectName)}.mp4`;
   const FinalObject = { filePath: final_result, remoteFilename };
   const url = await upload_ovh(room, FinalObject);
-  console.log(url);
   //Update UserProject
+  const resProject = await updateUserProject(idProjectVideo, url);
+  resProject.ok
+    ? console.log("Project has been updated with success")
+    : console.log("Error update project");
 };
 
 //Utilitaire
@@ -227,5 +230,25 @@ const clean_filename = (name) => {
     replacement: "_",
     lower: true,
     trime: true,
+  });
+};
+
+/**
+ *
+ * @param {*} idProjectVideo id du projet
+ * @param {*} exportUrl liex de la video exporté
+ * @returns
+ */
+const updateUserProject = (idProjectVideo, exportUrl) => {
+  const url = ` ${EVASION_API}/v2/project/update/export`;
+
+  const body = {
+    idProjectVideo,
+    exportUrl,
+  };
+
+  return fetch(url, {
+    method: "POST",
+    body: JSON.stringify(body),
   });
 };

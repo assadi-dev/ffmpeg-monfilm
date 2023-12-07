@@ -59,7 +59,7 @@ export const gopro_process = (req, res) => {
 
       filesProcess.push(value);
 
-      full_process_gopro(fileObject);
+      full_process_gopro(idProjectVideo, fileObject);
     }
 
     return res.json({
