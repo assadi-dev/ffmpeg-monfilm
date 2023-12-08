@@ -6,7 +6,11 @@ import {
 } from "../services/FFmpegExportProcess.services.js";
 import slugify from "slugify";
 import OvhObjectStorageServices from "../services/OvhObjectStorage.services.js";
-import { EVASION_API, OVH_CREDENTIALS } from "../config/constant.config.js";
+import {
+  EVASION_API,
+  OVH_CONTAINER,
+  OVH_CREDENTIALS,
+} from "../config/constant.config.js";
 import { ws } from "../index.js";
 
 export const export_project = (req, res) => {
@@ -197,7 +201,7 @@ const upload_ovh = (room, fileObjetct) => {
       const options = {
         filePath,
         remoteFilename,
-        containerName: "media",
+        containerName: OVH_CONTAINER,
         segmentSize: 1024 * 1024 * 50,
       };
       await ovhStorageServices.connect();
