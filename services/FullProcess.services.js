@@ -69,7 +69,7 @@ export const full_process_gopro = async (idProjectVideo, fileObject) => {
     if (!existsSync(thumbDestination)) {
       mkdirSync(thumbDestination, { recursive: true });
       chmodSync(thumbDestination, "777");
-      if (platform == "darwin") await darwinChmod(thumbDestination);
+      //if (platform == "darwin") await darwinChmod(thumbDestination);
     }
 
     const thumbnails = await generate_thumbnail(low_quality, thumbDestination);

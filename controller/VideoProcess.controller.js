@@ -120,7 +120,7 @@ export const compress_test = async (req, res) => {
     if (!existsSync(destination)) {
       mkdirSync(destination, { recursive: true });
       chmodSync(destination, "777");
-      if (platform == "darwin") await darwinChmod(destination);
+      // if (platform == "darwin") await darwinChmod(destination);
     }
     generate_thumbnail(filePath, destination, filename);
     return res.json({ message: "processus en cours" });
