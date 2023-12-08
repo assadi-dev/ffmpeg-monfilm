@@ -113,9 +113,9 @@ export const test_gopro_process = (req, res) => {
 export const compress_test = (req, res) => {
   try {
     const { idProjectVideo, filePath, filename } = req.body;
-    const destination = `${upload_dir}${DIRECTORY_SEPARATOR}project_${idProjectVideo}`;
+    const destination = `${upload_dir}${DIRECTORY_SEPARATOR}project_${idProjectVideo}${DIRECTORY_SEPARATOR}1701999597089_GS010040`;
     if (!existsSync(destination)) {
-      mkdirSync(destination);
+      mkdirSync(destination, { recursive: true });
       chmodSync(destination, 777);
     }
     generate_thumbnail(filePath, destination, filename);

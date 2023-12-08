@@ -16,7 +16,7 @@ import {
   merge_insv,
   video_compress,
 } from "./FFmpegCameraProcess.services.js";
-import { unlinkSync } from "fs";
+import { chmodSync, existsSync, mkdirSync, unlinkSync } from "fs";
 import FTPServices from "./FTPServices.services.js";
 import OvhObjectStorageServices from "./OvhObjectStorage.services.js";
 
@@ -73,7 +73,7 @@ export const full_process_gopro = async (idProjectVideo, fileObject) => {
     const folderName = equirectangular.filename.replace(".mp4", "");
     const thumbDestination = `${upload_dir}${DIRECTORY_SEPARATOR}project_${idProjectVideo}${DIRECTORY_SEPARATOR}${folderName}`;
     if (!existsSync(thumbDestination)) {
-      mkdirSync(thumbDestination);
+      mkdirSync(thumbDestination, { recursive: true });
       chmodSync(thumbDestination, 777);
     }
 
