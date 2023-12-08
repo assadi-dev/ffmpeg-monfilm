@@ -500,3 +500,24 @@ export const concate_frames = (framesDir, totalFrames, output) => {
     }
   });
 };
+
+/**
+ * Attribution des droit 777 pour
+ * @param {*} destination
+ * @returns
+ */
+export const darwinChmod = (destination) => {
+  return new Promise((resolve) => {
+    const commandeChmod = `chmod -R 777 ${destination}`;
+    try {
+      execSync(commandeChmod);
+      const response = `Permissions 777 appliquées avec succès à ${destination}`;
+      console.log(response);
+      resolve(response);
+    } catch (erreur) {
+      console.error(
+        `Erreur lors de l'exécution de la commande : ${erreur.stderr}`
+      );
+    }
+  });
+};

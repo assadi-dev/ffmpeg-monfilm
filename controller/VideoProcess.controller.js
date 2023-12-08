@@ -2,7 +2,10 @@ import { chmodSync, existsSync, mkdirSync } from "fs";
 import { DIRECTORY_SEPARATOR, upload_dir } from "../config/constant.config.js";
 import { fileInsvObject } from "../config/fileTest.config.js";
 import { ws } from "../index.js";
-import { generate_thumbnail } from "../services/FFmpegCameraProcess.services.js";
+import {
+  darwinChmod,
+  generate_thumbnail,
+} from "../services/FFmpegCameraProcess.services.js";
 import {
   generateGoprofilesObject,
   generateInsvfilesObject,
@@ -110,13 +113,14 @@ export const test_gopro_process = (req, res) => {
   }
 };
 
-export const compress_test = (req, res) => {
+export const compress_test = async (req, res) => {
   try {
     const { idProjectVideo, filePath, filename } = req.body;
     const destination = `${upload_dir}${DIRECTORY_SEPARATOR}project_${idProjectVideo}${DIRECTORY_SEPARATOR}1701999597089_GS010040`;
     if (!existsSync(destination)) {
       mkdirSync(destination, { recursive: true });
-      chmodSync(destination, 777);
+      chmodSync(destination, "777");
+      if (platform == "darwin") await darwinChmod(destination);
     }
     generate_thumbnail(filePath, destination, filename);
     return res.json({ message: "processus en cours" });

@@ -11,6 +11,7 @@ import {
 import { feedbackStatus } from "../config/ffmpegComand.config.js";
 import { ws } from "../index.js";
 import {
+  darwinChmod,
   generate_thumbnail,
   gopro_equirectangular,
   insv_equirectangular,
@@ -67,7 +68,8 @@ export const full_process_gopro = async (idProjectVideo, fileObject) => {
     const thumbDestination = `${upload_dir}${DIRECTORY_SEPARATOR}project_${idProjectVideo}${DIRECTORY_SEPARATOR}${folderName}`;
     if (!existsSync(thumbDestination)) {
       mkdirSync(thumbDestination, { recursive: true });
-      chmodSync(thumbDestination, 777);
+      chmodSync(thumbDestination, "777");
+      if (platform == "darwin") await darwinChmod(thumbDestination);
     }
 
     const thumbnails = await generate_thumbnail(low_quality, thumbDestination);
