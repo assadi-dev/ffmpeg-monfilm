@@ -1,5 +1,8 @@
+import { chmodSync, existsSync, mkdirSync } from "fs";
+import { DIRECTORY_SEPARATOR, upload_dir } from "../config/constant.config.js";
 import { fileInsvObject } from "../config/fileTest.config.js";
 import { ws } from "../index.js";
+import { generate_thumbnail } from "../services/FFmpegCameraProcess.services.js";
 import {
   generateGoprofilesObject,
   generateInsvfilesObject,
@@ -100,6 +103,23 @@ export const test_gopro_process = (req, res) => {
 
     /*  full_process_gopro(fileObject); */
     return res.json({ message: "processus en cours", fileObject });
+  } catch (error) {
+    return res.status(500).json({
+      message: error?.message,
+    });
+  }
+};
+
+export const compress_test = (req, res) => {
+  try {
+    const { idProjectVideo, filePath, filename } = req.body;
+    const destination = `${upload_dir}${DIRECTORY_SEPARATOR}project_${idProjectVideo}`;
+    if (!existsSync(destination)) {
+      mkdirSync(destination);
+      chmodSync(destination, 777);
+    }
+    generate_thumbnail(filePath, destination, filename);
+    return res.json({ message: "processus en cours" });
   } catch (error) {
     return res.status(500).json({
       message: error?.message,

@@ -14,6 +14,9 @@ export const platform = os.platform();
 
 export const hostname = os.hostname();
 
+/**
+ * Retourne le delimiteur des dossier en fonction de l'OS
+ */
 export const DIRECTORY_SEPARATOR = getDelimiter();
 /**
  * Emplacement des traitement des fichiers

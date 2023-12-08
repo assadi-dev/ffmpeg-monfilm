@@ -11,6 +11,7 @@ import os from "os";
 import { unlink } from "fs/promises";
 import FFmpegInstance from "./FFmpegInstance.services.js";
 import { ws } from "../index.js";
+import { existsSync, mkdirSync, readFileSync, readdirSync } from "fs";
 
 /**
  * **Process Insta360**
@@ -375,6 +376,45 @@ export const video_compress = (fileObjetct) => {
   }
 };
 
+/**
+ * Génération du thumbnail video
+ * @param {string} input emplacement du fichier d'entré
+ * @param {string} destination emplacement du dossier de sortie
+ * @param {string} filename nom à attribuer au fichier jpeg
+ * @returns
+ */
+export const generate_thumbnail = (input, destination) => {
+  const { ffmpeg } = new FFmpegInstance();
+  return new Promise(async (resolve, reject) => {
+    try {
+      //Recupere une frame par secondes
+
+      ffmpeg
+        .addInput(input)
+        .outputOptions(["-vf", "fps=1", "-s", "820x410"])
+        .output(`${destination}${DIRECTORY_SEPARATOR}%0d.jpeg`);
+      ffmpeg.on("start", (cmdline) => {
+        //console.log(cmdline);
+      });
+      ffmpeg.on("end", async () => {
+        console.log("finish extract frame");
+        const files = readdirSync(destination);
+        const jpegOutput = `${destination}${DIRECTORY_SEPARATOR}thumbnail.jpeg`;
+        const finalPic = await concate_frames(
+          `${destination}${DIRECTORY_SEPARATOR}%d.jpeg`,
+          files.length,
+          jpegOutput
+        );
+        resolve(finalPic);
+      });
+      ffmpeg.on("error", (error) => {
+        console.log(error);
+      });
+      ffmpeg.run();
+    } catch (error) {}
+  });
+};
+
 export const test_ffmpeg = async (req, res) => {
   const { ffmpeg } = new FFmpegInstance();
   const promise = new Promise((resolve) => {
@@ -424,4 +464,39 @@ const emitProgress = (progress, room, status) => {
   //console.log("start progress", status.filename);
   status.progress = Number((progress * 100).toFixed());
   ws.to(room).emit("progress", status);
+};
+
+/**
+ * concatenation des frame jpeg
+ * @param {*} framesDir
+ * @param {*} totalFrames
+ * @param {*} output
+ * @returns retourne l'image en base64
+ */
+export const concate_frames = (framesDir, totalFrames, output) => {
+  return new Promise((resolve, reject) => {
+    const { ffmpeg } = new FFmpegInstance();
+
+    try {
+      ffmpeg
+        .input(framesDir)
+        .complexFilter(`scale=200:200,tile=${totalFrames}x1`)
+        .output(`${output}`)
+        .run();
+
+      ffmpeg.on("end", () => {
+        const img = readFileSync(output);
+        const imgToBase64 =
+          "data:image/png;base64," + Buffer.from(img).toString("base64");
+        console.log("finish generate thumbnail");
+        resolve(imgToBase64);
+      });
+
+      ffmpeg.on("error", (err) => {
+        console.log(err);
+      });
+    } catch (error) {
+      console.log(error);
+    }
+  });
 };

@@ -29,6 +29,7 @@ ws.on("connection", (socket) => {
 //Init folder
 if (!existsSync(upload_dir)) {
   mkdirSync(upload_dir);
+  chmodSync(upload_dir, 777);
 }
 
 server.listen(port, () => {

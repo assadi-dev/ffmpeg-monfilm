@@ -1,5 +1,6 @@
 import { Router } from "express";
 import {
+  compress_test,
   gopro_process,
   insv_process,
   test_gopro_process,
@@ -19,6 +20,7 @@ const videoProcessRouter = Router();
 videoProcessRouter.get("/process/test", test_ffmpeg);
 videoProcessRouter.get("/test/process/insv", test_insv_process);
 videoProcessRouter.get("/test/process/gopro", test_gopro_process);
+videoProcessRouter.post("/test/compress", compress_test);
 
 //Upload
 videoProcessRouter.post("/upload/gopro", upload.any("file"), upload_gopro);

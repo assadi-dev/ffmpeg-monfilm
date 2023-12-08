@@ -10,6 +10,7 @@ import {
 import { feedbackStatus } from "../config/ffmpegComand.config.js";
 import { ws } from "../index.js";
 import {
+  generate_thumbnail,
   gopro_equirectangular,
   insv_equirectangular,
   merge_insv,
@@ -67,13 +68,23 @@ export const full_process_gopro = async (idProjectVideo, fileObject) => {
       remoteFilename: equirectangular.filename,
     };
     const URL_HIGH = await upload_ovh(room, finalFileObject);
+    //Génération Thumbnail
+    console.log("generation thumbnail");
+    const folderName = equirectangular.filename.replace(".mp4", "");
+    const thumbDestination = `${upload_dir}${DIRECTORY_SEPARATOR}project_${idProjectVideo}${DIRECTORY_SEPARATOR}${folderName}`;
+    if (!existsSync(thumbDestination)) {
+      mkdirSync(thumbDestination);
+      chmodSync(thumbDestination, 777);
+    }
+
+    const thumbnails = await generate_thumbnail(low_quality, thumbDestination);
     console.table({ high_quality: URL_HIGH, low_quality: URL_LOW });
     //Update user project
     const projectData = {
       idProjectVideo,
       urlVideo: URL_HIGH,
       urlVideoLight: URL_LOW,
-      thumbnails: "",
+      thumbnails: thumbnails,
     };
     const resUpdateProject = await update_project_360(projectData);
     resUpdateProject.ok
