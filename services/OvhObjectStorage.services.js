@@ -196,7 +196,9 @@ export default class OvhObjectStorageServices {
       try {
         const { headers, remoteFilename } = args;
 
-        const url = `${this.endpoint}/${this.container}/${remoteFilename}`;
+        const url = `${this.endpoint}/${encodeURI(
+          this.container
+        )}/${remoteFilename}`;
 
         const manifestResponse = await fetch(url, {
           method: "PUT",
@@ -335,7 +337,7 @@ export default class OvhObjectStorageServices {
 
       try {
         if (!containerName) throw new Error("Container segment non defini");
-        const url = `${this.endpoint}/${containerName}`;
+        const url = `${this.endpoint}/${encodeURI(containerName)}`;
         const response = await fetch(url, {
           method: "PUT",
           headers,
