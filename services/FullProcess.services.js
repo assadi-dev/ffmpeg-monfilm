@@ -4,6 +4,7 @@ import {
   FTP_CREDENTIALS,
   FTP_DESTINATION_DIR,
   FTP_ENDPOINT,
+  OVH_CONTAINER,
   OVH_CREDENTIALS,
   upload_dir,
 } from "../config/constant.config.js";
@@ -222,7 +223,7 @@ const upload_ovh = (room, fileObjetct) => {
       const options = {
         filePath,
         remoteFilename,
-        containerName: "media",
+        containerName: OVH_CONTAINER,
         segmentSize: 1024 * 1024 * 50,
       };
       await ovhStorageServices.connect();
