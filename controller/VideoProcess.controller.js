@@ -33,7 +33,7 @@ export const insv_process = (req, res) => {
 
       // console.log(files);
 
-      full_process_insv(fileObject);
+      full_process_insv(idProjectVideo, fileObject);
     }
 
     return res.json({

@@ -103,7 +103,7 @@ export const full_process_gopro = async (idProjectVideo, fileObject) => {
   }
 };
 
-export const full_process_insv = async (fileObject) => {
+export const full_process_insv = async (idProjectVideo, fileObject) => {
   const room = fileObject?.room;
   let status = feedbackStatus;
   const filename = fileObject.filename;
@@ -153,24 +153,37 @@ export const full_process_insv = async (fileObject) => {
       lowFilename
     );
 
+    //Generation thumbnail
+    console.log("generation thumbnail");
+    const folderName = equirectantangular.filename.replace(".mp4", "");
+    const thumbDestination = `${upload_dir}${DIRECTORY_SEPARATOR}project_${idProjectVideo}${DIRECTORY_SEPARATOR}${folderName}`;
+    if (!existsSync(thumbDestination)) {
+      mkdirSync(thumbDestination, { recursive: true });
+      chmodSync(thumbDestination, "777");
+      //if (platform == "darwin") await darwinChmod(thumbDestination);
+    }
+
+    const thumbnails = await generate_thumbnail(low_quality, thumbDestination);
+
     //Envoie OVH
     console.log("start send OVH");
     const finalFileObject = {
       id,
       camera: fileObject.camera,
       filePath: high_quality,
-      remoteFilename: filename,
+      remoteFilename: equirectantangular.filename,
     };
     const URL_HIGH = await upload_ovh(room, finalFileObject);
 
-    console.table({ high_quality, low_quality: URL_LOW });
+    console.table({ high_quality: URL_HIGH, low_quality: URL_LOW });
     //Update user project
     const projectData = {
       idProjectVideo,
       urlVideo: URL_HIGH,
       urlVideoLight: URL_LOW,
-      thumbnails: "",
+      thumbnails,
     };
+
     const resUpdateProject = await update_project_360(projectData);
     resUpdateProject.ok
       ? console.log("projet disponible")
