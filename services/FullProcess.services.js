@@ -59,15 +59,7 @@ export const full_process_gopro = async (idProjectVideo, fileObject) => {
       ftp_destination,
       lowFilename
     );
-    //Envoie OVH
-    console.log("start send OVH");
-    const finalFileObject = {
-      id,
-      camera: fileObject.camera,
-      filePath: high_quality,
-      remoteFilename: equirectangular.filename,
-    };
-    const URL_HIGH = await upload_ovh(room, finalFileObject);
+
     //Génération Thumbnail
     console.log("generation thumbnail");
     const folderName = equirectangular.filename.replace(".mp4", "");
@@ -78,6 +70,15 @@ export const full_process_gopro = async (idProjectVideo, fileObject) => {
     }
 
     const thumbnails = await generate_thumbnail(low_quality, thumbDestination);
+    //Envoie OVH
+    console.log("start send OVH");
+    const finalFileObject = {
+      id,
+      camera: fileObject.camera,
+      filePath: high_quality,
+      remoteFilename: equirectangular.filename,
+    };
+    const URL_HIGH = await upload_ovh(room, finalFileObject);
     console.table({ high_quality: URL_HIGH, low_quality: URL_LOW });
     //Update user project
     const projectData = {
