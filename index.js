@@ -4,7 +4,7 @@ import dotenv from "dotenv";
 import { Server } from "socket.io";
 import corsOptions from "./config/cors.config.js";
 import os from "os";
-import { existsSync, mkdirSync } from "fs";
+import { chmodSync, existsSync, mkdirSync } from "fs";
 import { upload_dir } from "./config/constant.config.js";
 
 dotenv.config();
@@ -29,7 +29,7 @@ ws.on("connection", (socket) => {
 //Init folder
 if (!existsSync(upload_dir)) {
   mkdirSync(upload_dir);
-  chmodSync(upload_dir, 777);
+  chmodSync(upload_dir, "777");
 }
 
 server.listen(port, () => {

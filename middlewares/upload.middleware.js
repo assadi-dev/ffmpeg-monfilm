@@ -7,7 +7,7 @@ const storage = multer.diskStorage({
 
     if (!existsSync(dir)) {
       mkdirSync(dir, { recursive: true });
-      chmodSync(dir, 777);
+      chmodSync(dir, "777");
     }
 
     callback(null, dir);

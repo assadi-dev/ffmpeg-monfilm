@@ -1,5 +1,5 @@
 import multer from "multer";
-import { existsSync, mkdirSync } from "node:fs";
+import { chmodSync, existsSync, mkdirSync } from "node:fs";
 
 const storage = multer.diskStorage({
   destination: (req, file, callback) => {
@@ -7,7 +7,7 @@ const storage = multer.diskStorage({
 
     if (!existsSync(dir)) {
       mkdirSync(dir, { recursive: true });
-      chmodSync(dir, 777);
+      chmodSync(dir, "777");
     }
 
     callback(null, dir);
