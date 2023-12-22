@@ -30,15 +30,17 @@ export const flow_upload = (req, res) => {
 
     // Check if all chunks have been received
 
-    const expectedChunks = Math.round(flowTotalSize / flowChunkSize);
+    const expectedChunks = Math.ceil(flowTotalSize / flowChunkSize);
     const chunkNumbers = Array.from(
       { length: expectedChunks },
       (_, i) => i + 1
     );
 
-    const allChunksReceived = chunkNumbers.every((num) =>
-      fs.existsSync(path.join(chunkDirectory, `${flowIdentifier}.${num}`))
-    );
+    const allChunksReceived = chunkNumbers.every((num) => {
+      return fs.existsSync(
+        path.join(chunkDirectory, `${flowIdentifier}.${num}`)
+      );
+    });
 
     if (allChunksReceived) {
       // All chunks have been received; assemble the complete file

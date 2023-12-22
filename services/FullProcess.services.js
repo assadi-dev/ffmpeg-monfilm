@@ -91,8 +91,9 @@ export const full_process_gopro = async (idProjectVideo, fileObject) => {
       thumbnails: thumbnails,
     };
     const resUpdateProject = await update_project_360(projectData);
+
     resUpdateProject.ok
-      ? console.log("projet disponible")
+      ? emitVideoMade(room, await resUpdateProject.json())
       : console.log("Une erreur est survenue");
   } catch (error) {
     console.log(error.message);
@@ -185,8 +186,12 @@ export const full_process_insv = async (idProjectVideo, fileObject) => {
     };
 
     const resUpdateProject = await update_project_360(projectData);
+
     resUpdateProject.ok
-      ? console.log("projet disponible")
+      ? async () => {
+          const result = await resUpdateProject.json();
+          ws.to(room).emit("project-data", result);
+        }
       : console.log("Une erreur est survenue");
   } catch (error) {
     console.log(error.message);
@@ -272,4 +277,11 @@ const update_project_360 = (body) => {
     method: "POST",
     body: JSON.stringify(body),
   });
+};
+
+/**
+ * Notifie le données videoMade360 créer
+ */
+const emitVideoMade = async (room, result) => {
+  ws.to(room).emit("project-data", result);
 };
