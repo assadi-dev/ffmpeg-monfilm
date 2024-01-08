@@ -186,12 +186,8 @@ export const full_process_insv = async (idProjectVideo, fileObject) => {
     };
 
     const resUpdateProject = await update_project_360(projectData);
-
     resUpdateProject.ok
-      ? async () => {
-          const result = await resUpdateProject.json();
-          ws.to(room).emit("project-data", result);
-        }
+      ? emitVideoMade(room, await resUpdateProject.json())
       : console.log("Une erreur est survenue");
   } catch (error) {
     console.log(error.message);

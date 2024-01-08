@@ -1,4 +1,9 @@
-import { platform } from "../config/constant.config.js";
+import {
+  DIRECTORY_SEPARATOR,
+  __dirname,
+  domain,
+  platform,
+} from "../config/constant.config.js";
 
 export const getDelimiter = () => {
   if (platform == "win32") return "\\";
@@ -11,6 +16,7 @@ export const generateGoprofilesObject = (fileObject) => {
       id: fileObject.id,
       filename: fileObject.filename,
       camera: fileObject.camera,
+      path: cleanPathName(fileObject.path),
       progress: 0,
     };
   }
@@ -21,9 +27,20 @@ export const generateInsvfilesObject = (fileObject) => {
       id: fileObject.id,
       filename: fileObject.filename,
       camera: fileObject.camera,
-      front: fileObject.front,
-      back: fileObject.back,
+      front: cleanPathName(fileObject.front),
+      back: cleanPathName(fileObject.back),
       progress: 0,
     };
   }
+};
+
+/**
+ * Retourne l'emplacement réelle du fichier
+ * @param {*} filepath
+ * @returns
+ */
+const cleanPathName = (filepath = "") => {
+  const URL_UPLOADS = domain + "/uploads/";
+  const UPLOAD_FILES_PATH = `${__dirname}${DIRECTORY_SEPARATOR}uploads${DIRECTORY_SEPARATOR}`;
+  return filepath.replace(URL_UPLOADS, UPLOAD_FILES_PATH);
 };
