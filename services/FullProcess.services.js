@@ -35,6 +35,7 @@ export const full_process_gopro = async (idProjectVideo, fileObject) => {
     console.log(`wait gopro equirectangular for ${fileObject.filename}`);
 
     ws.to(room).emit("start", statusStep);
+
     const equirectangular = await gopro_equirectangular(fileObject);
     const lowFilename = equirectangular.filename.replace(".mp4", "_low.mp4");
 

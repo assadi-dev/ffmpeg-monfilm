@@ -29,11 +29,11 @@ export const insv_process = (req, res) => {
 
       const value = generateInsvfilesObject(fileObject);
 
-      filesProcess.push(value);
+      filesProcess.push(fileObject);
 
       // console.log(files);
 
-      full_process_insv(idProjectVideo, fileObject);
+      full_process_insv(idProjectVideo, { ...fileObject, ...value });
     }
 
     return res.json({
@@ -63,9 +63,9 @@ export const gopro_process = (req, res) => {
 
       const value = generateGoprofilesObject(fileObject);
 
-      filesProcess.push(value);
+      filesProcess.push(fileObject);
 
-      full_process_gopro(idProjectVideo, fileObject);
+      full_process_gopro(idProjectVideo, { ...fileObject, ...value });
     }
 
     return res.json({
