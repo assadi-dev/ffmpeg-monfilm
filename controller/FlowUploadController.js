@@ -13,8 +13,6 @@ export const flow_upload = (req, res) => {
     flowTotalChunks,
   } = req.body;
 
-  console.log(req.body);
-
   const chunkDirectory = `${upload_dir}${DIRECTORY_SEPARATOR}chunk`;
   const completeDirectory = `${upload_dir}`;
 
