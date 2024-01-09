@@ -10,7 +10,10 @@ export const flow_upload = (req, res) => {
     flowTotalSize,
     flowIdentifier,
     flowFilename,
+    flowTotalChunks,
   } = req.body;
+
+  console.log(req.body);
 
   const chunkDirectory = `${upload_dir}${DIRECTORY_SEPARATOR}chunk`;
   const completeDirectory = `${upload_dir}`;
@@ -30,9 +33,9 @@ export const flow_upload = (req, res) => {
 
     // Check if all chunks have been received
 
-    const expectedChunks = Math.ceil(flowTotalSize / flowChunkSize);
+    // const expectedChunks = Math.ceil(flowTotalSize / flowChunkSize);
     const chunkNumbers = Array.from(
-      { length: expectedChunks },
+      { length: flowTotalChunks },
       (_, i) => i + 1
     );
 
