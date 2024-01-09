@@ -208,6 +208,7 @@ export default class OvhObjectStorageServices {
         if (manifestResponse.ok) {
           resolve(url);
         } else {
+          // console.log(manifestResponse.json());
           throw new Error("Failed to upload the manifest file.");
         }
       } catch (error) {

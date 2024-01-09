@@ -5,6 +5,7 @@ import cors from "cors";
 import videoProcessRouter from "./routes/videoProcess.routes.js";
 import { test_ffmpeg } from "./services/FFmpegCameraProcess.services.js";
 import uploadFiles from "./routes/uploadFiles.routes.js";
+import audioProcessRouter from "./routes/audioProcess.routes.js";
 
 const app = express();
 
@@ -21,6 +22,8 @@ app.get("/", test_ffmpeg);
 //Endpoint
 //traitementVideo
 app.use("/api", videoProcessRouter);
+//traitementAudio
+app.use("/api", audioProcessRouter);
 //Upload
 app.use("/", uploadFiles);
 

@@ -36,6 +36,8 @@ export const OVH_CREDENTIALS = {
   endpoint: process.env.OVH_OBJECT_STORAGE_ENDPOINT,
 };
 
+export const CONTAINER_EVASION = process.env.OVH_OBJECT_STORAGE_CONTAINER;
+
 /**
  * Credential service FTP
  */

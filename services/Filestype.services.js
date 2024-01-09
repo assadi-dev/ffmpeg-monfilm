@@ -39,7 +39,7 @@ export const generateInsvfilesObject = (fileObject) => {
  * @param {*} filepath
  * @returns
  */
-const cleanPathName = (filepath = "") => {
+export const cleanPathName = (filepath = "") => {
   const URL_UPLOADS = domain + "/uploads/";
   const UPLOAD_FILES_PATH = `${__dirname}${DIRECTORY_SEPARATOR}uploads${DIRECTORY_SEPARATOR}`;
   return filepath.replace(URL_UPLOADS, UPLOAD_FILES_PATH);
