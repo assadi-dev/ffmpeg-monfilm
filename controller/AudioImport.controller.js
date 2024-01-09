@@ -95,6 +95,8 @@ const upload_audio_process = async (room, audioObject, idProjectVideo) => {
             )}/${filename}`;
 
             finish(room, status, url);
+            status.progress = 100;
+            ws.to(room).emit("end", status);
             resolve({
               url: url,
               filename,
