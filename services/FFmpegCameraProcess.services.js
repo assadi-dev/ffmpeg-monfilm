@@ -50,6 +50,7 @@ export const merge_insv = async (fileObject) => {
     progress: 0,
     url: "",
     error: "",
+    type: "video",
   };
   try {
     const front = fileObject?.front;
@@ -134,6 +135,7 @@ export const insv_equirectangular = async (fileObject) => {
     progress: 0,
     url: "",
     error: "",
+    type: "video",
   };
 
   try {
@@ -228,6 +230,7 @@ export const gopro_equirectangular = async (fileObject) => {
     progress: 0,
     url: "",
     error: "",
+    type: "video",
   };
 
   try {
@@ -325,6 +328,7 @@ export const video_compress = (fileObjetct) => {
     progress: 0,
     url: "",
     error: "",
+    type: "video",
   };
 
   try {

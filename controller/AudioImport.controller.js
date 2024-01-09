@@ -59,6 +59,7 @@ const upload_audio_process = async (room, audioObject, idProjectVideo) => {
     progress: 0,
     url: "",
     error: "",
+    type: "audio",
   };
 
   const clientStorage = tinyStorageClient(OVH_CREDENTIALS);
@@ -88,7 +89,7 @@ const upload_audio_process = async (room, audioObject, idProjectVideo) => {
             if (err) {
               return "Error send file OVH";
             }
-            console.log("code: ", res.statusCode);
+            // console.log("code: ", res.statusCode);
             const url = `${OVH_CREDENTIALS.endpoint}/${encodeURI(
               CONTAINER_EVASION
             )}/${filename}`;
@@ -111,7 +112,7 @@ const upload_audio_process = async (room, audioObject, idProjectVideo) => {
 const listen = (room, status, progress) => {
   status.progress = progress;
   status.message = "progress";
-  console.log("progress upload", progress + "%");
+  // console.log("progress upload", progress + "%");
   ws.to(room).emit("progress", status);
 };
 
@@ -119,7 +120,7 @@ const finish = async (room, status, filename) => {
   status.progress = 100;
   status.message = "done";
 
-  console.log("finish ", filename);
+  console.log("finish upload audio");
   ws.to(room).emit("progress", status);
 };
 
