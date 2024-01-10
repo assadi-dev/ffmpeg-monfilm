@@ -12,6 +12,7 @@ import {
   OVH_CREDENTIALS,
 } from "../config/constant.config.js";
 import { ws } from "../index.js";
+import { statSync } from "fs";
 
 export const export_project = (req, res) => {
   try {
@@ -111,7 +112,15 @@ export const generate_finalOutput = async (
   const FinalObject = { filePath: final_result, remoteFilename };
   const url = await upload_ovh(room, FinalObject);
   //Update UserProject
-  const resProject = await updateUserProject(idProjectVideo, url);
+  const { size } = statSync(final_result);
+
+  const resProject = await updateUserProject(
+    idProjectVideo,
+    remoteFilename,
+    url,
+    maxDuration,
+    size
+  );
   resProject.ok
     ? console.log("Project has been updated with success")
     : console.log("Error update project");
@@ -243,12 +252,21 @@ const clean_filename = (name) => {
  * @param {*} exportUrl liex de la video exporté
  * @returns
  */
-const updateUserProject = (idProjectVideo, exportUrl) => {
+const updateUserProject = (
+  idProjectVideo,
+  filename,
+  exportUrl,
+  duration,
+  size
+) => {
   const url = ` ${EVASION_API}/v2/project/update/export`;
 
   const body = {
     idProjectVideo,
+    filename,
     exportUrl,
+    duration,
+    size,
   };
 
   return fetch(url, {
