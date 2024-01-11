@@ -26,7 +26,7 @@ export const split_videos = async (scene, projectName, output, room) => {
 
   if (!existsSync(export_file)) {
     mkdirSync(export_file, { recursive: true });
-    chmodSync(export_file, 777);
+    chmodSync(export_file, "777");
   }
 
   const destination = `${export_file}${DIRECTORY_SEPARATOR}${output}`;
@@ -144,7 +144,7 @@ export const concatenate_videos = (
     const { ffmpeg } = new FFmpegInstance();
     if (!existsSync(export_file)) {
       mkdirSync(export_file, { recursive: true });
-      chmodSync(export_file, 777);
+      chmodSync(export_file, "777");
     }
 
     const promise = new Promise((resolve) => {
@@ -235,7 +235,7 @@ export const concatenate_combined_videos = (
     const { ffmpeg } = new FFmpegInstance();
     if (!existsSync(export_file)) {
       mkdirSync(export_file, { recursive: true });
-      chmodSync(export_file, 777);
+      chmodSync(export_file, "777");
     }
 
     const promise = new Promise((resolve) => {
@@ -335,7 +335,7 @@ export const splitAudioPart = (audio, projectName, output, room) => {
 
   if (!existsSync(export_file)) {
     mkdirSync(export_file, { recursive: true });
-    chmodSync(export_file, 777);
+    chmodSync(export_file, "777");
   }
 
   const destination = `${export_file}${DIRECTORY_SEPARATOR}${output}`;
