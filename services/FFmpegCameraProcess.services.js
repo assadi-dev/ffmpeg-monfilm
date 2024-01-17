@@ -395,7 +395,7 @@ export const generate_thumbnail = (input, destination) => {
 
       ffmpeg
         .addInput(input)
-        .outputOptions(["-r", "-s", "820x410"])
+        .outputOptions(["-r1", "-s 820x410"])
         .output(`${destination}${DIRECTORY_SEPARATOR}%0d.jpeg`);
       ffmpeg.on("start", (cmdline) => {
         //console.log(cmdline);
