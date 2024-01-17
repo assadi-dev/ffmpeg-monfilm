@@ -228,7 +228,7 @@ const upload_ovh = (room, fileObjetct) => {
       step: "ovh",
       camera,
       message: "idle",
-      filename: fileObjetct.filename,
+      filename: remoteFilename,
       progress: 0,
       url: "",
       error: "",
