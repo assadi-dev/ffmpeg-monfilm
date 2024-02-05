@@ -1,12 +1,10 @@
 apps:
   - name: ffmpeg-monfilm360 
     script: index.js 
-    instances: 1,
+    instances: 5,
     autorestart: true
     watch: false
-    max_restarts: 5  
-    time: 10  
     max_memory_restart: '300M'
-    restart_delay: 3000       
+    restart_delay: 1000      
     env:
       NODE_ENV: production

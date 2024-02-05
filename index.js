@@ -6,6 +6,7 @@ import corsOptions from "./config/cors.config.js";
 import os from "os";
 import { chmodSync, existsSync, mkdirSync } from "fs";
 import { upload_dir } from "./config/constant.config.js";
+import httpProxy from "http-proxy";
 
 dotenv.config();
 
@@ -31,6 +32,13 @@ if (!existsSync(upload_dir)) {
   mkdirSync(upload_dir);
   chmodSync(upload_dir, "777");
 }
+
+/* const proxy = httpProxy.createProxyServer({
+  target: "http://ffmpeg.tkorp.com:5500",
+  ws: true,
+});
+
+proxy.listen(5500); */
 
 server.listen(port, () => {
   console.log(`server on port ${port}`);
