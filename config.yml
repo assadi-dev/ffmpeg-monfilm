@@ -1,7 +1,7 @@
 apps:
   - name: ffmpeg-monfilm360 
     script: index.js 
-    instances: 5,
+    instances: 1,
     autorestart: true
     watch: false
     max_memory_restart: '300M'
