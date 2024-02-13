@@ -98,7 +98,7 @@ const upload_audio_process = async (room, audioObject, idProjectVideo) => {
 
             finish(room, status, url);
             status.progress = 100;
-            ws.of(process.env.WEBSOCKET_PATH).to(room).emit("end", status);
+            ws.of(WEBSOCKET_PATH).to(room).emit("end", status);
             resolve({
               url: url,
               filename,
@@ -117,7 +117,7 @@ const listen = (room, status, progress) => {
   status.progress = progress;
   status.message = "progress";
   // console.log("progress upload", progress + "%");
-  ws.of(process.env.WEBSOCKET_PATH).to(room).emit("progress", status);
+  ws.of(WEBSOCKET_PATH).to(room).emit("progress", status);
 };
 
 const finish = async (room, status, filename) => {
@@ -125,7 +125,7 @@ const finish = async (room, status, filename) => {
   status.message = "done";
 
   console.log("finish upload audio");
-  ws.of(process.env.WEBSOCKET_PATH).to(room).emit("progress", status);
+  ws.of(WEBSOCKET_PATH).to(room).emit("progress", status);
 };
 
 const updateAudioMade360 = (idProjectVideo, filename, urlAudio) => {

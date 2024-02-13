@@ -443,7 +443,7 @@ export const splitAudioPart = (audio, projectName, output, room) => {
     console.log(error.message);
     status.error = error.message;
     status.message = "error";
-    ws.of(process.env.WEBSOCKET_PATH).to(room).emit("error", status);
+    ws.of(WEBSOCKET_PATH).to(room).emit("error", status);
   }
 };
 

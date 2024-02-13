@@ -54,3 +54,5 @@ export const FTP_DESTINATION_DIR = process.env.FTP_UPLOAD_DIR;
 export const EVASION_API = `${process.env.EVASION_SITE}/api`;
 
 export const OVH_CONTAINER = process.env.OVH_OBJECT_STORAGE_CONTAINER;
+
+export const WEBSOCKET_PATH = process.env.WEBSOCKET_PATH;

@@ -18,7 +18,7 @@ export const server = http.createServer(app);
  */
 export const ws = new Server(server, { cors: corsOptions });
 
-ws.on("connection", (socket) => {
+ws.of(process.env.WEBSOCKET_PATH).on("connection", (socket) => {
   socket.on("join_server", (data) => {
     const room = data;
     socket.join(room);
