@@ -3,6 +3,7 @@ import Ffmpeg from "fluent-ffmpeg";
 import { ffmpegPath, gopropArgs } from "../config/ffmpegComand.config.js";
 import {
   DIRECTORY_SEPARATOR,
+  WEBSOCKET_PATH,
   __dirname,
   platform,
   upload_dir,

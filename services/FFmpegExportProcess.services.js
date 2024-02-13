@@ -8,7 +8,11 @@ output,
 room */
 
 import { chmodSync, existsSync, mkdirSync, stat } from "fs";
-import { DIRECTORY_SEPARATOR, upload_dir } from "../config/constant.config.js";
+import {
+  DIRECTORY_SEPARATOR,
+  WEBSOCKET_PATH,
+  upload_dir,
+} from "../config/constant.config.js";
 import FFmpegInstance from "./FFmpegInstance.services.js";
 import ffmpegOnProgress from "ffmpeg-on-progress";
 import { ws } from "../index.js";

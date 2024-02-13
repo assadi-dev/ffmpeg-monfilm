@@ -6,6 +6,7 @@ import {
   FTP_ENDPOINT,
   OVH_CONTAINER,
   OVH_CREDENTIALS,
+  WEBSOCKET_PATH,
   upload_dir,
 } from "../config/constant.config.js";
 import { feedbackStatus } from "../config/ffmpegComand.config.js";
