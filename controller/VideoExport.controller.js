@@ -219,14 +219,18 @@ const upload_ovh = (room, fileObjetct) => {
         const percent = Math.ceil(progress * 100);
         status.progress = percent;
         status.message = "progress";
-        ws.to(room).emit("export-project-video", status);
+        ws.of(process.env.WEBSOCKET_PATH)
+          .to(room)
+          .emit("export-project-video", status);
       };
       ovhStorageServices.onProgress(listen);
       const finish = (response) => {
         status.progress = 100;
         status.message = "done";
         status.url = response?.url;
-        ws.to(room).emit("export-project-video", status);
+        ws.of(process.env.WEBSOCKET_PATH)
+          .to(room)
+          .emit("export-project-video", status);
         resolve(response?.url);
       };
       ovhStorageServices.onSuccess(finish);

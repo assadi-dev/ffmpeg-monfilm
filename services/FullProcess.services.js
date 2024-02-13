@@ -34,7 +34,7 @@ export const full_process_gopro = async (idProjectVideo, fileObject) => {
   try {
     console.log(`wait gopro equirectangular for ${fileObject.filename}`);
 
-    ws.to(room).emit("start", statusStep);
+    ws.of(process.env.WEBSOCKET_PATH).to(room).emit("start", statusStep);
 
     const equirectangular = await gopro_equirectangular(fileObject);
     const lowFilename = equirectangular.filename.replace(".mp4", "_low.mp4");
@@ -100,7 +100,7 @@ export const full_process_gopro = async (idProjectVideo, fileObject) => {
     console.log(error.message);
     statusStep.error = error.message;
     statusStep.message = "error";
-    ws.to(room).emit("error", statusStep);
+    ws.of(process.env.WEBSOCKET_PATH).to(room).emit("error", statusStep);
     return error;
   }
 };
@@ -118,7 +118,7 @@ export const full_process_insv = async (idProjectVideo, fileObject) => {
 
   try {
     console.log(`wait fusion insv for ${filename}`);
-    ws.to(room).emit("start", status);
+    ws.of(process.env.WEBSOCKET_PATH).to(room).emit("start", status);
     const fusion = await merge_insv(fileObject);
     let toEquirectangular = {
       id,
@@ -194,7 +194,7 @@ export const full_process_insv = async (idProjectVideo, fileObject) => {
     console.log(error.message);
     status.error = error.message;
     status.message = "error";
-    ws.to(room).emit("error", status);
+    ws.of(process.env.WEBSOCKET_PATH).to(room).emit("error", status);
     return error;
   }
 };
@@ -249,14 +249,14 @@ const upload_ovh = (room, fileObjetct) => {
         const percent = Math.ceil(progress * 100);
         status.progress = percent;
         status.message = "progress";
-        ws.to(room).emit("progress", status);
+        ws.of(process.env.WEBSOCKET_PATH).to(room).emit("progress", status);
       };
       ovhStorageServices.onProgress(listen);
       const finish = (response) => {
         status.progress = 100;
         status.message = "done";
         status.url = response?.url;
-        ws.to(room).emit("end", status);
+        ws.of(process.env.WEBSOCKET_PATH).to(room).emit("end", status);
         resolve(response?.url);
       };
       ovhStorageServices.onSuccess(finish);
@@ -280,5 +280,5 @@ const update_project_360 = (body) => {
  * Notifie le données videoMade360 créer
  */
 const emitVideoMade = async (room, result) => {
-  ws.to(room).emit("project-data", result);
+  ws.of(process.env.WEBSOCKET_PATH).to(room).emit("project-data", result);
 };

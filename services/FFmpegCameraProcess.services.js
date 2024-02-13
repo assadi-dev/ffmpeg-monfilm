@@ -69,7 +69,7 @@ export const merge_insv = async (fileObject) => {
           console.log(`start fusion insv process for ${filename}`);
           status.message = "start";
           status.step = "fusion";
-          ws.to(room).emit("start", status);
+          ws.of(process.env.WEBSOCKET_PATH).to(room).emit("start", status);
         })
 
         /*      .on("stderr", function (stderrLine) {
@@ -92,7 +92,7 @@ export const merge_insv = async (fileObject) => {
 
           status.message = "done";
           status.progress = 100;
-          ws.to(room).emit("end", status);
+          ws.of(process.env.WEBSOCKET_PATH).to(room).emit("end", status);
 
           const result = { filename, finalFilename, output };
           resolve(result);
@@ -101,14 +101,14 @@ export const merge_insv = async (fileObject) => {
           console.log(error.message);
           status.error = error.message;
           status.message = "error";
-          ws.to(room).emit("error", status);
+          ws.of(process.env.WEBSOCKET_PATH).to(room).emit("error", status);
         })
         .run();
     });
   } catch (error) {
     status.error = error.message;
     status.message = "error";
-    ws.to(room).emit("error", status);
+    ws.of(process.env.WEBSOCKET_PATH).to(room).emit("error", status);
   }
 };
 
@@ -151,7 +151,7 @@ export const insv_equirectangular = async (fileObject) => {
           console.log(`start equirectangular insv process for ${filename}`);
           status.message = "start";
           status.step = "equirectangular";
-          ws.to(room).emit("start", status);
+          ws.of(process.env.WEBSOCKET_PATH).to(room).emit("start", status);
         })
         .on("codecData", (data) => {
           // HERE YOU GET THE TOTAL TIME
@@ -175,7 +175,7 @@ export const insv_equirectangular = async (fileObject) => {
 
           status.message = "done";
           status.progress = 100;
-          ws.to(room).emit("end", status);
+          ws.of(process.env.WEBSOCKET_PATH).to(room).emit("end", status);
           const result = {
             filename: fileObject.finalFilename.replace(
               "_dualfisheye.mp4",
@@ -189,14 +189,14 @@ export const insv_equirectangular = async (fileObject) => {
           console.log(error.message);
           status.error = error.message;
           status.message = "error";
-          ws.to(room).emit("error", status);
+          ws.of(process.env.WEBSOCKET_PATH).to(room).emit("error", status);
         })
         .run();
     });
   } catch (error) {
     status.error = error.message;
     status.message = "error";
-    ws.to(room).emit("error", status);
+    ws.of(process.env.WEBSOCKET_PATH).to(room).emit("error", status);
   }
 };
 
@@ -266,7 +266,7 @@ export const gopro_equirectangular = async (fileObject) => {
           console.log(`start gopro equirectangular for ${filename}`);
           status.message = "start";
           status.step = "equirectangular";
-          ws.to(room).emit("start", status);
+          ws.of(process.env.WEBSOCKET_PATH).to(room).emit("start", status);
         })
         .on("codecData", (data) => {
           // HERE YOU GET THE TOTAL TIME
@@ -288,7 +288,7 @@ export const gopro_equirectangular = async (fileObject) => {
           status.message = "done";
           status.progress = 100;
 
-          ws.to(room).emit("end", status);
+          ws.of(process.env.WEBSOCKET_PATH).to(room).emit("end", status);
           resolve(result);
         })
         .on("error", (error) => {
@@ -296,7 +296,7 @@ export const gopro_equirectangular = async (fileObject) => {
 
           status.error = error.message;
           status.message = "error";
-          ws.to(room).emit("error", status);
+          ws.of(process.env.WEBSOCKET_PATH).to(room).emit("error", status);
         })
         .run();
     });
@@ -344,7 +344,7 @@ export const video_compress = (fileObjetct) => {
         .output(output)
         .on("start", (cmdline) => {
           status.message = "start";
-          ws.to(room).emit("start", status);
+          ws.of(process.env.WEBSOCKET_PATH).to(room).emit("start", status);
         })
         .on("codecData", (data) => {
           totalDuration = parseInt(data.duration.replace(/:/g, ""));
@@ -361,14 +361,14 @@ export const video_compress = (fileObjetct) => {
           console.log(`Finished compressing for ${input}`);
           status.message = "done";
           status.progress = 100;
-          ws.to(room).emit("end", status);
+          ws.of(process.env.WEBSOCKET_PATH).to(room).emit("end", status);
           resolve({ input, output });
         })
         .on("error", (error) => {
           console.log(error.message);
           status.message = "erreur";
           status.error = error.message;
-          ws.to(room).emit("error", status);
+          ws.of(process.env.WEBSOCKET_PATH).to(room).emit("error", status);
         })
         .run();
     });
@@ -376,7 +376,7 @@ export const video_compress = (fileObjetct) => {
     console.log(error.message);
     status.message = "erreur";
     status.error = error.message;
-    ws.to(room).emit("error", error.message);
+    ws.of(process.env.WEBSOCKET_PATH).to(room).emit("error", error.message);
   }
 };
 
@@ -467,7 +467,7 @@ const logProgress = (progress) => {
 const emitProgress = (progress, room, status) => {
   //console.log("start progress", status.filename);
   status.progress = Number((progress * 100).toFixed());
-  ws.to(room).emit("progress", status);
+  ws.of(process.env.WEBSOCKET_PATH).to(room).emit("progress", status);
 };
 
 /**

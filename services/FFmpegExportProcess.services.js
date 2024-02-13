@@ -77,7 +77,9 @@ export const split_videos = async (scene, projectName, output, room) => {
         .on("start", (cmdline) => {
           //console.log(`start split`, cmdline);
           status.message = "start";
-          ws.to(room).emit(eventFeedbackPublish.export, status);
+          ws.of(process.env.WEBSOCKET_PATH)
+            .to(room)
+            .emit(eventFeedbackPublish.export, status);
         })
         .on("codecData", (data) => {
           totalDuration = parseInt(data.duration.replace(/:/g, ""));
@@ -96,7 +98,9 @@ export const split_videos = async (scene, projectName, output, room) => {
           console.log(100);
           status.message = "done";
           status.progress = 100;
-          ws.to(room).emit(eventFeedbackPublish.export, status);
+          ws.of(process.env.WEBSOCKET_PATH)
+            .to(room)
+            .emit(eventFeedbackPublish.export, status);
 
           resolve(destination);
         })
@@ -104,7 +108,9 @@ export const split_videos = async (scene, projectName, output, room) => {
           console.log(error.message);
           status.error = error.message;
           status.message = "error";
-          ws.to(room).emit(eventFeedbackPublish.error, status);
+          ws.of(process.env.WEBSOCKET_PATH)
+            .to(room)
+            .emit(eventFeedbackPublish.error, status);
         })
 
         .run();
@@ -171,7 +177,9 @@ export const concatenate_videos = (
         .on("start", (cmdline) => {
           //console.log(`start concate`, cmdline);
           status.message = "start";
-          ws.to(room).emit(eventFeedbackPublish.export, status);
+          ws.of(process.env.WEBSOCKET_PATH)
+            .to(room)
+            .emit(eventFeedbackPublish.export, status);
         })
         .on(
           "progress",
@@ -184,14 +192,18 @@ export const concatenate_videos = (
           console.log(`Finished concate`);
           status.progress = 100;
           status.message = "done";
-          ws.to(room).emit(eventFeedbackPublish.export, status);
+          ws.of(process.env.WEBSOCKET_PATH)
+            .to(room)
+            .emit(eventFeedbackPublish.export, status);
           resolve(destination);
         })
         .on("error", (error) => {
           console.log(error.message);
           status.error = error.message;
           status.message = "error";
-          ws.to(room).emit(eventFeedbackPublish.error, status);
+          ws.of(process.env.WEBSOCKET_PATH)
+            .to(room)
+            .emit(eventFeedbackPublish.error, status);
         })
         .run();
     });
@@ -201,7 +213,9 @@ export const concatenate_videos = (
     console.log(error.message);
     status.error = error.message;
     status.message = "error";
-    ws.to(room).emit(eventFeedbackPublish.error, status);
+    ws.of(process.env.WEBSOCKET_PATH)
+      .to(room)
+      .emit(eventFeedbackPublish.error, status);
   }
 };
 
@@ -288,7 +302,9 @@ export const concatenate_combined_videos = (
         .on("start", (cmdline) => {
           //console.log(`start concate`, cmdline);
           status.message = "start";
-          ws.to(room).emit(eventFeedbackPublish.export, status);
+          ws.of(process.env.WEBSOCKET_PATH)
+            .to(room)
+            .emit(eventFeedbackPublish.export, status);
         })
         .on(
           "progress",
@@ -301,14 +317,18 @@ export const concatenate_combined_videos = (
           console.log(`Finished concate video`);
           status.progress = 100;
           status.message = "done";
-          ws.to(room).emit(eventFeedbackPublish.export, status);
+          ws.of(process.env.WEBSOCKET_PATH)
+            .to(room)
+            .emit(eventFeedbackPublish.export, status);
           resolve(destination);
         })
         .on("error", (error) => {
           console.log(error.message);
           status.error = error.message;
           status.message = "error";
-          ws.to(room).emit(eventFeedbackPublish.error, status);
+          ws.of(process.env.WEBSOCKET_PATH)
+            .to(room)
+            .emit(eventFeedbackPublish.error, status);
         })
         .run();
     });
@@ -318,7 +338,9 @@ export const concatenate_combined_videos = (
     console.log(error.message);
     status.error = error.message;
     status.message = "error";
-    ws.to(room).emit(eventFeedbackPublish.error, status);
+    ws.of(process.env.WEBSOCKET_PATH)
+      .to(room)
+      .emit(eventFeedbackPublish.error, status);
   }
 };
 
@@ -380,7 +402,9 @@ export const splitAudioPart = (audio, projectName, output, room) => {
         })
         .on("start", () => {
           status.message = "start";
-          ws.to(room).emit(eventFeedbackPublish.export, status);
+          ws.of(process.env.WEBSOCKET_PATH)
+            .to(room)
+            .emit(eventFeedbackPublish.export, status);
         })
         .on(
           "progress",
@@ -396,7 +420,9 @@ export const splitAudioPart = (audio, projectName, output, room) => {
           status.progress = 100;
           status.message = "done";
 
-          ws.to(room).emit(eventFeedbackPublish.export, status);
+          ws.of(process.env.WEBSOCKET_PATH)
+            .to(room)
+            .emit(eventFeedbackPublish.export, status);
 
           resolve(destination);
         })
@@ -404,7 +430,9 @@ export const splitAudioPart = (audio, projectName, output, room) => {
           console.log(error.message);
           status.error = error.message;
           status.message = "error";
-          ws.to(room).emit(eventFeedbackPublish.error, status);
+          ws.of(process.env.WEBSOCKET_PATH)
+            .to(room)
+            .emit(eventFeedbackPublish.error, status);
         })
 
         .run();
@@ -415,7 +443,7 @@ export const splitAudioPart = (audio, projectName, output, room) => {
     console.log(error.message);
     status.error = error.message;
     status.message = "error";
-    ws.to(room).emit("error", status);
+    ws.of(process.env.WEBSOCKET_PATH).to(room).emit("error", status);
   }
 };
 
@@ -462,7 +490,9 @@ export const concatenate_audios = (
         .on("start", (cmdline) => {
           //console.log(`start concate`, cmdline);
           status.message = "start";
-          ws.to(room).emit(eventFeedbackPublish.export, status);
+          ws.of(process.env.WEBSOCKET_PATH)
+            .to(room)
+            .emit(eventFeedbackPublish.export, status);
         })
         .on(
           "progress",
@@ -476,14 +506,18 @@ export const concatenate_audios = (
           status.progress = 100;
           status.message = "done";
           status.remain = 0;
-          ws.to(room).emit(eventFeedbackPublish.export, status);
+          ws.of(process.env.WEBSOCKET_PATH)
+            .to(room)
+            .emit(eventFeedbackPublish.export, status);
           resolve(destination);
         })
         .on("error", (error) => {
           console.log(error.message);
           status.error = error.message;
           status.message = "error";
-          ws.to(room).emit(eventFeedbackPublish.error, status);
+          ws.of(process.env.WEBSOCKET_PATH)
+            .to(room)
+            .emit(eventFeedbackPublish.error, status);
         })
 
         .run();
@@ -494,7 +528,9 @@ export const concatenate_audios = (
     console.log(error.message);
     status.error = error.message;
     status.message = "error";
-    ws.to(room).emit(eventFeedbackPublish.error, status);
+    ws.of(process.env.WEBSOCKET_PATH)
+      .to(room)
+      .emit(eventFeedbackPublish.error, status);
   }
 };
 export const concatenate_combined_audios = (
@@ -561,7 +597,9 @@ export const concatenate_combined_audios = (
           status.message = "start";
           status.elapsed = 0;
 
-          ws.to(room).emit(eventFeedbackPublish.export, status);
+          ws.of(process.env.WEBSOCKET_PATH)
+            .to(room)
+            .emit(eventFeedbackPublish.export, status);
         })
         .on(
           "progress",
@@ -575,14 +613,18 @@ export const concatenate_combined_audios = (
           status.progress = 100;
           status.message = "done";
           status.remain = 0;
-          ws.to(room).emit(eventFeedbackPublish.export, status);
+          ws.of(process.env.WEBSOCKET_PATH)
+            .to(room)
+            .emit(eventFeedbackPublish.export, status);
           resolve(destination);
         })
         .on("error", (error) => {
           console.log(error.message);
           status.error = error.message;
           status.message = "error";
-          ws.to(room).emit(eventFeedbackPublish.error, status);
+          ws.of(process.env.WEBSOCKET_PATH)
+            .to(room)
+            .emit(eventFeedbackPublish.error, status);
         })
 
         .run();
@@ -593,7 +635,9 @@ export const concatenate_combined_audios = (
     console.log(error.message);
     status.error = error.message;
     status.message = "error";
-    ws.to(room).emit(eventFeedbackPublish.error, status);
+    ws.of(process.env.WEBSOCKET_PATH)
+      .to(room)
+      .emit(eventFeedbackPublish.error, status);
   }
 };
 
@@ -641,7 +685,9 @@ export const files_mapping = (
         .on("start", (cmdline) => {
           //console.log(`start concate`, cmdline);
           status.message = "start";
-          ws.to(room).emit(eventFeedbackPublish.export, status);
+          ws.of(process.env.WEBSOCKET_PATH)
+            .to(room)
+            .emit(eventFeedbackPublish.export, status);
         })
         .on(
           "progress",
@@ -654,14 +700,18 @@ export const files_mapping = (
           console.log(`Finished mapping files`);
           status.message = "done";
           status.progress = 100;
-          ws.to(room).emit(eventFeedbackPublish.export, status);
+          ws.of(process.env.WEBSOCKET_PATH)
+            .to(room)
+            .emit(eventFeedbackPublish.export, status);
           resolve(destination);
         })
         .on("error", (error) => {
           console.log(error.message);
           status.message = "error";
           status.error = error.message;
-          ws.to(room).emit(eventFeedbackPublish.error, status);
+          ws.of(process.env.WEBSOCKET_PATH)
+            .to(room)
+            .emit(eventFeedbackPublish.error, status);
         })
 
         .run();
@@ -672,7 +722,9 @@ export const files_mapping = (
     console.log(error.message);
     status.message = "error";
     status.error = error.message;
-    ws.to(room).emit(eventFeedbackPublish.error, status);
+    ws.of(process.env.WEBSOCKET_PATH)
+      .to(room)
+      .emit(eventFeedbackPublish.error, status);
   }
 };
 
@@ -707,7 +759,9 @@ export const files_mapping_no_audio = (
         .on("start", (cmdline) => {
           //console.log(`start concate`, cmdline);
           status.message = "start";
-          ws.to(room).emit(eventFeedbackPublish.export, status);
+          ws.of(process.env.WEBSOCKET_PATH)
+            .to(room)
+            .emit(eventFeedbackPublish.export, status);
         })
         .on(
           "progress",
@@ -720,14 +774,18 @@ export const files_mapping_no_audio = (
           console.log(`Finished mapping files`);
           status.message = "done";
           status.progress = 100;
-          ws.to(room).emit(eventFeedbackPublish.export, status);
+          ws.of(process.env.WEBSOCKET_PATH)
+            .to(room)
+            .emit(eventFeedbackPublish.export, status);
           resolve(destination);
         })
         .on("error", (error) => {
           console.log(error.message);
           status.message = "error";
           status.error = error.message;
-          ws.to(room).emit(eventFeedbackPublish.error, status);
+          ws.of(process.env.WEBSOCKET_PATH)
+            .to(room)
+            .emit(eventFeedbackPublish.error, status);
         })
         .run();
     });
@@ -737,7 +795,9 @@ export const files_mapping_no_audio = (
     console.log(error.message);
     status.message = "error";
     status.error = error.message;
-    ws.to(room).emit(eventFeedbackPublish.error, status);
+    ws.of(process.env.WEBSOCKET_PATH)
+      .to(room)
+      .emit(eventFeedbackPublish.error, status);
   }
 };
 
@@ -760,7 +820,9 @@ const logSplitProgress = (room, progress, event, status) => {
   status.elapsed = timeElapsed;
   status.message = "progress";
   status.progress = percent;
-  ws.to(room).emit(eventFeedbackPublish.export, status);
+  ws.of(process.env.WEBSOCKET_PATH)
+    .to(room)
+    .emit(eventFeedbackPublish.export, status);
 };
 const logProgress = (room, progress, event, status) => {
   const percent = Math.round(progress * 100);
@@ -769,7 +831,9 @@ const logProgress = (room, progress, event, status) => {
   status.message = "progress";
   status.progress = percent;
   // console.log("progress:", percent);
-  ws.to(room).emit(eventFeedbackPublish.export, status);
+  ws.of(process.env.WEBSOCKET_PATH)
+    .to(room)
+    .emit(eventFeedbackPublish.export, status);
 };
 
 const secToMill = (sec) => {

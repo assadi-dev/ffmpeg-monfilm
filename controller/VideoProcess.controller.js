@@ -86,7 +86,7 @@ export const gopro_process = (req, res) => {
 export const test_insv_process = (req, res) => {
   const idProjectVideo = req.body?.idProjectVideo;
 
-  // ws.to(room).emit("hello");
+  //ws.of(process.env.WEBSOCKET_PATH).to(room).emit("hello");
   /*   const fileObject = new ObjectFileTest("insv").get_random_project();
   fileObject.room = "test";
   fileObject.camera = "insv";
@@ -102,7 +102,7 @@ export const test_gopro_process = (req, res) => {
   fileObject.camera = camera; */
 
   try {
-    // ws.to(channel_id).emit("hello");
+    //ws.of(process.env.WEBSOCKET_PATH).to(channel_id).emit("hello");
 
     /*  full_process_gopro(fileObject); */
     return res.json({ message: "processus en cours", fileObject });

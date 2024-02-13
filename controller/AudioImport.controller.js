@@ -30,7 +30,9 @@ export const import_audio = (req, res) => {
           const resp = await updateAudioMade360(idProjectVideo, filename, url);
           const audioFile = await resp.json();
 
-          ws.to(room).emit("audio-import-data", audioFile);
+          ws.of(process.env.WEBSOCKET_PATH)
+            .to(room)
+            .emit("audio-import-data", audioFile);
         }
       );
 
@@ -96,7 +98,7 @@ const upload_audio_process = async (room, audioObject, idProjectVideo) => {
 
             finish(room, status, url);
             status.progress = 100;
-            ws.to(room).emit("end", status);
+            ws.of(process.env.WEBSOCKET_PATH).to(room).emit("end", status);
             resolve({
               url: url,
               filename,
@@ -115,7 +117,7 @@ const listen = (room, status, progress) => {
   status.progress = progress;
   status.message = "progress";
   // console.log("progress upload", progress + "%");
-  ws.to(room).emit("progress", status);
+  ws.of(process.env.WEBSOCKET_PATH).to(room).emit("progress", status);
 };
 
 const finish = async (room, status, filename) => {
@@ -123,7 +125,7 @@ const finish = async (room, status, filename) => {
   status.message = "done";
 
   console.log("finish upload audio");
-  ws.to(room).emit("progress", status);
+  ws.of(process.env.WEBSOCKET_PATH).to(room).emit("progress", status);
 };
 
 const updateAudioMade360 = (idProjectVideo, filename, urlAudio) => {
