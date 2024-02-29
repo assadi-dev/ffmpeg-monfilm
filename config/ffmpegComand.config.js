@@ -41,3 +41,16 @@ export const eventFeedbackPublish = {
   export: "export-project-video",
   error: "error",
 };
+
+/**
+ * Command Insta X3
+ */
+
+export const instaArgsX3 =
+  "v360=dfisheye:equirect:ih_fov=194:iv_fov=194:roll=0";
+/**
+ * Command Insta X2
+ */
+
+export const instaArgsX2 =
+  "v360=dfisheye:equirect:ih_fov=190:iv_fov=190:roll=90";
