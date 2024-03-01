@@ -1,6 +1,11 @@
 import ffmpegOnProgress from "ffmpeg-on-progress";
 import Ffmpeg from "fluent-ffmpeg";
-import { ffmpegPath, gopropArgs } from "../config/ffmpegComand.config.js";
+import {
+  ffmpegPath,
+  gopropArgs,
+  instaArgsX2,
+  instaArgsX3,
+} from "../config/ffmpegComand.config.js";
 import {
   DIRECTORY_SEPARATOR,
   WEBSOCKET_PATH,
@@ -116,7 +121,7 @@ export const merge_insv = async (fileObject) => {
 /**
  * **Process Insta360**
  *
- * Transformation des videos dualfisheye en equirectangulare
+ * Transformation des videos dualfisheye en equirectangulare model ONE X2
  * @param {*} fileObject contient les données des fichiers à traiter, format attendu .mp4
  * @return Fichier mp4 en vue equirectangulare
  */
@@ -145,11 +150,102 @@ export const insv_equirectangular = async (fileObject) => {
     return new Promise((resolve) => {
       ffmpegCommand
         .addInput(input)
-        .videoFilters("v360=dfisheye:equirect:ih_fov=190:iv_fov=190:roll=90")
+        .videoFilters(instaArgsX2)
         .outputOptions(["-c:v", "libx264", "-c:a", "aac"])
         .output(output)
         .on("start", (cmdline) => {
-          console.log(`start equirectangular insv process for ${filename}`);
+          console.log(
+            `start equirectangular insv insv One X2 process for ${filename}`
+          );
+          status.message = "start";
+          status.step = "equirectangular";
+          ws.of(WEBSOCKET_PATH).to(room).emit("start", status);
+        })
+        .on("codecData", (data) => {
+          // HERE YOU GET THE TOTAL TIME
+          totalDuration = parseInt(data.duration.replace(/:/g, ""));
+        })
+        /*.on("stderr", function (stderrLine) {
+        console.log("Stderr output: " + stderrLine);
+      }) */
+        .on(
+          "progress",
+          ffmpegOnProgress((progress) => {
+            status.message = "progress";
+            return emitProgress(progress, room, status);
+          }),
+          totalDuration
+        )
+        .on("end", () => {
+          console.log(
+            `Finished equrectangular insv processing for ${filename}`
+          );
+
+          status.message = "done";
+          status.progress = 100;
+          ws.of(WEBSOCKET_PATH).to(room).emit("end", status);
+          const result = {
+            filename: fileObject.finalFilename.replace(
+              "_dualfisheye.mp4",
+              ".mp4"
+            ),
+            output,
+          };
+          resolve(result);
+        })
+        .on("error", (error) => {
+          console.log(error.message);
+          status.error = error.message;
+          status.message = "error";
+          ws.of(WEBSOCKET_PATH).to(room).emit("error", status);
+        })
+        .run();
+    });
+  } catch (error) {
+    status.error = error.message;
+    status.message = "error";
+    ws.of(WEBSOCKET_PATH).to(room).emit("error", status);
+  }
+};
+/**
+ * **Process Insta360**
+ *
+ * Transformation des videos dualfisheye en equirectangulare model ONE X3
+ * @param {*} fileObject contient les données des fichiers à traiter, format attendu .mp4
+ * @return Fichier mp4 en vue equirectangulare
+ */
+export const insv_equirectangular_x3 = async (fileObject) => {
+  const id = fileObject.id;
+  const filename = fileObject.filename;
+  const input = fileObject.input;
+  const output = fileObject.input.replace("_dualfisheye.mp4", ".mp4");
+  const room = fileObject.room;
+  let totalDuration = 0;
+  const status = {
+    id,
+    camera: fileObject?.camera,
+    step: "equirectangular",
+    message: "wait",
+    filename,
+    progress: 0,
+    url: "",
+    error: "",
+    type: "video",
+  };
+
+  try {
+    const { ffmpeg } = new FFmpegInstance();
+    const ffmpegCommand = ffmpeg;
+    return new Promise((resolve) => {
+      ffmpegCommand
+        .addInput(input)
+        .videoFilters(instaArgsX3)
+        .outputOptions(["-c:v", "libx264", "-c:a", "aac"])
+        .output(output)
+        .on("start", (cmdline) => {
+          console.log(
+            `start equirectangular insv One X3 process for ${filename}`
+          );
           status.message = "start";
           status.step = "equirectangular";
           ws.of(WEBSOCKET_PATH).to(room).emit("start", status);

@@ -13,15 +13,17 @@ import {
 import {
   full_process_gopro,
   full_process_insv,
+  full_process_insv_x3,
 } from "../services/FullProcess.services.js";
 import ObjectFileTest from "../services/ObjectFileTest.services.js";
 
 export const insv_process = (req, res) => {
   try {
-    const { idProjectVideo, room, files, camera } = req.body;
+    const { idProjectVideo, room, files, camera, model } = req.body;
     const count = files.length;
 
     const filesProcess = [];
+    console.log("Model INSTA360:", model);
 
     for (const fileObject of files) {
       fileObject.room = room.toString();
@@ -32,8 +34,17 @@ export const insv_process = (req, res) => {
       filesProcess.push(fileObject);
 
       // console.log(files);
-
-      full_process_insv(idProjectVideo, { ...fileObject, ...value });
+      switch (model) {
+        case "one-x2":
+          full_process_innsv(idProjectVideo, { ...fileObject, ...value });
+          break;
+        case "one-x3":
+          full_process_insv_x3(idProjectVideo, { ...fileObject, ...value });
+          break;
+        default:
+          full_process_insv(idProjectVideo, { ...fileObject, ...value });
+          break;
+      }
     }
 
     return res.json({

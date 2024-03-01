@@ -30,6 +30,7 @@ export const generateInsvfilesObject = (fileObject) => {
       front: cleanPathName(fileObject.front),
       back: cleanPathName(fileObject.back),
       progress: 0,
+      model: fileObject.model,
     };
   }
 };

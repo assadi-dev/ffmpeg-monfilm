@@ -16,6 +16,7 @@ import {
   generate_thumbnail,
   gopro_equirectangular,
   insv_equirectangular,
+  insv_equirectangular_x3,
   merge_insv,
   video_compress,
 } from "./FFmpegCameraProcess.services.js";
@@ -131,6 +132,100 @@ export const full_process_insv = async (idProjectVideo, fileObject) => {
     console.log(`wait equirectangular insv for ${filename}`);
 
     const equirectantangular = await insv_equirectangular(toEquirectangular);
+    //unlinkSync(toEquirectangular.input);
+
+    console.log(`wait compress insv for ${filename}`);
+    const lowFilename = equirectantangular.filename.replace(".mp4", "_low.mp4");
+
+    const fileObjetctCompress = {
+      id,
+      camera: fileObject.camera,
+      room,
+      filename: filename,
+      input: equirectantangular.output,
+      output: `${upload_dir}${DIRECTORY_SEPARATOR}${lowFilename}`,
+    };
+    const compress_response = await video_compress(fileObjetctCompress);
+    const high_quality = equirectantangular.output;
+    const low_quality = compress_response.output;
+    //Envoie FTP
+    console.log("start send FTP");
+    const ftp_destination = `${FTP_DESTINATION_DIR}/${lowFilename}`;
+    const URL_LOW = await sendProcess(
+      low_quality,
+      ftp_destination,
+      lowFilename
+    );
+
+    //Generation thumbnail
+    console.log("generation thumbnail");
+    const folderName = equirectantangular.filename.replace(".mp4", "");
+    const thumbDestination = `${upload_dir}${DIRECTORY_SEPARATOR}project_${idProjectVideo}${DIRECTORY_SEPARATOR}${folderName}`;
+    if (!existsSync(thumbDestination)) {
+      mkdirSync(thumbDestination, { recursive: true });
+      chmodSync(thumbDestination, "777");
+      //if (platform == "darwin") await darwinChmod(thumbDestination);
+    }
+
+    const thumbnails = await generate_thumbnail(low_quality, thumbDestination);
+
+    //Envoie OVH
+    console.log("start send OVH");
+    const finalFileObject = {
+      id,
+      camera: fileObject.camera,
+      filePath: high_quality,
+      remoteFilename: equirectantangular.filename,
+    };
+    const URL_HIGH = await upload_ovh(room, finalFileObject);
+
+    console.table({ high_quality: URL_HIGH, low_quality: URL_LOW });
+    //Update user project
+    const projectData = {
+      idProjectVideo,
+      urlVideo: URL_HIGH,
+      urlVideoLight: URL_LOW,
+      thumbnails,
+    };
+
+    const resUpdateProject = await update_project_360(projectData);
+    resUpdateProject.ok
+      ? emitVideoMade(room, await resUpdateProject.json())
+      : console.log("Une erreur est survenue");
+  } catch (error) {
+    console.log(error.message);
+    status.error = error.message;
+    status.message = "error";
+    ws.of(WEBSOCKET_PATH).to(room).emit("error", status);
+    return error;
+  }
+};
+
+export const full_process_insv_x3 = async (idProjectVideo, fileObject) => {
+  const room = fileObject?.room;
+  let status = feedbackStatus;
+  const filename = fileObject.filename;
+  const id = fileObject.id;
+
+  status.id = id;
+  status.camera = "insv";
+  status.step = "fusion";
+  status.filename = filename;
+
+  try {
+    console.log(`wait fusion insv for ${filename}`);
+    ws.of(WEBSOCKET_PATH).to(room).emit("start", status);
+    const fusion = await merge_insv(fileObject);
+    let toEquirectangular = {
+      id,
+      room,
+      filename: fusion.filename,
+      finalFilename: fusion.finalFilename,
+      input: fusion.output,
+    };
+    console.log(`wait equirectangular insv for ${filename}`);
+
+    const equirectantangular = await insv_equirectangular_x3(toEquirectangular);
     //unlinkSync(toEquirectangular.input);
 
     console.log(`wait compress insv for ${filename}`);
