@@ -3,6 +3,7 @@ import {
   CONTAINER_EVASION,
   DIRECTORY_SEPARATOR,
   EVASION_API,
+  OVH_CREDENTIALS,
   WEBSOCKET_PATH,
   upload_dir,
 } from "../config/constant.config.js";
