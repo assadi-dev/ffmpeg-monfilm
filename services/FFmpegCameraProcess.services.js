@@ -581,10 +581,13 @@ export const concate_frames = (framesDir, totalFrames, output) => {
   return new Promise((resolve, reject) => {
     const { ffmpeg } = new FFmpegInstance();
 
+    if (totalFrames > 60) totalFrames = 60;
+
     try {
       ffmpeg
         .input(framesDir)
         .complexFilter(`scale=200:200,tile=${totalFrames}x1`)
+        .outputOptions(["-frames:v 1"])
         .output(`${output}`)
         .run();
 
