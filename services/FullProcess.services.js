@@ -23,6 +23,7 @@ import {
 import { chmodSync, existsSync, mkdirSync, unlinkSync } from "fs";
 import FTPServices from "./FTPServices.services.js";
 import OvhObjectStorageServices from "./OvhObjectStorage.services.js";
+import { postDelayed } from "./Filestype.services.js";
 
 export const full_process_gopro = async (idProjectVideo, fileObject) => {
   const room = fileObject?.room;
@@ -133,6 +134,8 @@ export const full_process_insv = async (idProjectVideo, fileObject) => {
 
     const equirectantangular = await insv_equirectangular(toEquirectangular);
     //unlinkSync(toEquirectangular.input);
+
+    // postDelayed(5000, () => removeFile(toEquirectangular.input));
 
     console.log(`wait compress insv for ${filename}`);
     const lowFilename = equirectantangular.filename.replace(".mp4", "_low.mp4");

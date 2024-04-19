@@ -18,6 +18,8 @@ import { unlink } from "fs/promises";
 import FFmpegInstance from "./FFmpegInstance.services.js";
 import { ws } from "../index.js";
 import { existsSync, mkdirSync, readFileSync, readdirSync } from "fs";
+import { postDelayed } from "./Filestype.services.js";
+import { DEFAULT_DEBOUNCE_DELAY } from "../config/event.js";
 
 /**
  * **Process Insta360**
@@ -386,6 +388,7 @@ export const gopro_equirectangular = async (fileObject) => {
           status.progress = 100;
 
           ws.of(WEBSOCKET_PATH).to(room).emit("end", status);
+          postDelayed(DEFAULT_DEBOUNCE_DELAY);
           resolve(result);
         })
         .on("error", (error) => {

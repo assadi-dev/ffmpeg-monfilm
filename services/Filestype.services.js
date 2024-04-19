@@ -45,3 +45,26 @@ export const cleanPathName = (filepath = "") => {
   const UPLOAD_FILES_PATH = `${__dirname}${DIRECTORY_SEPARATOR}uploads${DIRECTORY_SEPARATOR}`;
   return filepath.replace(URL_UPLOADS, UPLOAD_FILES_PATH);
 };
+
+/**
+ * Execution de la fonction après un temps donné en millisecondes
+ * @param {number} delay en millisecondes
+ * @param {any} callback fonction à executer
+ */
+export const postDelayed = (delay = 500, callback = () => {}) => {
+  const timerId = setTimeout(() => {
+    callback();
+    clearTimeout(timerId);
+  }, delay);
+};
+
+/**
+ * Suppression d'un fichier physiquement
+ * .
+ * @param {string} path Emplacement du fichier
+ */
+export const removeFile = (path) => {
+  if (existsSync(path)) {
+    fs.unlinkSync(path);
+  }
+};
