@@ -29,48 +29,58 @@ export const flow_upload = (req, res) => {
       return res.status(500).send("Error saving chunk");
     }
 
-    // Check if all chunks have been received
-
-    // const expectedChunks = Math.ceil(flowTotalSize / flowChunkSize);
     const chunkNumbers = Array.from(
       { length: flowTotalChunks },
       (_, i) => i + 1
     );
 
     const allChunksReceived = chunkNumbers.every((num) => {
-      return fs.existsSync(
-        path.join(chunkDirectory, `${flowIdentifier}.${num}`)
-      );
+      return existsSync(path.join(chunkDirectory, `${flowIdentifier}.${num}`));
     });
 
     if (allChunksReceived) {
       // All chunks have been received; assemble the complete file
       const completeFilePath = path.join(completeDirectory, filename_timestamp);
       const writeStream = fs.createWriteStream(completeFilePath);
-      writeStream.setMaxListeners(chunkNumbers.length + 1);
 
-      chunkNumbers.forEach((num) => {
-        const chunkPath = path.join(chunkDirectory, `${flowIdentifier}.${num}`);
-        const chunkData = fs.readFileSync(chunkPath);
-
-        // Append the chunk data to the complete file
-        writeStream.write(chunkData);
-        if (existsSync(chunkPath)) {
-          fs.unlinkSync(chunkPath); // Clean up the chunk after assembling it
+      // Use an async function to handle stream operations
+      (async () => {
+        for (const num of chunkNumbers) {
+          const chunkPath = path.join(
+            chunkDirectory,
+            `${flowIdentifier}.${num}`
+          );
+          await new Promise((resolve, reject) => {
+            const readStream = fs.createReadStream(chunkPath);
+            readStream.pipe(writeStream, { end: false });
+            readStream.on("error", reject);
+            readStream.on("end", () => {
+              fs.unlink(chunkPath, (err) => {
+                if (err) {
+                  console.error(`Error removing chunk ${chunkPath}:`, err);
+                  reject(err);
+                } else {
+                  console.log(`Chunk ${chunkPath} has been removed.`);
+                  resolve();
+                }
+              });
+            });
+          });
         }
-      });
-
-      writeStream.end();
-
-      console.log(`File ${filename_timestamp} has been successfully assembled`);
-
-      // Respond with success
-      return res.status(200).json({
-        message: "File successfully uploaded",
-        filename: filename_timestamp,
+        writeStream.end();
+        console.log(
+          `File ${filename_timestamp} has been successfully assembled`
+        );
+        res.status(200).json({
+          message: "File successfully uploaded",
+          filename: filename_timestamp,
+        });
+      })().catch((err) => {
+        console.error("Failed to assemble file:", err);
+        res.status(500).send("Error assembling file");
       });
     } else {
-      return res.status(200).json({ message: "Chunk uploaded successfully" });
+      res.status(200).json({ message: "Chunk uploaded successfully" });
     }
   });
 };
