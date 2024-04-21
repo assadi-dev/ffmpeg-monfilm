@@ -581,7 +581,7 @@ export const concate_frames = (framesDir, totalFrames, output) => {
   return new Promise((resolve, reject) => {
     const { ffmpeg } = new FFmpegInstance();
 
-    if (totalFrames > 60) totalFrames = 160;
+    if (totalFrames > 60) totalFrames = 220;
 
     try {
       ffmpeg
