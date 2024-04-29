@@ -17,6 +17,8 @@ import FFmpegInstance from "./FFmpegInstance.services.js";
 import ffmpegOnProgress from "ffmpeg-on-progress";
 import { ws } from "../index.js";
 import { eventFeedbackPublish } from "../config/ffmpegComand.config.js";
+import slugify from "slugify";
+import { clean_file_process } from "./FFmpegCameraProcess.services.js";
 
 /**
  * //Découpage des parties des videos
@@ -236,7 +238,9 @@ export const concatenate_combined_videos = (
   room,
   maxDuration
 ) => {
-  const export_file = `${upload_dir}${DIRECTORY_SEPARATOR}export_file${DIRECTORY_SEPARATOR}${projetFolder}`;
+  const export_file = `${upload_dir}${DIRECTORY_SEPARATOR}export_file${DIRECTORY_SEPARATOR}${clean_filename(
+    projetFolder
+  )}`;
 
   const durationEstimate = secToMill(maxDuration);
 
@@ -546,7 +550,9 @@ export const concatenate_combined_audios = (
 ) => {
   const { ffmpeg } = new FFmpegInstance();
 
-  const export_file = `${upload_dir}${DIRECTORY_SEPARATOR}export_file${DIRECTORY_SEPARATOR}${projectName}`;
+  const export_file = `${upload_dir}${DIRECTORY_SEPARATOR}export_file${DIRECTORY_SEPARATOR}${clean_filename(
+    projectName
+  )}`;
   const destination = `${export_file}${DIRECTORY_SEPARATOR}${output}`;
 
   const durationEstimate = secToMill(maxDuration);
@@ -653,8 +659,12 @@ export const files_mapping = (
   room,
   maxDuration
 ) => {
-  const export_file = `${upload_dir}${DIRECTORY_SEPARATOR}export_file${DIRECTORY_SEPARATOR}${projectName}`;
-  const destination = `${export_file}${DIRECTORY_SEPARATOR}${output}`;
+  const export_file = `${upload_dir}${DIRECTORY_SEPARATOR}export_file${DIRECTORY_SEPARATOR}${clean_filename(
+    projectName
+  )}`;
+  const destination = `${export_file}${DIRECTORY_SEPARATOR}${clean_filename(
+    output
+  )}`;
   // const filterComand = `[1:a]adelay=1000|1000[a];[0:a]adelay=1000|1000[va];[a][va]amix=inputs=2[out]`;
   const filterComand = `[1:a][0:a]amix=inputs=2[out]`;
 
@@ -704,6 +714,8 @@ export const files_mapping = (
           console.log(`Finished mapping files`);
           status.message = "done";
           status.progress = 100;
+          clean_file_process(videoFile);
+          clean_file_process(audioFile);
           ws.of(process.env.WEBSOCKET_PATH)
             .to(room)
             .emit(eventFeedbackPublish.export, status);
@@ -713,6 +725,8 @@ export const files_mapping = (
           console.log(error.message);
           status.message = "error";
           status.error = error.message;
+          clean_file_process(videoFile);
+          clean_file_process(audioFile);
           ws.of(process.env.WEBSOCKET_PATH)
             .to(room)
             .emit(eventFeedbackPublish.error, status);
@@ -739,8 +753,12 @@ export const files_mapping_no_audio = (
   room,
   maxDuration
 ) => {
-  const export_file = `${upload_dir}${DIRECTORY_SEPARATOR}export_file${DIRECTORY_SEPARATOR}${projectName}`;
-  const destination = `${export_file}${DIRECTORY_SEPARATOR}${output}`;
+  const export_file = `${upload_dir}${DIRECTORY_SEPARATOR}export_file${DIRECTORY_SEPARATOR}${clean_filename(
+    projectName
+  )}`;
+  const destination = `${export_file}${DIRECTORY_SEPARATOR}${clean_filename(
+    output
+  )}`;
   const durationEstimate = secToMill(maxDuration);
   const status = {
     step: "mapping-video",
@@ -778,6 +796,7 @@ export const files_mapping_no_audio = (
           console.log(`Finished mapping files`);
           status.message = "done";
           status.progress = 100;
+          clean_file_process(videoFile);
           ws.of(process.env.WEBSOCKET_PATH)
             .to(room)
             .emit(eventFeedbackPublish.export, status);
@@ -785,6 +804,7 @@ export const files_mapping_no_audio = (
         })
         .on("error", (error) => {
           console.log(error.message);
+          clean_file_process(videoFile);
           status.message = "error";
           status.error = error.message;
           ws.of(process.env.WEBSOCKET_PATH)
@@ -860,4 +880,12 @@ const timecodeToSec = (timecode) => {
     hours * 3600 + minutes * 60 + seconds + milliseconds / 1000;
 
   return totalSeconds;
+};
+
+const clean_filename = (name) => {
+  return slugify(name, {
+    replacement: "_",
+    lower: true,
+    trime: true,
+  });
 };

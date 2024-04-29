@@ -13,6 +13,7 @@ import {
 } from "../config/constant.config.js";
 import { ws } from "../index.js";
 import { statSync } from "fs";
+import { clean_file_process } from "../services/FFmpegCameraProcess.services.js";
 
 export const export_project = (req, res) => {
   try {
@@ -75,7 +76,7 @@ export const generate_finalOutput = async (
 
   if (audios.length == 0) {
     console.log("Mapping fichiers video no audio");
-    const finalOutput = `${projectName}.mp4`;
+    const finalOutput = `${clean_filename(projectName)}.mp4`;
     const final_video_input = await files_mapping_no_audio(
       mergedVideos,
       projectName,
@@ -152,7 +153,9 @@ const concate_process_videos = async (room, scenes, projectName) => {
     listVideosDurations.push(duration);
     splited_videos.push(value);
   }
-  const outputConcatenateVideo = `final-video-${projectName}.mp4`;
+  const outputConcatenateVideo = `final-video-${clean_filename(
+    projectName
+  )}.mp4`;
   const totalPartVideoDuration = calculatSumDuration(listVideosDurations);
   const mergedVideos = await concatenate_combined_videos(
     splited_videos,
@@ -177,7 +180,9 @@ const concate_process_audio = async (room, audios, projectName) => {
     listAudiosDurations.push(duration);
     splited_audios.push(value);
   }
-  const outputConcatenateAudio = `final-audio-${projectName}.mp3`;
+  const outputConcatenateAudio = `final-audio-${clean_filename(
+    projectName
+  )}.mp3`;
   const totalPartAudioDuration = calculatSumDuration(listAudiosDurations);
 
   const mergedAudio = await concatenate_combined_audios(
@@ -232,6 +237,7 @@ const upload_ovh = (room, fileObjetct) => {
           .to(room)
           .emit("export-project-video", status);
         resolve(response?.url);
+        clean_file_process(filePath);
       };
       ovhStorageServices.onSuccess(finish);
     } catch (error) {

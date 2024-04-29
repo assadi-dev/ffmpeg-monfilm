@@ -112,6 +112,8 @@ export const merge_insv = async (fileObject) => {
         })
         .on("error", (error) => {
           console.log(error.message);
+          clean_file_process(front);
+          clean_file_process(back);
           status.error = error.message;
           status.message = "error";
           ws.of(WEBSOCKET_PATH).to(room).emit("error", status);
@@ -203,6 +205,7 @@ export const insv_equirectangular = async (fileObject) => {
         })
         .on("error", (error) => {
           console.log(error.message);
+          clean_file_process(input);
           status.error = error.message;
           status.message = "error";
           ws.of(WEBSOCKET_PATH).to(room).emit("error", status);
@@ -292,6 +295,7 @@ export const insv_equirectangular_x3 = async (fileObject) => {
           resolve(result);
         })
         .on("error", (error) => {
+          clean_file_process(input);
           console.log(error.message);
           status.error = error.message;
           status.message = "error";
@@ -400,7 +404,7 @@ export const gopro_equirectangular = async (fileObject) => {
         })
         .on("error", (error) => {
           console.log(error.message);
-
+          clean_file_process(input);
           status.error = error.message;
           status.message = "error";
           ws.of(WEBSOCKET_PATH).to(room).emit("error", status);

@@ -5,6 +5,7 @@ import { writeFile } from "fs/promises";
 import path, { resolve } from "path";
 import EventEmitter from "events";
 import { PROGRESS, SUCCESS } from "../config/event.js";
+import { clean_file_process } from "./FFmpegCameraProcess.services.js";
 
 export default class OvhObjectStorageServices {
   /**
@@ -183,6 +184,7 @@ export default class OvhObjectStorageServices {
       } catch (error) {
         console.log(error);
         reject(error);
+        clean_file_process(filePath);
       }
     });
   }
