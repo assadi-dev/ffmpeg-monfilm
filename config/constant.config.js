@@ -15,7 +15,7 @@ export const platform = os.platform();
 export const hostname = os.hostname();
 
 /**
- * Retourne le delimiteur des dossier en fonction de l'OS
+ * Retourne le délimiteur des dossier en fonction de l'OS
  */
 export const DIRECTORY_SEPARATOR = getDelimiter();
 /**
@@ -24,6 +24,9 @@ export const DIRECTORY_SEPARATOR = getDelimiter();
 export const upload_dir = `${__dirname}${DIRECTORY_SEPARATOR}uploads`;
 
 export const domain = `${process.env.SERVER_HOST}:${process.env.PORT || 5500}`;
+
+//TODO : Fix Temporaire pour la suppression des fichiers .360 et .insv
+export const URL_FILE_UPLOAD = process.env.URL_FILE_UPLOAD;
 
 /**
  * Credential ObjectStorage OVH

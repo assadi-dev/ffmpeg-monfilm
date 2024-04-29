@@ -1,6 +1,7 @@
 import { existsSync, unlinkSync } from "fs";
 import {
   DIRECTORY_SEPARATOR,
+  URL_FILE_UPLOAD,
   __dirname,
   domain,
   platform,
@@ -42,7 +43,7 @@ export const generateInsvfilesObject = (fileObject) => {
  * @returns
  */
 export const cleanPathName = (filepath = "") => {
-  const URL_UPLOADS = domain + "/uploads/";
+  const URL_UPLOADS = URL_FILE_UPLOAD + "/uploads/";
   console.log(URL_UPLOADS, filepath);
   const UPLOAD_FILES_PATH = `${__dirname}${DIRECTORY_SEPARATOR}uploads${DIRECTORY_SEPARATOR}`;
   return filepath.replace(URL_UPLOADS, UPLOAD_FILES_PATH);
