@@ -640,7 +640,7 @@ export const darwinChmod = (destination) => {
  *Nettoyage des fichiers traités
  * @param {String} filePath
  */
-const clean_file_process = async (filePath) => {
+export const clean_file_process = async (filePath) => {
   const deleteMessage = await remove_file_delayed(
     filePath,
     DEFAULT_DELETE_FILE_DELAY

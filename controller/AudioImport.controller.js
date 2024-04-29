@@ -7,11 +7,9 @@ import {
   WEBSOCKET_PATH,
   upload_dir,
 } from "../config/constant.config.js";
-import OvhObjectStorageServices from "../services/OvhObjectStorage.services.js";
 import tinyStorageClient from "tiny-storage-client";
 import { ws } from "../index.js";
-import { remove_file_delayed } from "../services/FullProcess.services.js";
-import { DEFAULT_DELETE_FILE_DELAY } from "../config/event.js";
+import { clean_file_process } from "../services/FFmpegCameraProcess.services.js";
 
 export const import_audio = (req, res) => {
   try {
@@ -130,7 +128,7 @@ const finish = async (room, status, filePath) => {
 
   console.log("finish upload audio");
   ws.of(WEBSOCKET_PATH).to(room).emit("progress", status);
-  remove_file_delayed(filePath, DEFAULT_DELETE_FILE_DELAY);
+  clean_file_process(filePath);
 };
 
 const updateAudioMade360 = (idProjectVideo, filename, urlAudio) => {
