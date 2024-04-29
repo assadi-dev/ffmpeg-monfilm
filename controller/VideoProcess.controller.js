@@ -75,7 +75,7 @@ export const gopro_process = (req, res) => {
       const value = generateGoprofilesObject(fileObject);
 
       filesProcess.push(fileObject);
-      return;
+
       full_process_gopro(idProjectVideo, { ...fileObject, ...value });
     }
 
