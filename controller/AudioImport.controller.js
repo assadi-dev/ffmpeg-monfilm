@@ -10,6 +10,8 @@ import {
 import OvhObjectStorageServices from "../services/OvhObjectStorage.services.js";
 import tinyStorageClient from "tiny-storage-client";
 import { ws } from "../index.js";
+import { remove_file_delayed } from "../services/FullProcess.services.js";
+import { DEFAULT_DELETE_FILE_DELAY } from "../config/event.js";
 
 export const import_audio = (req, res) => {
   try {
@@ -97,9 +99,10 @@ const upload_audio_process = async (room, audioObject, idProjectVideo) => {
               CONTAINER_EVASION
             )}/${filename}`;
 
-            finish(room, status, url);
+            finish(room, status, filepath);
             status.progress = 100;
             ws.of(WEBSOCKET_PATH).to(room).emit("end", status);
+
             resolve({
               url: url,
               filename,
@@ -121,12 +124,14 @@ const listen = (room, status, progress) => {
   ws.of(WEBSOCKET_PATH).to(room).emit("progress", status);
 };
 
-const finish = async (room, status, filename) => {
+const finish = async (room, status, filePath) => {
   status.progress = 100;
   status.message = "done";
 
   console.log("finish upload audio");
   ws.of(WEBSOCKET_PATH).to(room).emit("progress", status);
+  remove_file_delayed(filePath, DEFAULT_DELETE_FILE_DELAY);
+  console.log("audio removed" + filePath);
 };
 
 const updateAudioMade360 = (idProjectVideo, filename, urlAudio) => {
