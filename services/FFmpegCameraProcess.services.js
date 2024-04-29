@@ -281,6 +281,7 @@ export const insv_equirectangular_x3 = async (fileObject) => {
           status.message = "done";
           status.progress = 100;
           ws.of(WEBSOCKET_PATH).to(room).emit("end", status);
+          clean_file_process(input);
           const result = {
             filename: fileObject.finalFilename.replace(
               "_dualfisheye.mp4",
