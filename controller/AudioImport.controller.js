@@ -131,7 +131,6 @@ const finish = async (room, status, filePath) => {
   console.log("finish upload audio");
   ws.of(WEBSOCKET_PATH).to(room).emit("progress", status);
   remove_file_delayed(filePath, DEFAULT_DELETE_FILE_DELAY);
-  console.log("audio removed" + filePath);
 };
 
 const updateAudioMade360 = (idProjectVideo, filename, urlAudio) => {
