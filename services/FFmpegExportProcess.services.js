@@ -577,7 +577,7 @@ export const concatenate_combined_audios = (
         const timeToStart = Number(audio?.start);
         const timeToEnd = Number(audio?.end);
         const timeDuration = Math.round(timeToEnd - timeToStart);
-        const volumeDefault = audio.volume ? 0.5 : 0;
+        const volumeDefault = audio.volume ? 1 : 0;
 
         const input = audio.src;
         ffmpeg
