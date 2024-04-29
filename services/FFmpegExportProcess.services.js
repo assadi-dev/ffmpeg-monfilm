@@ -7,7 +7,7 @@ input,
 output,
 room */
 
-import { chmodSync, existsSync, mkdirSync, stat } from "fs";
+import { chmodSync, existsSync, mkdirSync, rm, stat } from "fs";
 import {
   DIRECTORY_SEPARATOR,
   WEBSOCKET_PATH,
@@ -888,4 +888,24 @@ const clean_filename = (name) => {
     lower: true,
     trime: true,
   });
+};
+
+export const create_workspace_export = (path) => {
+  if (!existsSync(path)) {
+    mkdirSync(path, { recursive: true });
+    chmodSync(path, "777");
+  }
+};
+export const delete_workspace_export = (path) => {
+  if (existsSync(path)) {
+    chmodSync(path, "777");
+
+    rm(path, { recursive: true }, (err) => {
+      if (err) {
+        console.error(err.message);
+        return;
+      }
+      console.log("File deleted successfully");
+    });
+  }
 };

@@ -3,17 +3,22 @@ import {
   concatenate_combined_videos,
   concatenate_combined_audios,
   files_mapping_no_audio,
+  delete_workspace_export,
+  create_workspace_export,
 } from "../services/FFmpegExportProcess.services.js";
 import slugify from "slugify";
 import OvhObjectStorageServices from "../services/OvhObjectStorage.services.js";
 import {
+  DIRECTORY_SEPARATOR,
   EVASION_API,
   OVH_CONTAINER,
   OVH_CREDENTIALS,
+  upload_dir,
 } from "../config/constant.config.js";
 import { ws } from "../index.js";
 import { statSync } from "fs";
 import { clean_file_process } from "../services/FFmpegCameraProcess.services.js";
+import { postDelayed } from "../services/Filestype.services.js";
 
 export const export_project = (req, res) => {
   try {
@@ -69,6 +74,11 @@ export const generate_finalOutput = async (
 ) => {
   console.log(`Export project: ${idProjectVideo}`);
   console.log("Concatenation des fichiers videos");
+  const export_file = `${upload_dir}${DIRECTORY_SEPARATOR}export_file${DIRECTORY_SEPARATOR}${clean_filename(
+    projectName
+  )}`;
+
+  create_workspace_export(export_file);
   const mergedVideos = await concate_process_videos(room, scenes, projectName);
 
   let final_result = "";
@@ -125,6 +135,7 @@ export const generate_finalOutput = async (
   resProject.ok
     ? console.log("Project has been updated with success")
     : console.log("Error update project");
+  postDelayed(10000, () => delete_workspace_export(export_file));
 };
 
 //Utilitaire
