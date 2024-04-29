@@ -1,3 +1,4 @@
+import { existsSync, unlinkSync } from "fs";
 import {
   DIRECTORY_SEPARATOR,
   __dirname,
@@ -52,10 +53,12 @@ export const cleanPathName = (filepath = "") => {
  * @param {any} callback fonction à executer
  */
 export const postDelayed = (delay = 500, callback = () => {}) => {
-  const timerId = setTimeout(() => {
-    callback();
-    clearTimeout(timerId);
-  }, delay);
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      callback();
+      resolve("success");
+    }, delay);
+  });
 };
 
 /**
@@ -65,6 +68,6 @@ export const postDelayed = (delay = 500, callback = () => {}) => {
  */
 export const removeFile = (path) => {
   if (existsSync(path)) {
-    fs.unlinkSync(path);
+    unlinkSync(path);
   }
 };

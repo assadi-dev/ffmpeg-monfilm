@@ -23,7 +23,8 @@ import {
 import { chmodSync, existsSync, mkdirSync, unlinkSync } from "fs";
 import FTPServices from "./FTPServices.services.js";
 import OvhObjectStorageServices from "./OvhObjectStorage.services.js";
-import { postDelayed } from "./Filestype.services.js";
+import { postDelayed, removeFile } from "./Filestype.services.js";
+import { DEFAULT_DELETE_FILE_DELAY } from "../config/event.js";
 
 export const full_process_gopro = async (idProjectVideo, fileObject) => {
   const room = fileObject?.room;
@@ -77,6 +78,7 @@ export const full_process_gopro = async (idProjectVideo, fileObject) => {
     }
 
     const thumbnails = await generate_thumbnail(low_quality, thumbDestination);
+    remove_file_delayed(low_quality, DEFAULT_DELETE_FILE_DELAY);
     //Envoie OVH
     console.log("start send OVH");
     const finalFileObject = {
@@ -171,7 +173,7 @@ export const full_process_insv = async (idProjectVideo, fileObject) => {
     }
 
     const thumbnails = await generate_thumbnail(low_quality, thumbDestination);
-
+    remove_file_delayed(low_quality, DEFAULT_DELETE_FILE_DELAY);
     //Envoie OVH
     console.log("start send OVH");
     const finalFileObject = {
@@ -265,7 +267,7 @@ export const full_process_insv_x3 = async (idProjectVideo, fileObject) => {
     }
 
     const thumbnails = await generate_thumbnail(low_quality, thumbDestination);
-
+    remove_file_delayed(low_quality, DEFAULT_DELETE_FILE_DELAY);
     //Envoie OVH
     console.log("start send OVH");
     const finalFileObject = {
@@ -356,6 +358,7 @@ const upload_ovh = (room, fileObjetct) => {
         status.message = "done";
         status.url = response?.url;
         ws.of(WEBSOCKET_PATH).to(room).emit("end", status);
+        remove_file_delayed(filePath, DEFAULT_DELETE_FILE_DELAY);
         resolve(response?.url);
       };
       ovhStorageServices.onSuccess(finish);
@@ -380,4 +383,28 @@ const update_project_360 = (body) => {
  */
 const emitVideoMade = async (room, result) => {
   ws.of(WEBSOCKET_PATH).to(room).emit("project-data", result);
+};
+
+/**
+ * Suppression du fichier
+ * @param {String} filePath
+ */
+export const remove_file = (filePath) => {
+  try {
+    if (!existsSync(filePath)) {
+      chmodSync(filePath, "777");
+      unlinkSync(filePath);
+    }
+  } catch (error) {
+    console.log("Impossible de supprimé le fichier se trouvant " + filePath);
+  }
+};
+
+/**
+ * Suppression du fichier après un délai
+ * @param {String} filePath Emplacement du fichier
+ * @param {Number} delay Delay en ms
+ */
+export const remove_file_delayed = (filePath, delay) => {
+  return postDelayed(delay, () => removeFile(filePath));
 };

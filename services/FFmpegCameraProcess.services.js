@@ -19,7 +19,11 @@ import FFmpegInstance from "./FFmpegInstance.services.js";
 import { ws } from "../index.js";
 import { existsSync, mkdirSync, readFileSync, readdirSync } from "fs";
 import { postDelayed } from "./Filestype.services.js";
-import { DEFAULT_DEBOUNCE_DELAY } from "../config/event.js";
+import {
+  DEFAULT_DEBOUNCE_DELAY,
+  DEFAULT_DELETE_FILE_DELAY,
+} from "../config/event.js";
+import { remove_file_delayed } from "./FullProcess.services.js";
 
 /**
  * **Process Insta360**
@@ -101,7 +105,8 @@ export const merge_insv = async (fileObject) => {
           status.message = "done";
           status.progress = 100;
           ws.of(WEBSOCKET_PATH).to(room).emit("end", status);
-
+          clean_file_process(front);
+          clean_file_process(back);
           const result = { filename, finalFilename, output };
           resolve(result);
         })
@@ -186,6 +191,7 @@ export const insv_equirectangular = async (fileObject) => {
           status.message = "done";
           status.progress = 100;
           ws.of(WEBSOCKET_PATH).to(room).emit("end", status);
+          clean_file_process(input);
           const result = {
             filename: fileObject.finalFilename.replace(
               "_dualfisheye.mp4",
@@ -388,7 +394,7 @@ export const gopro_equirectangular = async (fileObject) => {
           status.progress = 100;
 
           ws.of(WEBSOCKET_PATH).to(room).emit("end", status);
-          postDelayed(DEFAULT_DEBOUNCE_DELAY);
+          clean_file_process(input);
           resolve(result);
         })
         .on("error", (error) => {
@@ -627,4 +633,21 @@ export const darwinChmod = (destination) => {
       );
     }
   });
+};
+
+/**
+ *Nettoyage des fichiers traités
+ * @param {String} filePath
+ */
+const clean_file_process = async (filePath) => {
+  const deleteMessage = await remove_file_delayed(
+    filePath,
+    DEFAULT_DELETE_FILE_DELAY
+  );
+  const deleteState = {
+    action: "Suppression",
+    status: deleteMessage,
+    path: filePath,
+  };
+  console.log(deleteState);
 };
