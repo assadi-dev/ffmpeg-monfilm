@@ -324,6 +324,11 @@ const upload_ovh = (room, fileObjetct) => {
   return new Promise(async (resolve, reject) => {
     const { id, camera, filePath, remoteFilename } = fileObjetct;
 
+    if (!existsSync(filePath)) {
+      console.log("Fichier introuvable");
+      return reject(new Error("File not found"));
+    }
+
     const status = {
       id,
       step: "ovh",
