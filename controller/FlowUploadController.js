@@ -2,6 +2,7 @@ import multer from "multer";
 import { DIRECTORY_SEPARATOR, upload_dir } from "../config/constant.config.js";
 import path from "path";
 import fs, { existsSync } from "fs";
+import { toSlugify } from "../services/Filestype.services.js";
 
 export const flow_upload = (req, res) => {
   const {
@@ -17,7 +18,7 @@ export const flow_upload = (req, res) => {
   const completeDirectory = `${upload_dir}`;
 
   const dt = new Date();
-  const filename_timestamp = `${dt.getTime()}_${flowFilename}`;
+  const filename_timestamp = `${dt.getTime()}_${toSlugify(flowFilename)}`;
 
   const chunkFilename = `${flowIdentifier}.${flowChunkNumber}`;
   const chunkPath = path.join(chunkDirectory, chunkFilename);

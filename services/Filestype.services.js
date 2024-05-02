@@ -6,6 +6,7 @@ import {
   domain,
   platform,
 } from "../config/constant.config.js";
+import slugify from "slugify";
 
 export const getDelimiter = () => {
   if (platform == "win32") return "\\";
@@ -72,4 +73,17 @@ export const removeFile = (path) => {
   if (existsSync(path)) {
     unlinkSync(path);
   }
+};
+
+/**
+ * Conversion d'un nom en slug
+ * @param {String} name
+ * @returns
+ */
+export const toSlugify = (name) => {
+  return slugify(name, {
+    replacement: "_",
+    lower: true,
+    trime: true,
+  });
 };
