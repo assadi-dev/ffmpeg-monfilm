@@ -19,6 +19,7 @@ import { ws } from "../index.js";
 import { eventFeedbackPublish } from "../config/ffmpegComand.config.js";
 import slugify from "slugify";
 import { clean_file_process } from "./FFmpegCameraProcess.services.js";
+import { toSlugify } from "./Filestype.services.js";
 
 /**
  * //Découpage des parties des videos
@@ -238,7 +239,7 @@ export const concatenate_combined_videos = (
   room,
   maxDuration
 ) => {
-  const export_file = `${upload_dir}${DIRECTORY_SEPARATOR}export_file${DIRECTORY_SEPARATOR}${clean_filename(
+  const export_file = `${upload_dir}${DIRECTORY_SEPARATOR}export_file${DIRECTORY_SEPARATOR}${toSlugify(
     projetFolder
   )}`;
 
@@ -550,7 +551,7 @@ export const concatenate_combined_audios = (
 ) => {
   const { ffmpeg } = new FFmpegInstance();
 
-  const export_file = `${upload_dir}${DIRECTORY_SEPARATOR}export_file${DIRECTORY_SEPARATOR}${clean_filename(
+  const export_file = `${upload_dir}${DIRECTORY_SEPARATOR}export_file${DIRECTORY_SEPARATOR}${toSlugify(
     projectName
   )}`;
   const destination = `${export_file}${DIRECTORY_SEPARATOR}${output}`;
@@ -659,10 +660,10 @@ export const files_mapping = (
   room,
   maxDuration
 ) => {
-  const export_file = `${upload_dir}${DIRECTORY_SEPARATOR}export_file${DIRECTORY_SEPARATOR}${clean_filename(
+  const export_file = `${upload_dir}${DIRECTORY_SEPARATOR}export_file${DIRECTORY_SEPARATOR}${toSlugify(
     projectName
   )}`;
-  const destination = `${export_file}${DIRECTORY_SEPARATOR}${clean_filename(
+  const destination = `${export_file}${DIRECTORY_SEPARATOR}${toSlugify(
     output
   )}`;
   // const filterComand = `[1:a]adelay=1000|1000[a];[0:a]adelay=1000|1000[va];[a][va]amix=inputs=2[out]`;
@@ -753,10 +754,10 @@ export const files_mapping_no_audio = (
   room,
   maxDuration
 ) => {
-  const export_file = `${upload_dir}${DIRECTORY_SEPARATOR}export_file${DIRECTORY_SEPARATOR}${clean_filename(
+  const export_file = `${upload_dir}${DIRECTORY_SEPARATOR}export_file${DIRECTORY_SEPARATOR}${toSlugify(
     projectName
   )}`;
-  const destination = `${export_file}${DIRECTORY_SEPARATOR}${clean_filename(
+  const destination = `${export_file}${DIRECTORY_SEPARATOR}${toSlugify(
     output
   )}`;
   const durationEstimate = secToMill(maxDuration);
@@ -880,14 +881,6 @@ const timecodeToSec = (timecode) => {
     hours * 3600 + minutes * 60 + seconds + milliseconds / 1000;
 
   return totalSeconds;
-};
-
-const clean_filename = (name) => {
-  return slugify(name, {
-    replacement: "_",
-    lower: true,
-    trime: true,
-  });
 };
 
 export const create_workspace_export = (path) => {

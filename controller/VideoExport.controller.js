@@ -18,7 +18,7 @@ import {
 import { ws } from "../index.js";
 import { statSync } from "fs";
 import { clean_file_process } from "../services/FFmpegCameraProcess.services.js";
-import { postDelayed } from "../services/Filestype.services.js";
+import { postDelayed, toSlugify } from "../services/Filestype.services.js";
 
 export const export_project = (req, res) => {
   try {
@@ -74,7 +74,7 @@ export const generate_finalOutput = async (
 ) => {
   console.log(`Export project: ${idProjectVideo}`);
   console.log("Concatenation des fichiers videos");
-  const export_file = `${upload_dir}${DIRECTORY_SEPARATOR}export_file${DIRECTORY_SEPARATOR}${clean_filename(
+  const export_file = `${upload_dir}${DIRECTORY_SEPARATOR}export_file${DIRECTORY_SEPARATOR}${toSlugify(
     projectName
   )}`;
 
@@ -86,7 +86,7 @@ export const generate_finalOutput = async (
 
   if (audios.length == 0) {
     console.log("Mapping fichiers video no audio");
-    const finalOutput = `${clean_filename(projectName)}.mp4`;
+    const finalOutput = `${toSlugify(projectName)}.mp4`;
     const final_video_input = await files_mapping_no_audio(
       mergedVideos,
       projectName,
@@ -119,7 +119,7 @@ export const generate_finalOutput = async (
     //Envoie ovh
     console.log("send ovh");
   }
-  const remoteFilename = `${timestamp()}_${clean_filename(projectName)}.mp4`;
+  const remoteFilename = `${timestamp()}_${toSlugify(projectName)}.mp4`;
   const FinalObject = { filePath: final_result, remoteFilename };
   const url = await upload_ovh(room, FinalObject);
   //Update UserProject
@@ -164,9 +164,7 @@ const concate_process_videos = async (room, scenes, projectName) => {
     listVideosDurations.push(duration);
     splited_videos.push(value);
   }
-  const outputConcatenateVideo = `final-video-${clean_filename(
-    projectName
-  )}.mp4`;
+  const outputConcatenateVideo = `final-video-${toSlugify(projectName)}.mp4`;
   const totalPartVideoDuration = calculatSumDuration(listVideosDurations);
   const mergedVideos = await concatenate_combined_videos(
     splited_videos,
@@ -191,9 +189,7 @@ const concate_process_audio = async (room, audios, projectName) => {
     listAudiosDurations.push(duration);
     splited_audios.push(value);
   }
-  const outputConcatenateAudio = `final-audio-${clean_filename(
-    projectName
-  )}.mp3`;
+  const outputConcatenateAudio = `final-audio-${toSlugify(projectName)}.mp3`;
   const totalPartAudioDuration = calculatSumDuration(listAudiosDurations);
 
   const mergedAudio = await concatenate_combined_audios(
@@ -256,14 +252,6 @@ const upload_ovh = (room, fileObjetct) => {
       console.error("Upload error:", message);
       reject(message);
     }
-  });
-};
-
-const clean_filename = (name) => {
-  return slugify(name, {
-    replacement: "_",
-    lower: true,
-    trime: true,
   });
 };
 

@@ -83,6 +83,7 @@ export const removeFile = (path) => {
 export const toSlugify = (name) => {
   return slugify(name, {
     replacement: "_",
+    remove: /[*+~.()'"!:@]/g,
     lower: true,
     trime: true,
   });
