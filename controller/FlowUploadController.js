@@ -18,11 +18,7 @@ export const flow_upload = (req, res) => {
   const completeDirectory = `${upload_dir}`;
 
   const dt = new Date();
-  const filename_ext = flowFilename.slice(-3);
-  const filename_timestamp = `${dt.getTime()}_${toSlugify(
-    flowFilename
-  )}.${filename_ext}`;
-
+  const filename_timestamp = `${dt.getTime()}_${toSlugify(flowFilename)}`;
   const chunkFilename = `${flowIdentifier}.${flowChunkNumber}`;
   const chunkPath = path.join(chunkDirectory, chunkFilename);
 

@@ -45,7 +45,7 @@ export const generateInsvfilesObject = (fileObject) => {
  */
 export const cleanPathName = (filepath = "") => {
   const URL_UPLOADS = URL_FILE_UPLOAD + "/uploads/";
-  console.log(URL_UPLOADS, filepath);
+  //console.log(URL_UPLOADS, filepath);
   const UPLOAD_FILES_PATH = `${__dirname}${DIRECTORY_SEPARATOR}uploads${DIRECTORY_SEPARATOR}`;
   return filepath.replace(URL_UPLOADS, UPLOAD_FILES_PATH);
 };
@@ -83,7 +83,7 @@ export const removeFile = (path) => {
 export const toSlugify = (name) => {
   return slugify(name, {
     replacement: "_",
-    remove: /[*+~.()'"!:@]/g,
+    remove: /[*+~()'"!:@]/g,
     lower: true,
     trime: true,
   });
