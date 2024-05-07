@@ -54,6 +54,7 @@ export const full_process_gopro = async (idProjectVideo, fileObject) => {
     };
 
     console.log(`start compress for ${equirectangular.filename}`);
+
     const compress_response = await video_compress(fileObjetctCompress);
 
     const high_quality = equirectangular.output;

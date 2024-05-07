@@ -63,6 +63,7 @@ export const merge_insv = async (fileObject) => {
     url: "",
     error: "",
     type: "video",
+    duration: 0,
   };
   try {
     const front = fileObject?.front;
@@ -88,7 +89,8 @@ export const merge_insv = async (fileObject) => {
           console.log("Stderr output: " + stderrLine);
         }) */
         .on("codecData", (data) => {
-          totalDuration = parseInt(data.duration.replace(/:/g, ""));
+          totalDuration = Number(data.duration.replace(/:/g, ""));
+          status.duration = totalDuration;
         })
         .on(
           "progress",
@@ -107,7 +109,12 @@ export const merge_insv = async (fileObject) => {
           ws.of(WEBSOCKET_PATH).to(room).emit("end", status);
           clean_file_process(front);
           clean_file_process(back);
-          const result = { filename, finalFilename, output };
+          const result = {
+            filename,
+            finalFilename,
+            output,
+            duration: status.duration,
+          };
           resolve(result);
         })
         .on("error", (error) => {
@@ -151,6 +158,7 @@ export const insv_equirectangular = async (fileObject) => {
     url: "",
     error: "",
     type: "video",
+    duration: 0,
   };
 
   try {
@@ -172,7 +180,8 @@ export const insv_equirectangular = async (fileObject) => {
         })
         .on("codecData", (data) => {
           // HERE YOU GET THE TOTAL TIME
-          totalDuration = parseInt(data.duration.replace(/:/g, ""));
+          totalDuration = Number(data.duration.replace(/:/g, ""));
+          status.duration = totalDuration;
         })
         /*.on("stderr", function (stderrLine) {
         console.log("Stderr output: " + stderrLine);
@@ -200,6 +209,7 @@ export const insv_equirectangular = async (fileObject) => {
               ".mp4"
             ),
             output,
+            duration: status.duration,
           };
           resolve(result);
         })
@@ -242,6 +252,7 @@ export const insv_equirectangular_x3 = async (fileObject) => {
     url: "",
     error: "",
     type: "video",
+    duration: 0,
   };
 
   try {
@@ -263,7 +274,8 @@ export const insv_equirectangular_x3 = async (fileObject) => {
         })
         .on("codecData", (data) => {
           // HERE YOU GET THE TOTAL TIME
-          totalDuration = parseInt(data.duration.replace(/:/g, ""));
+          totalDuration = Number(data.duration.replace(/:/g, ""));
+          status.duration = totalDuration;
         })
         /*.on("stderr", function (stderrLine) {
         console.log("Stderr output: " + stderrLine);
@@ -291,6 +303,7 @@ export const insv_equirectangular_x3 = async (fileObject) => {
               ".mp4"
             ),
             output,
+            duration: status.duration,
           };
           resolve(result);
         })
@@ -341,6 +354,7 @@ export const gopro_equirectangular = async (fileObject) => {
     url: "",
     error: "",
     type: "video",
+    duration: 0,
   };
 
   try {
@@ -380,7 +394,8 @@ export const gopro_equirectangular = async (fileObject) => {
         })
         .on("codecData", (data) => {
           // HERE YOU GET THE TOTAL TIME
-          totalDuration = parseInt(data.duration.replace(/:/g, ""));
+          totalDuration = Number(data.duration.replace(/:/g, ""));
+          status.duration = totalDuration;
         })
         .on(
           "progress",
@@ -394,7 +409,11 @@ export const gopro_equirectangular = async (fileObject) => {
         .on("end", () => {
           console.log(`Finished equirectangular for ${filename}`);
 
-          const result = { filename: output, output: destination };
+          const result = {
+            filename: output,
+            output: destination,
+            duration: status.duration,
+          };
           status.message = "done";
           status.progress = 100;
 
@@ -459,7 +478,7 @@ export const video_compress = (fileObjetct) => {
           ws.of(WEBSOCKET_PATH).to(room).emit("start", status);
         })
         .on("codecData", (data) => {
-          totalDuration = parseFloat(data.duration.replace(/:/g, ""));
+          totalDuration = Number(data.duration.replace(/:/g, ""));
           status.duration = totalDuration;
         })
         .on(
