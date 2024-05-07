@@ -440,6 +440,7 @@ export const video_compress = (fileObjetct) => {
     url: "",
     error: "",
     type: "video",
+    duration: 0,
   };
 
   try {
@@ -458,7 +459,8 @@ export const video_compress = (fileObjetct) => {
           ws.of(WEBSOCKET_PATH).to(room).emit("start", status);
         })
         .on("codecData", (data) => {
-          totalDuration = parseInt(data.duration.replace(/:/g, ""));
+          totalDuration = parseFloat(data.duration.replace(/:/g, ""));
+          status.duration = totalDuration;
         })
         .on(
           "progress",
@@ -473,7 +475,7 @@ export const video_compress = (fileObjetct) => {
           status.message = "done";
           status.progress = 100;
           ws.of(WEBSOCKET_PATH).to(room).emit("end", status);
-          resolve({ input, output });
+          resolve({ input, output, duration: status.duration });
         })
         .on("error", (error) => {
           console.log(error.message);

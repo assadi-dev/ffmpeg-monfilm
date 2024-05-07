@@ -13,6 +13,7 @@ import { feedbackStatus } from "../config/ffmpegComand.config.js";
 import { ws } from "../index.js";
 import {
   darwinChmod,
+  extrat_duration,
   generate_thumbnail,
   gopro_equirectangular,
   insv_equirectangular,
@@ -57,6 +58,7 @@ export const full_process_gopro = async (idProjectVideo, fileObject) => {
 
     const high_quality = equirectangular.output;
     const low_quality = compress_response.output;
+    const duration = compress_response.duration;
 
     //Envoie FTP
     console.log("start send FTP");
@@ -95,7 +97,9 @@ export const full_process_gopro = async (idProjectVideo, fileObject) => {
       urlVideo: URL_HIGH,
       urlVideoLight: URL_LOW,
       thumbnails: thumbnails,
+      duration,
     };
+
     const resUpdateProject = await update_project_360(projectData);
 
     resUpdateProject.ok
@@ -268,6 +272,7 @@ export const full_process_insv_x3 = async (idProjectVideo, fileObject) => {
 
     const thumbnails = await generate_thumbnail(low_quality, thumbDestination);
     remove_file_delayed(low_quality, DEFAULT_DELETE_FILE_DELAY);
+
     //Envoie OVH
     console.log("start send OVH");
     const finalFileObject = {
@@ -280,6 +285,7 @@ export const full_process_insv_x3 = async (idProjectVideo, fileObject) => {
 
     console.table({ high_quality: URL_HIGH, low_quality: URL_LOW });
     //Update user project
+
     const projectData = {
       idProjectVideo,
       urlVideo: URL_HIGH,
