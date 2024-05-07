@@ -21,14 +21,22 @@ export const import_audio = (req, res) => {
 
     for (const audio of audioFiles) {
       const tmp_audio = { ...audio };
+
       tmp_audio.filepath = tmp_audio.path.replace(
         "uploads/",
         `${upload_dir}${DIRECTORY_SEPARATOR}`
       );
+      const duration = tmp_audio.duration;
+
       const result = upload_audio_process(room, tmp_audio, idProjectVideo).then(
         async (res) => {
           const { url, filename, size } = res;
-          const resp = await updateAudioMade360(idProjectVideo, filename, url);
+          const audioData = {
+            filename,
+            urlAudio: url,
+            duration: tmp_audio.duration || 0,
+          };
+          const resp = await updateAudioMade360(idProjectVideo, audioData);
           const audioFile = await resp.json();
 
           ws.of(process.env.WEBSOCKET_PATH)
@@ -131,13 +139,14 @@ const finish = async (room, status, filePath) => {
   clean_file_process(filePath);
 };
 
-const updateAudioMade360 = (idProjectVideo, filename, urlAudio) => {
+const updateAudioMade360 = (idProjectVideo, data) => {
   const url_api = `${EVASION_API}/v2/project/update/import/audio`;
 
   const body = {
     idProjectVideo,
-    filename,
-    urlAudio,
+    filename: data.filename,
+    urlAudio: data.urlAudio,
+    duration: data.duration,
   };
 
   return fetch(url_api, {
