@@ -158,6 +158,7 @@ export const full_process_insv = async (idProjectVideo, fileObject) => {
     const compress_response = await video_compress(fileObjetctCompress);
     const high_quality = equirectantangular.output;
     const low_quality = compress_response.output;
+    const duration = compress_response.duration;
     //Envoie FTP
     console.log("start send FTP");
     const ftp_destination = `${FTP_DESTINATION_DIR}/${lowFilename}`;
@@ -196,6 +197,7 @@ export const full_process_insv = async (idProjectVideo, fileObject) => {
       urlVideo: URL_HIGH,
       urlVideoLight: URL_LOW,
       thumbnails,
+      duration,
     };
 
     const resUpdateProject = await update_project_360(projectData);
@@ -252,6 +254,7 @@ export const full_process_insv_x3 = async (idProjectVideo, fileObject) => {
     const compress_response = await video_compress(fileObjetctCompress);
     const high_quality = equirectantangular.output;
     const low_quality = compress_response.output;
+    const duration = compress_response.duration;
     //Envoie FTP
     console.log("start send FTP");
     const ftp_destination = `${FTP_DESTINATION_DIR}/${lowFilename}`;
@@ -292,6 +295,7 @@ export const full_process_insv_x3 = async (idProjectVideo, fileObject) => {
       urlVideo: URL_HIGH,
       urlVideoLight: URL_LOW,
       thumbnails,
+      duration,
     };
 
     const resUpdateProject = await update_project_360(projectData);
