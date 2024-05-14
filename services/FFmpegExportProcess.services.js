@@ -20,6 +20,10 @@ import { eventFeedbackPublish } from "../config/ffmpegComand.config.js";
 import slugify from "slugify";
 import { clean_file_process } from "./FFmpegCameraProcess.services.js";
 import { toSlugify } from "./Filestype.services.js";
+import {
+  logErrorVideoProcess,
+  logVideoProcess,
+} from "./FullProcess.services.js";
 
 /**
  * //Découpage des parties des videos
@@ -82,7 +86,8 @@ export const split_videos = async (scene, projectName, output, room) => {
         ])
         .output(destination)
         .on("start", (cmdline) => {
-          //console.log(`start split`, cmdline);
+          logVideoProcess("Export video", "start split");
+          logVideoProcess("command ffmpeg", cmdline);
           status.message = "start";
           ws.of(process.env.WEBSOCKET_PATH)
             .to(room)
@@ -102,6 +107,7 @@ export const split_videos = async (scene, projectName, output, room) => {
 
         .on("end", () => {
           console.log(`Finished split`);
+          logVideoProcess("Export video", "finish split");
           console.log(100);
           status.message = "done";
           status.progress = 100;
@@ -113,6 +119,7 @@ export const split_videos = async (scene, projectName, output, room) => {
         })
         .on("error", (error) => {
           console.log(error.message);
+          logErrorVideoProcess("Export video", `Error: ${error.message}`);
           status.error = error.message;
           status.message = "error";
           ws.of(process.env.WEBSOCKET_PATH)
@@ -124,6 +131,7 @@ export const split_videos = async (scene, projectName, output, room) => {
     });
   } catch (error) {
     console.log(error.message);
+    logErrorVideoProcess("Export video", `Error: ${error.message}`);
   }
 };
 
@@ -183,6 +191,8 @@ export const concatenate_videos = (
         .output(destination)
         .on("start", (cmdline) => {
           //console.log(`start concate`, cmdline);
+          logVideoProcess("Export video", `Start concat`);
+          logVideoProcess("Export video", `command ffmpeg ${cmdline}`);
           status.message = "start";
           ws.of(process.env.WEBSOCKET_PATH)
             .to(room)
@@ -196,7 +206,8 @@ export const concatenate_videos = (
           )
         )
         .on("end", () => {
-          console.log(`Finished concate`);
+          console.log(`Finished concat`);
+          logVideoProcess("Export video", `Finished concat`);
           status.progress = 100;
           status.message = "done";
           ws.of(process.env.WEBSOCKET_PATH)
@@ -206,6 +217,7 @@ export const concatenate_videos = (
         })
         .on("error", (error) => {
           console.log(error.message);
+          logErrorVideoProcess("Export video", `Error: ${error.message}`);
           status.error = error.message;
           status.message = "error";
           ws.of(process.env.WEBSOCKET_PATH)
@@ -220,6 +232,7 @@ export const concatenate_videos = (
     console.log(error.message);
     status.error = error.message;
     status.message = "error";
+    logErrorVideoProcess("Export video", `Error: ${error.message}`);
     ws.of(process.env.WEBSOCKET_PATH)
       .to(room)
       .emit(eventFeedbackPublish.error, status);
@@ -498,6 +511,8 @@ export const concatenate_audios = (
         .output(destination)
         .on("start", (cmdline) => {
           //console.log(`start concate`, cmdline);
+          logVideoProcess("Export video", `Start concat audio`);
+          logVideoProcess("Export video", `command ${cmdline}`);
           status.message = "start";
           ws.of(process.env.WEBSOCKET_PATH)
             .to(room)
@@ -512,6 +527,8 @@ export const concatenate_audios = (
         )
         .on("end", () => {
           console.log(`Finished audio concate`);
+          logVideoProcess("Export video", `Finnish concat audio`);
+
           status.progress = 100;
           status.message = "done";
           status.remain = 0;
@@ -522,6 +539,7 @@ export const concatenate_audios = (
         })
         .on("error", (error) => {
           console.log(error.message);
+          logErrorVideoProcess("Export video", `Erreur: ${error.message}`);
           status.error = error.message;
           status.message = "error";
           ws.of(process.env.WEBSOCKET_PATH)
@@ -536,6 +554,7 @@ export const concatenate_audios = (
   } catch (error) {
     console.log(error.message);
     status.error = error.message;
+    logErrorVideoProcess("Export video", `Erreur: ${error.message}`);
     status.message = "error";
     ws.of(process.env.WEBSOCKET_PATH)
       .to(room)
@@ -605,6 +624,8 @@ export const concatenate_combined_audios = (
         .output(destination)
         .on("start", (cmdline) => {
           //console.log(`start concate`, cmdline);
+          logVideoProcess("Export video", `Start audio concate`);
+          logVideoProcess("Export video", `command ffmpeg: ${cmdline}`);
           status.message = "start";
           status.elapsed = 0;
 
@@ -621,6 +642,7 @@ export const concatenate_combined_audios = (
         )
         .on("end", () => {
           console.log(`Finished audio concate`);
+          logVideoProcess("Export video", `Finished audio concate`);
           status.progress = 100;
           status.message = "done";
           status.remain = 0;
@@ -631,6 +653,7 @@ export const concatenate_combined_audios = (
         })
         .on("error", (error) => {
           console.log(error.message);
+          logErrorVideoProcess("Export video", `Erreur: ${error.message}`);
           status.error = error.message;
           status.message = "error";
           ws.of(process.env.WEBSOCKET_PATH)
@@ -644,6 +667,7 @@ export const concatenate_combined_audios = (
     return promise;
   } catch (error) {
     console.log(error.message);
+    logErrorVideoProcess("Export video", `Erreur: ${error.message}`);
     status.error = error.message;
     status.message = "error";
     ws.of(process.env.WEBSOCKET_PATH)
@@ -699,6 +723,8 @@ export const files_mapping = (
         .output(destination)
         .on("start", (cmdline) => {
           //console.log(`start concate`, cmdline);
+          logVideoProcess("Export video", `Start mapping files`);
+          logVideoProcess("Export video", `command ffmpeg: ${cmdline}`);
           status.message = "start";
           ws.of(process.env.WEBSOCKET_PATH)
             .to(room)
@@ -713,6 +739,7 @@ export const files_mapping = (
         )
         .on("end", () => {
           console.log(`Finished mapping files`);
+          logVideoProcess("Export video", `Finished mapping files`);
           status.message = "done";
           status.progress = 100;
           clean_file_process(videoFile);
@@ -724,6 +751,7 @@ export const files_mapping = (
         })
         .on("error", (error) => {
           console.log(error.message);
+          logErrorVideoProcess("Export video", `Erreur: ${error.message}`);
           status.message = "error";
           status.error = error.message;
           clean_file_process(videoFile);
@@ -739,6 +767,7 @@ export const files_mapping = (
     return promise;
   } catch (error) {
     console.log(error.message);
+    logErrorVideoProcess("Export video", `Erreur: ${error.message}`);
     status.message = "error";
     status.error = error.message;
     ws.of(process.env.WEBSOCKET_PATH)
@@ -781,6 +810,7 @@ export const files_mapping_no_audio = (
         .output(destination)
         .on("start", (cmdline) => {
           //console.log(`start concate`, cmdline);
+          logVideoProcess("Export video", `Erreur: ${error.message}`);
           status.message = "start";
           ws.of(process.env.WEBSOCKET_PATH)
             .to(room)
