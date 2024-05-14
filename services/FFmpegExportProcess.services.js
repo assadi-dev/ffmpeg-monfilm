@@ -785,3 +785,22 @@ const timecodeToSec = (timecode) => {
 
 	return totalSeconds;
 };
+export const create_workspace_export = (path) => {
+	if (!existsSync(path)) {
+		mkdirSync(path, { recursive: true });
+		chmodSync(path, "777");
+	}
+};
+export const delete_workspace_export = (path) => {
+	if (existsSync(path)) {
+		chmodSync(path, "777");
+
+		rm(path, { recursive: true }, (err) => {
+			if (err) {
+				console.error(err.message);
+				return;
+			}
+			console.log("File deleted successfully");
+		});
+	}
+};
