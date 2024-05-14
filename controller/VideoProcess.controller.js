@@ -14,8 +14,11 @@ import {
   full_process_gopro,
   full_process_insv,
   full_process_insv_x3,
+  logErrorVideoProcess,
+  logVideoProcess,
 } from "../services/FullProcess.services.js";
 import ObjectFileTest from "../services/ObjectFileTest.services.js";
+import { LogSystem } from "../services/LogSystem.services.js";
 
 export const insv_process = (req, res) => {
   try {
@@ -23,7 +26,6 @@ export const insv_process = (req, res) => {
     const count = files.length;
 
     const filesProcess = [];
-    console.log("Model INSTA360:", model);
 
     for (const fileObject of files) {
       fileObject.room = room.toString();
@@ -47,6 +49,10 @@ export const insv_process = (req, res) => {
       }
     }
 
+    logVideoProcess(
+      "Traitement video",
+      `Début traitement pour camera ${camera} - mode: ${model}`
+    );
     return res.json({
       message: "processus en cours",
       room,
@@ -55,6 +61,7 @@ export const insv_process = (req, res) => {
       count,
     });
   } catch (error) {
+    logErrorVideoProcess("Traitement video", `Erreur: ${error.message}`);
     return res.status(500).json({
       message: error?.message,
     });

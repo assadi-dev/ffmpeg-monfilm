@@ -52,7 +52,7 @@ export const export_project = (req, res) => {
 export const merges_input = (req, res) => {
   try {
     const { scenes, audios } = req.body;
-    const outputFile = "visdeo-concatenate.mp4";
+    const outputFile = "video-concatenate.mp4";
     concatenate_inputs(scenes, outputFile);
 
     const content = { message: "concatenation en cours", scenes };

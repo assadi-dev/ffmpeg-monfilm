@@ -38,6 +38,10 @@ export const full_process_gopro = async (idProjectVideo, fileObject) => {
 
   try {
     console.log(`wait gopro equirectangular for ${fileObject.filename}`);
+    logVideoProcess(
+      "Traitement video",
+      `wait gopro equirectangular for ${fileObject.filename}`
+    );
 
     ws.of(WEBSOCKET_PATH).to(room).emit("start", statusStep);
 
@@ -128,6 +132,10 @@ export const full_process_insv = async (idProjectVideo, fileObject) => {
 
   try {
     console.log(`wait fusion insv for ${filename}`);
+    logVideoProcess(
+      "Traitement video",
+      `Début traitement pour camera ${camera} - mode: ${model}`
+    );
     ws.of(WEBSOCKET_PATH).to(room).emit("start", status);
     const fusion = await merge_insv(fileObject);
     let toEquirectangular = {
@@ -423,4 +431,26 @@ export const remove_file = (filePath) => {
  */
 export const remove_file_delayed = (filePath, delay) => {
   return postDelayed(delay, () => removeFile(filePath));
+};
+
+/**
+ * Message à enregistré dans le fichier des logs
+ * @param {string} title Titre du message
+ * @param {string} message Message à affiché
+ */
+export const logVideoProcess = (title, message) => {
+  const logger = new LogSystem();
+  logger.setLabel(title);
+  logger.setInfo(message);
+};
+
+/**
+ * Message d'erreur à enregistré dans le fichier des logs
+ * @param {string} title Titre du message
+ * @param {string} message Message à affiché
+ */
+export const logErrorVideoProcess = (title, message) => {
+  const logger = new LogSystem();
+  logger.setLabel(title);
+  logger.setError(message);
 };

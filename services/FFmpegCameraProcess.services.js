@@ -23,7 +23,11 @@ import {
   DEFAULT_DEBOUNCE_DELAY,
   DEFAULT_DELETE_FILE_DELAY,
 } from "../config/event.js";
-import { remove_file_delayed } from "./FullProcess.services.js";
+import {
+  logErrorVideoProcess,
+  logVideoProcess,
+  remove_file_delayed,
+} from "./FullProcess.services.js";
 
 /**
  * **Process Insta360**
@@ -80,6 +84,12 @@ export const merge_insv = async (fileObject) => {
         .output(output)
         .on("start", (cmdline) => {
           console.log(`start fusion insv process for ${filename}`);
+          logVideoProcess(
+            "Traitement video",
+            `start fusion insv process for ${filename}`
+          );
+          logVideoProcess("Traitement video", `command ffmpeg: ${cmdline}`);
+
           status.message = "start";
           status.step = "fusion";
           ws.of(WEBSOCKET_PATH).to(room).emit("start", status);
@@ -103,6 +113,10 @@ export const merge_insv = async (fileObject) => {
 
         .on("end", () => {
           console.log(`Finished fusion for ${filename}`);
+          logVideoProcess(
+            "Traitement video",
+            `Finished fusion insv for ${filename}`
+          );
 
           status.message = "done";
           status.progress = 100;
@@ -123,6 +137,10 @@ export const merge_insv = async (fileObject) => {
           clean_file_process(back);
           status.error = error.message;
           status.message = "error";
+          logErrorVideoProcess(
+            "Traitement video",
+            `Erreur fusion insv for ${filename} - ${error.message}`
+          );
           ws.of(WEBSOCKET_PATH).to(room).emit("error", status);
         })
         .run();
@@ -130,6 +148,10 @@ export const merge_insv = async (fileObject) => {
   } catch (error) {
     status.error = error.message;
     status.message = "error";
+    logErrorVideoProcess(
+      "Traitement video",
+      `Erreur fusion insv for ${filename} - ${error.message}`
+    );
     ws.of(WEBSOCKET_PATH).to(room).emit("error", status);
   }
 };
@@ -174,6 +196,11 @@ export const insv_equirectangular = async (fileObject) => {
           console.log(
             `start equirectangular insv insv One X2 process for ${filename}`
           );
+          logVideoProcess(
+            "Traitement video",
+            `start equirectangular insv insv One X2 process for ${filename}`
+          );
+          logVideoProcess("Traitement video", `command ffmpeg: ${cmdline}`);
           status.message = "start";
           status.step = "equirectangular";
           ws.of(WEBSOCKET_PATH).to(room).emit("start", status);
@@ -196,7 +223,11 @@ export const insv_equirectangular = async (fileObject) => {
         )
         .on("end", () => {
           console.log(
-            `Finished equrectangular insv processing for ${filename}`
+            `Finished quirectangular insv processing for ${filename}`
+          );
+          logVideoProcess(
+            "Traitement video",
+            `Finished quirectangular insv processing for ${filename}`
           );
 
           status.message = "done";
@@ -218,6 +249,10 @@ export const insv_equirectangular = async (fileObject) => {
           clean_file_process(input);
           status.error = error.message;
           status.message = "error";
+          logErrorVideoProcess(
+            "Traitement video",
+            `Erreur insv equirectangular for ${filename} - ${error.message}`
+          );
           ws.of(WEBSOCKET_PATH).to(room).emit("error", status);
         })
         .run();
@@ -226,6 +261,10 @@ export const insv_equirectangular = async (fileObject) => {
     status.error = error.message;
     status.message = "error";
     ws.of(WEBSOCKET_PATH).to(room).emit("error", status);
+    logErrorVideoProcess(
+      "Traitement video",
+      `Erreur insv equirectangular for ${filename} - ${error.message}`
+    );
   }
 };
 /**
@@ -268,6 +307,11 @@ export const insv_equirectangular_x3 = async (fileObject) => {
           console.log(
             `start equirectangular insv One X3 process for ${filename}`
           );
+          logVideoProcess(
+            "Traitement video",
+            `start equirectangular insv One X3 process for ${filename}`
+          );
+          logVideoProcess("Traitement video", `command ffmpeg: ${cmdline}`);
           status.message = "start";
           status.step = "equirectangular";
           ws.of(WEBSOCKET_PATH).to(room).emit("start", status);
@@ -290,7 +334,11 @@ export const insv_equirectangular_x3 = async (fileObject) => {
         )
         .on("end", () => {
           console.log(
-            `Finished equrectangular insv processing for ${filename}`
+            `Finished equirectangular insv processing for ${filename}`
+          );
+          logVideoProcess(
+            "Traitement video",
+            `Finished equirectangular insv processing for ${filename}`
           );
 
           status.message = "done";
@@ -312,6 +360,10 @@ export const insv_equirectangular_x3 = async (fileObject) => {
           console.log(error.message);
           status.error = error.message;
           status.message = "error";
+          logErrorVideoProcess(
+            "Traitement video",
+            `Erreur insv equirectangular for ${filename} - ${error.message}`
+          );
           ws.of(WEBSOCKET_PATH).to(room).emit("error", status);
         })
         .run();
@@ -320,6 +372,10 @@ export const insv_equirectangular_x3 = async (fileObject) => {
     status.error = error.message;
     status.message = "error";
     ws.of(WEBSOCKET_PATH).to(room).emit("error", status);
+    logErrorVideoProcess(
+      "Traitement video",
+      `Erreur insv equirectangular for ${filename} - ${error.message}`
+    );
   }
 };
 
@@ -386,8 +442,13 @@ export const gopro_equirectangular = async (fileObject) => {
         /*       .on("stderr", function (stderrLine) {
         console.log("Stderr output: " + stderrLine);
       }) */
-        .on("start", () => {
+        .on("start", (cmdline) => {
           console.log(`start gopro equirectangular for ${filename}`);
+          logVideoProcess(
+            "Traitement video",
+            `start gopro equirectangular for ${filename}`
+          );
+          logVideoProcess("Traitement video", `command ffmpeg: ${cmdline}`);
           status.message = "start";
           status.step = "equirectangular";
           ws.of(WEBSOCKET_PATH).to(room).emit("start", status);
@@ -408,6 +469,10 @@ export const gopro_equirectangular = async (fileObject) => {
 
         .on("end", () => {
           console.log(`Finished equirectangular for ${filename}`);
+          logVideoProcess(
+            "Traitement video",
+            `Finished gopro equirectangular for ${filename}`
+          );
 
           const result = {
             filename: output,
@@ -423,6 +488,10 @@ export const gopro_equirectangular = async (fileObject) => {
         })
         .on("error", (error) => {
           console.log(error.message);
+          logErrorVideoProcess(
+            "Traitement video",
+            `Erreur gopro equirectangular for ${filename} - ${error.message}`
+          );
           clean_file_process(input);
           status.error = error.message;
           status.message = "error";
@@ -431,6 +500,7 @@ export const gopro_equirectangular = async (fileObject) => {
         .run();
     });
   } catch (error) {
+    logErrorVideoProcess("Traitement video", `Erreur - ${error.message}`);
     console.log(error.message);
   }
 };
@@ -475,6 +545,11 @@ export const video_compress = (fileObjetct) => {
         .output(output)
         .on("start", (cmdline) => {
           status.message = "start";
+          logVideoProcess(
+            "Compression video",
+            `Start compressing for ${input}`
+          );
+          logVideoProcess("Compression video", `command ffmpeg: ${cmdline}`);
           ws.of(WEBSOCKET_PATH).to(room).emit("start", status);
         })
         .on("codecData", (data) => {
@@ -491,6 +566,10 @@ export const video_compress = (fileObjetct) => {
         )
         .on("end", () => {
           console.log(`Finished compressing for ${input}`);
+          logVideoProcess(
+            "Compression video",
+            `Finished compressing for ${input}`
+          );
           status.message = "done";
           status.progress = 100;
           ws.of(WEBSOCKET_PATH).to(room).emit("end", status);
@@ -506,6 +585,7 @@ export const video_compress = (fileObjetct) => {
     });
   } catch (error) {
     console.log(error.message);
+    logErrorVideoProcess("Compression video", `Erreur - ${error.message}`);
     status.message = "erreur";
     status.error = error.message;
     ws.of(WEBSOCKET_PATH).to(room).emit("error", error.message);
@@ -531,9 +611,15 @@ export const generate_thumbnail = (input, destination) => {
         .output(`${destination}${DIRECTORY_SEPARATOR}%0d.jpeg`);
       ffmpeg.on("start", (cmdline) => {
         //console.log(cmdline);
+        logVideoProcess("Génération des thumbnail", `start extract frame`);
+        logVideoProcess(
+          "Génération des thumbnail",
+          `command ffmpeg: ${cmdline}`
+        );
       });
       ffmpeg.on("end", async () => {
         console.log("finish extract frame");
+        logVideoProcess("Génération des thumbnail", `finish extract frame`);
         const files = readdirSync(destination);
         const jpegOutput = `${destination}${DIRECTORY_SEPARATOR}thumbnail.jpeg`;
         const finalPic = await concate_frames(
@@ -545,9 +631,16 @@ export const generate_thumbnail = (input, destination) => {
       });
       ffmpeg.on("error", (error) => {
         console.log(error);
+        logErrorVideoProcess(
+          `Génération des thumbnail","Erreur: ${error.message}`
+        );
       });
       ffmpeg.run();
-    } catch (error) {}
+    } catch (error) {
+      logErrorVideoProcess(
+        `Génération des thumbnail","Erreur: ${error.message}`
+      );
+    }
   });
 };
 
@@ -628,11 +721,13 @@ export const concate_frames = (framesDir, totalFrames, output) => {
         const imgToBase64 =
           "data:image/png;base64," + Buffer.from(img).toString("base64");
         console.log("finish generate thumbnail");
+        logVideoProcess(`Concat frames","finish concat frames`);
         resolve(imgToBase64);
       });
 
       ffmpeg.on("error", (err) => {
         console.log(err);
+        logErrorVideoProcess(`Concat frames","Erreur: ${err.message}`);
       });
     } catch (error) {
       console.log(error);
