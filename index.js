@@ -7,6 +7,8 @@ import os from "os";
 import { chmodSync, existsSync, mkdirSync } from "fs";
 import { upload_dir } from "./config/constant.config.js";
 import httpProxy from "http-proxy";
+import winston from "winston";
+import { LogSystem } from "./services/LogSystem.services.js";
 
 dotenv.config();
 

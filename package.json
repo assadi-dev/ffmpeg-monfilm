@@ -38,6 +38,7 @@
     "socket.io": "^4.7.2",
     "stream-to-array": "^2.3.0",
     "swift": "^2.8.0",
-    "tiny-storage-client": "^3.0.1"
+    "tiny-storage-client": "^3.0.1",
+    "winston": "^3.13.0"
   }
 }
