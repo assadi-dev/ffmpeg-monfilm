@@ -6,6 +6,7 @@ import path, { resolve } from "path";
 import EventEmitter from "events";
 import { PROGRESS, SUCCESS } from "../config/event.js";
 import { clean_file_process } from "./FFmpegCameraProcess.services.js";
+import { logErrorVideoProcess } from "./FullProcess.services.js";
 
 export default class OvhObjectStorageServices {
   /**
@@ -73,6 +74,7 @@ export default class OvhObjectStorageServices {
       this.clientStorage.connection((err) => {
         if (err) {
           console.log(err);
+          logErrorVideoProcess("Create instance OVH", `Error: ${err.message}`);
           return;
         }
         this.authToken = this.clientStorage.getConfig().token;
@@ -92,6 +94,7 @@ export default class OvhObjectStorageServices {
       this.clientStorage.connection((err) => {
         if (err) {
           console.log(err);
+          logErrorVideoProcess("Obtain Token OVH", `Error: ${err.message}`);
           return;
         }
         const token = this.clientStorage.getConfig().token;
@@ -183,6 +186,7 @@ export default class OvhObjectStorageServices {
         resolve(result);
       } catch (error) {
         console.log(error);
+        logErrorVideoProcess("Upload OVH", `Error: ${error.message}`);
         reject(error);
         clean_file_process(filePath);
       }
@@ -214,6 +218,7 @@ export default class OvhObjectStorageServices {
           throw new Error("Failed to upload the manifest file.");
         }
       } catch (error) {
+        logErrorVideoProcess("Upload OVH", `Error: ${error.message}`);
         reject(error);
       }
     });

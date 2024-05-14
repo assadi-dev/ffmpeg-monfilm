@@ -770,5 +770,6 @@ export const clean_file_process = async (filePath) => {
     status: deleteMessage,
     path: filePath,
   };
-  console.log(deleteState);
+  //console.log(deleteState);
+  logProgress("Delete process file", `success delete for: ${filePath}`);
 };

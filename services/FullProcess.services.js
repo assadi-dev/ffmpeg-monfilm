@@ -26,6 +26,7 @@ import FTPServices from "./FTPServices.services.js";
 import OvhObjectStorageServices from "./OvhObjectStorage.services.js";
 import { postDelayed, removeFile } from "./Filestype.services.js";
 import { DEFAULT_DELETE_FILE_DELAY } from "../config/event.js";
+import { LogSystem } from "./LogSystem.services.js";
 
 export const full_process_gopro = async (idProjectVideo, fileObject) => {
   const room = fileObject?.room;
@@ -38,6 +39,7 @@ export const full_process_gopro = async (idProjectVideo, fileObject) => {
 
   try {
     console.log(`wait gopro equirectangular for ${fileObject.filename}`);
+
     logVideoProcess(
       "Traitement video",
       `wait gopro equirectangular for ${fileObject.filename}`
@@ -58,6 +60,10 @@ export const full_process_gopro = async (idProjectVideo, fileObject) => {
     };
 
     console.log(`start compress for ${equirectangular.filename}`);
+    logVideoProcess(
+      "Traitement video",
+      `start compress for ${equirectangular.filename}`
+    );
 
     const compress_response = await video_compress(fileObjetctCompress);
 
@@ -67,6 +73,7 @@ export const full_process_gopro = async (idProjectVideo, fileObject) => {
 
     //Envoie FTP
     console.log("start send FTP");
+    logVideoProcess("Traitement video", `start send FTP`);
     const ftp_destination = `${FTP_DESTINATION_DIR}/${lowFilename}`;
     const URL_LOW = await sendProcess(
       low_quality,
@@ -76,6 +83,7 @@ export const full_process_gopro = async (idProjectVideo, fileObject) => {
 
     //Génération Thumbnail
     console.log("generation thumbnail");
+    logVideoProcess("Traitement video", `generation thumbnail`);
     const folderName = equirectangular.filename.replace(".mp4", "");
     const thumbDestination = `${upload_dir}${DIRECTORY_SEPARATOR}project_${idProjectVideo}${DIRECTORY_SEPARATOR}${folderName}`;
     if (!existsSync(thumbDestination)) {
@@ -88,6 +96,7 @@ export const full_process_gopro = async (idProjectVideo, fileObject) => {
     remove_file_delayed(low_quality, DEFAULT_DELETE_FILE_DELAY);
     //Envoie OVH
     console.log("start send OVH");
+    logVideoProcess("Traitement video", `start send OVH`);
     const finalFileObject = {
       id,
       camera: fileObject.camera,
@@ -96,6 +105,10 @@ export const full_process_gopro = async (idProjectVideo, fileObject) => {
     };
     const URL_HIGH = await upload_ovh(room, finalFileObject);
     console.table({ high_quality: URL_HIGH, low_quality: URL_LOW });
+    logVideoProcess(
+      "Available file ovh",
+      JSON.stringify({ high_quality: URL_HIGH, low_quality: URL_LOW })
+    );
     //Update user project
     const projectData = {
       idProjectVideo,
@@ -109,9 +122,16 @@ export const full_process_gopro = async (idProjectVideo, fileObject) => {
 
     resUpdateProject.ok
       ? emitVideoMade(room, await resUpdateProject.json())
-      : console.log("Une erreur est survenue");
+      : (() => {
+          console.log("Une erreur est survenue");
+          logErrorVideoProcess(
+            "Update projectVideo",
+            `Une erreur est survenue lors de la mise à jour du projet`
+          );
+        })();
   } catch (error) {
     console.log(error.message);
+    logErrorVideoProcess("Traitement Video", `Erreur: ${error.message}`);
     statusStep.error = error.message;
     statusStep.message = "error";
     ws.of(WEBSOCKET_PATH).to(room).emit("error", statusStep);
@@ -134,7 +154,7 @@ export const full_process_insv = async (idProjectVideo, fileObject) => {
     console.log(`wait fusion insv for ${filename}`);
     logVideoProcess(
       "Traitement video",
-      `Début traitement pour camera ${camera} - mode: ${model}`
+      `wait fusion insv for camera ${camera} - mode: ${model}`
     );
     ws.of(WEBSOCKET_PATH).to(room).emit("start", status);
     const fusion = await merge_insv(fileObject);
@@ -146,13 +166,17 @@ export const full_process_insv = async (idProjectVideo, fileObject) => {
       input: fusion.output,
     };
     console.log(`wait equirectangular insv for ${filename}`);
+    logVideoProcess(
+      "Traitement video",
+      `wait equirectangular insv for ${filename}`
+    );
 
     const equirectantangular = await insv_equirectangular(toEquirectangular);
     //unlinkSync(toEquirectangular.input);
-
     // postDelayed(5000, () => removeFile(toEquirectangular.input));
 
     console.log(`wait compress insv for ${filename}`);
+    logVideoProcess("Traitement video", `wait compress insv for ${filename}`);
     const lowFilename = equirectantangular.filename.replace(".mp4", "_low.mp4");
 
     const fileObjetctCompress = {
@@ -169,6 +193,7 @@ export const full_process_insv = async (idProjectVideo, fileObject) => {
     const duration = compress_response.duration;
     //Envoie FTP
     console.log("start send FTP");
+    logVideoProcess("Traitement video", `start send FTP`);
     const ftp_destination = `${FTP_DESTINATION_DIR}/${lowFilename}`;
     const URL_LOW = await sendProcess(
       low_quality,
@@ -178,6 +203,7 @@ export const full_process_insv = async (idProjectVideo, fileObject) => {
 
     //Generation thumbnail
     console.log("generation thumbnail");
+    logVideoProcess("Traitement video", `generation thumbnail`);
     const folderName = equirectantangular.filename.replace(".mp4", "");
     const thumbDestination = `${upload_dir}${DIRECTORY_SEPARATOR}project_${idProjectVideo}${DIRECTORY_SEPARATOR}${folderName}`;
     if (!existsSync(thumbDestination)) {
@@ -190,6 +216,7 @@ export const full_process_insv = async (idProjectVideo, fileObject) => {
     remove_file_delayed(low_quality, DEFAULT_DELETE_FILE_DELAY);
     //Envoie OVH
     console.log("start send OVH");
+    logVideoProcess("Traitement video", `start send OVH`);
     const finalFileObject = {
       id,
       camera: fileObject.camera,
@@ -199,6 +226,10 @@ export const full_process_insv = async (idProjectVideo, fileObject) => {
     const URL_HIGH = await upload_ovh(room, finalFileObject);
 
     console.table({ high_quality: URL_HIGH, low_quality: URL_LOW });
+    logVideoProcess(
+      "Available file ovh",
+      JSON.stringify({ high_quality: URL_HIGH, low_quality: URL_LOW })
+    );
     //Update user project
     const projectData = {
       idProjectVideo,
@@ -211,10 +242,17 @@ export const full_process_insv = async (idProjectVideo, fileObject) => {
     const resUpdateProject = await update_project_360(projectData);
     resUpdateProject.ok
       ? emitVideoMade(room, await resUpdateProject.json())
-      : console.log("Une erreur est survenue");
+      : (() => {
+          console.log("Une erreur est survenue");
+          logErrorVideoProcess(
+            "Update projectVideo",
+            `Une erreur est survenue lors de la mise à jour du projet`
+          );
+        })();
   } catch (error) {
     console.log(error.message);
     status.error = error.message;
+    logErrorVideoProcess("Traitement Video", `Erreur: ${error.message}`);
     status.message = "error";
     ws.of(WEBSOCKET_PATH).to(room).emit("error", status);
     return error;
@@ -234,6 +272,10 @@ export const full_process_insv_x3 = async (idProjectVideo, fileObject) => {
 
   try {
     console.log(`wait fusion insv for ${filename}`);
+    logVideoProcess(
+      "Traitement video",
+      `wait fusion insv for camera ${camera} - mode: ${model}`
+    );
     ws.of(WEBSOCKET_PATH).to(room).emit("start", status);
     const fusion = await merge_insv(fileObject);
     let toEquirectangular = {
@@ -244,11 +286,18 @@ export const full_process_insv_x3 = async (idProjectVideo, fileObject) => {
       input: fusion.output,
     };
     console.log(`wait equirectangular insv for ${filename}`);
-
+    logVideoProcess(
+      "Traitement video",
+      `wait equirectangular insv x3 for ${filename}`
+    );
     const equirectantangular = await insv_equirectangular_x3(toEquirectangular);
     //unlinkSync(toEquirectangular.input);
 
     console.log(`wait compress insv for ${filename}`);
+    logVideoProcess(
+      "Traitement video",
+      `wait compress insv x3 for ${filename}`
+    );
     const lowFilename = equirectantangular.filename.replace(".mp4", "_low.mp4");
 
     const fileObjetctCompress = {
@@ -265,6 +314,7 @@ export const full_process_insv_x3 = async (idProjectVideo, fileObject) => {
     const duration = compress_response.duration;
     //Envoie FTP
     console.log("start send FTP");
+    logVideoProcess("Traitement video", `start send FTP`);
     const ftp_destination = `${FTP_DESTINATION_DIR}/${lowFilename}`;
     const URL_LOW = await sendProcess(
       low_quality,
@@ -274,6 +324,7 @@ export const full_process_insv_x3 = async (idProjectVideo, fileObject) => {
 
     //Generation thumbnail
     console.log("generation thumbnail");
+    logVideoProcess("Traitement video", `generation thumbnail`);
     const folderName = equirectantangular.filename.replace(".mp4", "");
     const thumbDestination = `${upload_dir}${DIRECTORY_SEPARATOR}project_${idProjectVideo}${DIRECTORY_SEPARATOR}${folderName}`;
     if (!existsSync(thumbDestination)) {
@@ -287,6 +338,7 @@ export const full_process_insv_x3 = async (idProjectVideo, fileObject) => {
 
     //Envoie OVH
     console.log("start send OVH");
+    logVideoProcess("Traitement video", `start send OVH`);
     const finalFileObject = {
       id,
       camera: fileObject.camera,
@@ -296,8 +348,11 @@ export const full_process_insv_x3 = async (idProjectVideo, fileObject) => {
     const URL_HIGH = await upload_ovh(room, finalFileObject);
 
     console.table({ high_quality: URL_HIGH, low_quality: URL_LOW });
+    logVideoProcess(
+      "Available file ovh",
+      JSON.stringify({ high_quality: URL_HIGH, low_quality: URL_LOW })
+    );
     //Update user project
-
     const projectData = {
       idProjectVideo,
       urlVideo: URL_HIGH,
@@ -309,7 +364,13 @@ export const full_process_insv_x3 = async (idProjectVideo, fileObject) => {
     const resUpdateProject = await update_project_360(projectData);
     resUpdateProject.ok
       ? emitVideoMade(room, await resUpdateProject.json())
-      : console.log("Une erreur est survenue");
+      : (() => {
+          console.log("Une erreur est survenue");
+          logErrorVideoProcess(
+            "Update projectVideo",
+            `Une erreur est survenue lors de la mise à jour du projet`
+          );
+        })();
   } catch (error) {
     console.log(error.message);
     status.error = error.message;
@@ -329,7 +390,6 @@ export const full_process_insv_x3 = async (idProjectVideo, fileObject) => {
 const sendProcess = async (source, destination, filename) => {
   try {
     const ftpservices = new FTPServices(FTP_CREDENTIALS);
-
     await ftpservices.connect();
     await ftpservices.send(source, destination);
     const link = `${FTP_ENDPOINT}/${filename}`;
@@ -389,6 +449,7 @@ const upload_ovh = (room, fileObjetct) => {
     } catch (error) {
       const message = error.message;
       console.error("Upload error:", message);
+      logErrorVideoProcess("Upload OVH error", `Erreur: ${message}`);
       reject(message);
     }
   });
@@ -421,6 +482,10 @@ export const remove_file = (filePath) => {
     }
   } catch (error) {
     console.log("Impossible de supprimé le fichier se trouvant " + filePath);
+    logErrorVideoProcess(
+      "Remove file",
+      "Impossible de supprimé le fichier se trouvant " + filePath
+    );
   }
 };
 

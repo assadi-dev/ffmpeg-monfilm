@@ -187,7 +187,7 @@ export const concatenate_videos = (
         .output(destination)
         .on("start", (cmdline) => {
           //console.log(`start concate`, cmdline);
-          logVideoProcess("Export video", `Start concat`);
+          logVideoProcess("Export video", `Start concat video`);
           logVideoProcess("Export video", `command ffmpeg ${cmdline}`);
           status.message = "start";
           ws.of(process.env.WEBSOCKET_PATH)
@@ -203,7 +203,7 @@ export const concatenate_videos = (
         )
         .on("end", () => {
           console.log(`Finished concat`);
-          logVideoProcess("Export video", `Finished concat`);
+          logVideoProcess("Export video", `Finished concat video`);
           status.progress = 100;
           status.message = "done";
           ws.of(process.env.WEBSOCKET_PATH)
@@ -318,6 +318,8 @@ export const concatenate_combined_videos = (
         .on("start", (cmdline) => {
           //console.log(`start concate`, cmdline);
           status.message = "start";
+          logVideoProcess("Export video", `Start complex filter concat video`);
+          logVideoProcess("Export video", `command ffmpeg ${cmdline}`);
           ws.to(room).emit(eventFeedbackPublish.export, status);
         })
         .on(
@@ -331,6 +333,10 @@ export const concatenate_combined_videos = (
           console.log(`Finished concate video`);
           status.progress = 100;
           status.message = "done";
+          logVideoProcess(
+            "Export video",
+            `Finished complex filter concat video`
+          );
           ws.to(room).emit(eventFeedbackPublish.export, status);
           resolve(destination);
         })
@@ -338,6 +344,7 @@ export const concatenate_combined_videos = (
           console.log(error.message);
           status.error = error.message;
           status.message = "error";
+          logErrorVideoProcess("Export video", `Error: ${error.message}`);
           ws.to(room).emit(eventFeedbackPublish.error, status);
         })
         .run();
@@ -346,6 +353,7 @@ export const concatenate_combined_videos = (
     return promise;
   } catch (error) {
     console.log(error.message);
+    logErrorVideoProcess("Export video", `Error: ${error.message}`);
     status.error = error.message;
     status.message = "error";
     ws.to(room).emit(eventFeedbackPublish.error, status);
@@ -602,7 +610,7 @@ export const concatenate_combined_audios = (
         .output(destination)
         .on("start", (cmdline) => {
           //console.log(`start concate`, cmdline);
-          logVideoProcess("Export video", `Start audio concate`);
+          logVideoProcess("Export video", `Start complex filter concate audio`);
           logVideoProcess("Export video", `command ffmpeg: ${cmdline}`);
           status.message = "start";
           status.elapsed = 0;
@@ -620,7 +628,10 @@ export const concatenate_combined_audios = (
         )
         .on("end", () => {
           console.log(`Finished audio concate`);
-          logVideoProcess("Export video", `Finished audio concate`);
+          logVideoProcess(
+            "Export video",
+            `Finished complex filter concate audio`
+          );
           status.progress = 100;
           status.message = "done";
           status.remain = 0;

@@ -1,9 +1,0 @@
-{"level":"error","message":"Hello distributed log files!","timestamp":"2024-05-14T08:09:34.103Z"}
-{"level":"error","message":"Hello distributed log files!","timestamp":"2024-05-14T09:10:44.201Z"}
-{"@fields":{"level":"error"},"@message":"Hello distributed log files!","@timestamp":"2024-05-14T09:11:52.052Z"}
-error: Une erreur est survenue
-error: Une erreur est survenue {"timestamp":"2024-05-14T09:53:21.477Z"}
-error: Une erreur est survenue {"timestamp":"2024-05-14T09:53:55.453Z"}
-error: Une erreur est survenue {"timestamp":"2024-05-14T09:54:11.091Z"}
-error: Une erreur est survenue {"timestamp":"2024-05-14T09:56:42.342Z"}
-error: Une erreur est survenue {"label":"test avec label","timestamp":"2024-05-14T09:57:58.183Z"}
