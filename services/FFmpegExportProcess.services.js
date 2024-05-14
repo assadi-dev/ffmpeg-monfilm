@@ -7,12 +7,8 @@ input,
 output,
 room */
 
-import { chmodSync, existsSync, mkdirSync, rm, stat } from "fs";
-import {
-  DIRECTORY_SEPARATOR,
-  WEBSOCKET_PATH,
-  upload_dir,
-} from "../config/constant.config.js";
+import { chmodSync, existsSync, mkdirSync, stat } from "fs";
+import { DIRECTORY_SEPARATOR, upload_dir } from "../config/constant.config.js";
 import FFmpegInstance from "./FFmpegInstance.services.js";
 import ffmpegOnProgress from "ffmpeg-on-progress";
 import { ws } from "../index.js";
@@ -252,9 +248,7 @@ export const concatenate_combined_videos = (
   room,
   maxDuration
 ) => {
-  const export_file = `${upload_dir}${DIRECTORY_SEPARATOR}export_file${DIRECTORY_SEPARATOR}${toSlugify(
-    projetFolder
-  )}`;
+  const export_file = `${upload_dir}${DIRECTORY_SEPARATOR}export_file${DIRECTORY_SEPARATOR}${projetFolder}`;
 
   const durationEstimate = secToMill(maxDuration);
 
@@ -324,9 +318,7 @@ export const concatenate_combined_videos = (
         .on("start", (cmdline) => {
           //console.log(`start concate`, cmdline);
           status.message = "start";
-          ws.of(process.env.WEBSOCKET_PATH)
-            .to(room)
-            .emit(eventFeedbackPublish.export, status);
+          ws.to(room).emit(eventFeedbackPublish.export, status);
         })
         .on(
           "progress",
@@ -339,18 +331,14 @@ export const concatenate_combined_videos = (
           console.log(`Finished concate video`);
           status.progress = 100;
           status.message = "done";
-          ws.of(process.env.WEBSOCKET_PATH)
-            .to(room)
-            .emit(eventFeedbackPublish.export, status);
+          ws.to(room).emit(eventFeedbackPublish.export, status);
           resolve(destination);
         })
         .on("error", (error) => {
           console.log(error.message);
           status.error = error.message;
           status.message = "error";
-          ws.of(process.env.WEBSOCKET_PATH)
-            .to(room)
-            .emit(eventFeedbackPublish.error, status);
+          ws.to(room).emit(eventFeedbackPublish.error, status);
         })
         .run();
     });
@@ -360,9 +348,7 @@ export const concatenate_combined_videos = (
     console.log(error.message);
     status.error = error.message;
     status.message = "error";
-    ws.of(process.env.WEBSOCKET_PATH)
-      .to(room)
-      .emit(eventFeedbackPublish.error, status);
+    ws.to(room).emit(eventFeedbackPublish.error, status);
   }
 };
 
@@ -424,9 +410,7 @@ export const splitAudioPart = (audio, projectName, output, room) => {
         })
         .on("start", () => {
           status.message = "start";
-          ws.of(process.env.WEBSOCKET_PATH)
-            .to(room)
-            .emit(eventFeedbackPublish.export, status);
+          ws.to(room).emit(eventFeedbackPublish.export, status);
         })
         .on(
           "progress",
@@ -442,9 +426,7 @@ export const splitAudioPart = (audio, projectName, output, room) => {
           status.progress = 100;
           status.message = "done";
 
-          ws.of(process.env.WEBSOCKET_PATH)
-            .to(room)
-            .emit(eventFeedbackPublish.export, status);
+          ws.to(room).emit(eventFeedbackPublish.export, status);
 
           resolve(destination);
         })
@@ -452,9 +434,7 @@ export const splitAudioPart = (audio, projectName, output, room) => {
           console.log(error.message);
           status.error = error.message;
           status.message = "error";
-          ws.of(process.env.WEBSOCKET_PATH)
-            .to(room)
-            .emit(eventFeedbackPublish.error, status);
+          ws.to(room).emit(eventFeedbackPublish.error, status);
         })
 
         .run();
@@ -465,7 +445,7 @@ export const splitAudioPart = (audio, projectName, output, room) => {
     console.log(error.message);
     status.error = error.message;
     status.message = "error";
-    ws.of(WEBSOCKET_PATH).to(room).emit("error", status);
+    ws.to(room).emit("error", status);
   }
 };
 
@@ -570,9 +550,7 @@ export const concatenate_combined_audios = (
 ) => {
   const { ffmpeg } = new FFmpegInstance();
 
-  const export_file = `${upload_dir}${DIRECTORY_SEPARATOR}export_file${DIRECTORY_SEPARATOR}${toSlugify(
-    projectName
-  )}`;
+  const export_file = `${upload_dir}${DIRECTORY_SEPARATOR}export_file${DIRECTORY_SEPARATOR}${projectName}`;
   const destination = `${export_file}${DIRECTORY_SEPARATOR}${output}`;
 
   const durationEstimate = secToMill(maxDuration);
@@ -597,7 +575,7 @@ export const concatenate_combined_audios = (
         const timeToStart = Number(audio?.start);
         const timeToEnd = Number(audio?.end);
         const timeDuration = Math.round(timeToEnd - timeToStart);
-        const volumeDefault = audio.volume ? 1 : 0;
+        const volumeDefault = audio.volume ? 0.5 : 0;
 
         const input = audio.src;
         ffmpeg
@@ -684,12 +662,8 @@ export const files_mapping = (
   room,
   maxDuration
 ) => {
-  const export_file = `${upload_dir}${DIRECTORY_SEPARATOR}export_file${DIRECTORY_SEPARATOR}${toSlugify(
-    projectName
-  )}`;
-  const destination = `${export_file}${DIRECTORY_SEPARATOR}${toSlugify(
-    output
-  )}`;
+  const export_file = `${upload_dir}${DIRECTORY_SEPARATOR}export_file${DIRECTORY_SEPARATOR}${projectName}`;
+  const destination = `${export_file}${DIRECTORY_SEPARATOR}${output}`;
   // const filterComand = `[1:a]adelay=1000|1000[a];[0:a]adelay=1000|1000[va];[a][va]amix=inputs=2[out]`;
   const filterComand = `[1:a][0:a]amix=inputs=2[out]`;
 
@@ -783,12 +757,8 @@ export const files_mapping_no_audio = (
   room,
   maxDuration
 ) => {
-  const export_file = `${upload_dir}${DIRECTORY_SEPARATOR}export_file${DIRECTORY_SEPARATOR}${toSlugify(
-    projectName
-  )}`;
-  const destination = `${export_file}${DIRECTORY_SEPARATOR}${toSlugify(
-    output
-  )}`;
+  const export_file = `${upload_dir}${DIRECTORY_SEPARATOR}export_file${DIRECTORY_SEPARATOR}${projectName}`;
+  const destination = `${export_file}${DIRECTORY_SEPARATOR}${output}`;
   const durationEstimate = secToMill(maxDuration);
   const status = {
     step: "mapping-video",
@@ -850,9 +820,7 @@ export const files_mapping_no_audio = (
     console.log(error.message);
     status.message = "error";
     status.error = error.message;
-    ws.of(process.env.WEBSOCKET_PATH)
-      .to(room)
-      .emit(eventFeedbackPublish.error, status);
+    ws.to(room).emit(eventFeedbackPublish.error, status);
   }
 };
 
@@ -875,9 +843,7 @@ const logSplitProgress = (room, progress, event, status) => {
   status.elapsed = timeElapsed;
   status.message = "progress";
   status.progress = percent;
-  ws.of(process.env.WEBSOCKET_PATH)
-    .to(room)
-    .emit(eventFeedbackPublish.export, status);
+  ws.to(room).emit(eventFeedbackPublish.export, status);
 };
 const logProgress = (room, progress, event, status) => {
   const percent = Math.round(progress * 100);
@@ -886,9 +852,7 @@ const logProgress = (room, progress, event, status) => {
   status.message = "progress";
   status.progress = percent;
   // console.log("progress:", percent);
-  ws.of(process.env.WEBSOCKET_PATH)
-    .to(room)
-    .emit(eventFeedbackPublish.export, status);
+  ws.to(room).emit(eventFeedbackPublish.export, status);
 };
 
 const secToMill = (sec) => {
@@ -912,7 +876,6 @@ const timecodeToSec = (timecode) => {
 
   return totalSeconds;
 };
-
 export const create_workspace_export = (path) => {
   if (!existsSync(path)) {
     mkdirSync(path, { recursive: true });
