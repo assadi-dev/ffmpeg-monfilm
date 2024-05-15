@@ -1,5 +1,5 @@
 node_modules
-logs
+logs/*
 uploads/*
 .env
 bin/ffmpeg/*
