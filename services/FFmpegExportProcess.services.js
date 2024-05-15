@@ -699,7 +699,7 @@ export const files_mapping = (
         .addInput(videoFile)
         .addInput(audioFile)
         /*.withDuration(maxDuration)
-        .audioBitrate("192k") */
+        .audioBitrate("320k") */
         .complexFilter(filterComand)
         .outputOptions([
           "-map [out]",
@@ -707,7 +707,7 @@ export const files_mapping = (
           "-c:v",
           "libx264",
           "-c:a",
-          "libmp3lame",
+          "aac",
           "-q:a",
           "2",
         ])
