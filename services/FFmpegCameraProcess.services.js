@@ -54,7 +54,7 @@ export const merge_insv = async (fileObject) => {
   const room = fileObject?.room;
   let totalDuration = 0;
   const filename = fileObject?.filename;
-
+  const fps = 25;
   const finalFilename = filename.replace(".insv", "_dualfisheye.mp4");
 
   const status = {
@@ -80,7 +80,7 @@ export const merge_insv = async (fileObject) => {
         .addInput(front)
         .addInput(back)
         .complexFilter("hstack")
-        .outputOptions(["-c:v", "libx264", "-c:a", "aac"])
+        .outputOptions(["-r", fps, "-c:v", "libx264", "-c:a", "aac"])
         .output(output)
         .on("start", (cmdline) => {
           console.log(`start fusion insv process for ${filename}`);
@@ -281,6 +281,7 @@ export const insv_equirectangular_x3 = async (fileObject) => {
   const output = fileObject.input.replace("_dualfisheye.mp4", ".mp4");
   const room = fileObject.room;
   let totalDuration = 0;
+  const fps = 25;
   const status = {
     id,
     camera: fileObject?.camera,

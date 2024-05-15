@@ -584,15 +584,14 @@ export const concatenate_combined_audios = (
         const audio = splited_audios[index];
         const timeToStart = Number(audio?.start);
         const timeToEnd = Number(audio?.end);
-        const timeDuration = Math.round(timeToEnd - timeToStart);
+        const timeDuration = Number(timeToEnd - timeToStart).toFixed();
         const volumeDefault = audio.volume ? 0.5 : 0;
 
         const input = audio.src;
         ffmpeg
           .addInput(input)
           .seekInput(timeToStart)
-          .inputOptions(["-t", timeDuration])
-          .audioBitrate("192k");
+          .inputOptions(["-t", timeDuration]);
 
         filterCommandIn += `[${index}:a]volume=${volumeDefault}[volume=${index}];`;
         filterConcatOut += `[volume=${index}]`;
