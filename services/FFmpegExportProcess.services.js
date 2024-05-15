@@ -7,7 +7,7 @@ input,
 output,
 room */
 
-import { chmodSync, existsSync, mkdirSync, stat } from "fs";
+import { chmodSync, existsSync, mkdirSync, rm, stat } from "fs";
 import { DIRECTORY_SEPARATOR, upload_dir } from "../config/constant.config.js";
 import FFmpegInstance from "./FFmpegInstance.services.js";
 import ffmpegOnProgress from "ffmpeg-on-progress";
@@ -791,7 +791,6 @@ export const files_mapping_no_audio = (
         .output(destination)
         .on("start", (cmdline) => {
           //console.log(`start concate`, cmdline);
-          logVideoProcess("Export video", `Erreur: ${error.message}`);
           status.message = "start";
           ws.of(process.env.WEBSOCKET_PATH)
             .to(room)
@@ -806,6 +805,7 @@ export const files_mapping_no_audio = (
         )
         .on("end", () => {
           console.log(`Finished mapping files`);
+          logVideoProcess("Export video", `Finished mapping files`);
           status.message = "done";
           status.progress = 100;
           clean_file_process(videoFile);
@@ -816,6 +816,7 @@ export const files_mapping_no_audio = (
         })
         .on("error", (error) => {
           console.log(error.message);
+          logErrorVideoProcess("Export video", `Finished mapping files`);
           clean_file_process(videoFile);
           status.message = "error";
           status.error = error.message;
@@ -829,6 +830,7 @@ export const files_mapping_no_audio = (
     return promise;
   } catch (error) {
     console.log(error.message);
+    logVideoProcess("Export video", `Erreur: ${error.message}`);
     status.message = "error";
     status.error = error.message;
     ws.to(room).emit(eventFeedbackPublish.error, status);
