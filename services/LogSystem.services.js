@@ -1,6 +1,6 @@
 import { createLogger, format, transports } from "winston";
 import path from "path";
-import { chmodSync, existsSync, mkdirSync } from "fs";
+import { chmodSync, existsSync, mkdirSync, writeFileSync } from "fs";
 import { DIRECTORY_SEPARATOR } from "../config/constant.config.js";
 const { combine, timestamp, label, simple } = format;
 
@@ -60,7 +60,7 @@ export class LogSystem {
 
   init_path(path) {
     if (!existsSync(path)) {
-      mkdirSync(path, { recursive: true });
+      writeFileSync(path, { recursive: true });
       chmodSync(path, "777");
     }
   }
