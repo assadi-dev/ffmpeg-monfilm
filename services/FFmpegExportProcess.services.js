@@ -8,7 +8,11 @@ output,
 room */
 
 import { chmodSync, existsSync, mkdirSync, rm, stat } from "fs";
-import { DIRECTORY_SEPARATOR, upload_dir } from "../config/constant.config.js";
+import {
+  DIRECTORY_SEPARATOR,
+  upload_dir,
+  WEBSOCKET_PATH,
+} from "../config/constant.config.js";
 import FFmpegInstance from "./FFmpegInstance.services.js";
 import ffmpegOnProgress from "ffmpeg-on-progress";
 import { ws } from "../index.js";
@@ -85,7 +89,7 @@ export const split_videos = async (scene, projectName, output, room) => {
           logVideoProcess("Export video", "start split");
           logVideoProcess("command ffmpeg", cmdline);
           status.message = "start";
-          ws.of(process.env.WEBSOCKET_PATH)
+          ws.of(WEBSOCKET_PATH)
             .to(room)
             .emit(eventFeedbackPublish.export, status);
         })
@@ -107,7 +111,7 @@ export const split_videos = async (scene, projectName, output, room) => {
           console.log(100);
           status.message = "done";
           status.progress = 100;
-          ws.of(process.env.WEBSOCKET_PATH)
+          ws.of(WEBSOCKET_PATH)
             .to(room)
             .emit(eventFeedbackPublish.export, status);
 
@@ -118,7 +122,7 @@ export const split_videos = async (scene, projectName, output, room) => {
           logErrorVideoProcess("Export video", `Error: ${error.message}`);
           status.error = error.message;
           status.message = "error";
-          ws.of(process.env.WEBSOCKET_PATH)
+          ws.of(WEBSOCKET_PATH)
             .to(room)
             .emit(eventFeedbackPublish.error, status);
         })
@@ -190,7 +194,7 @@ export const concatenate_videos = (
           logVideoProcess("Export video", `Start concat video`);
           logVideoProcess("Export video", `command ffmpeg ${cmdline}`);
           status.message = "start";
-          ws.of(process.env.WEBSOCKET_PATH)
+          ws.of(WEBSOCKET_PATH)
             .to(room)
             .emit(eventFeedbackPublish.export, status);
         })
@@ -206,7 +210,7 @@ export const concatenate_videos = (
           logVideoProcess("Export video", `Finished concat video`);
           status.progress = 100;
           status.message = "done";
-          ws.of(process.env.WEBSOCKET_PATH)
+          ws.of(WEBSOCKET_PATH)
             .to(room)
             .emit(eventFeedbackPublish.export, status);
           resolve(destination);
@@ -216,7 +220,7 @@ export const concatenate_videos = (
           logErrorVideoProcess("Export video", `Error: ${error.message}`);
           status.error = error.message;
           status.message = "error";
-          ws.of(process.env.WEBSOCKET_PATH)
+          ws.of(WEBSOCKET_PATH)
             .to(room)
             .emit(eventFeedbackPublish.error, status);
         })
@@ -229,9 +233,7 @@ export const concatenate_videos = (
     status.error = error.message;
     status.message = "error";
     logErrorVideoProcess("Export video", `Error: ${error.message}`);
-    ws.of(process.env.WEBSOCKET_PATH)
-      .to(room)
-      .emit(eventFeedbackPublish.error, status);
+    ws.of(WEBSOCKET_PATH).to(room).emit(eventFeedbackPublish.error, status);
   }
 };
 
@@ -504,7 +506,7 @@ export const concatenate_audios = (
           logVideoProcess("Export video", `Start concat audio`);
           logVideoProcess("Export video", `command ${cmdline}`);
           status.message = "start";
-          ws.of(process.env.WEBSOCKET_PATH)
+          ws.of(WEBSOCKET_PATH)
             .to(room)
             .emit(eventFeedbackPublish.export, status);
         })
@@ -522,7 +524,7 @@ export const concatenate_audios = (
           status.progress = 100;
           status.message = "done";
           status.remain = 0;
-          ws.of(process.env.WEBSOCKET_PATH)
+          ws.of(WEBSOCKET_PATH)
             .to(room)
             .emit(eventFeedbackPublish.export, status);
           resolve(destination);
@@ -532,7 +534,7 @@ export const concatenate_audios = (
           logErrorVideoProcess("Export video", `Erreur: ${error.message}`);
           status.error = error.message;
           status.message = "error";
-          ws.of(process.env.WEBSOCKET_PATH)
+          ws.of(WEBSOCKET_PATH)
             .to(room)
             .emit(eventFeedbackPublish.error, status);
         })
@@ -546,9 +548,7 @@ export const concatenate_audios = (
     status.error = error.message;
     logErrorVideoProcess("Export video", `Erreur: ${error.message}`);
     status.message = "error";
-    ws.of(process.env.WEBSOCKET_PATH)
-      .to(room)
-      .emit(eventFeedbackPublish.error, status);
+    ws.of(WEBSOCKET_PATH).to(room).emit(eventFeedbackPublish.error, status);
   }
 };
 export const concatenate_combined_audios = (
@@ -617,7 +617,7 @@ export const concatenate_combined_audios = (
           status.message = "start";
           status.elapsed = 0;
 
-          ws.of(process.env.WEBSOCKET_PATH)
+          ws.of(WEBSOCKET_PATH)
             .to(room)
             .emit(eventFeedbackPublish.export, status);
         })
@@ -637,7 +637,7 @@ export const concatenate_combined_audios = (
           status.progress = 100;
           status.message = "done";
           status.remain = 0;
-          ws.of(process.env.WEBSOCKET_PATH)
+          ws.of(WEBSOCKET_PATH)
             .to(room)
             .emit(eventFeedbackPublish.export, status);
           resolve(destination);
@@ -647,7 +647,7 @@ export const concatenate_combined_audios = (
           logErrorVideoProcess("Export video", `Erreur: ${error.message}`);
           status.error = error.message;
           status.message = "error";
-          ws.of(process.env.WEBSOCKET_PATH)
+          ws.of(WEBSOCKET_PATH)
             .to(room)
             .emit(eventFeedbackPublish.error, status);
         })
@@ -661,9 +661,7 @@ export const concatenate_combined_audios = (
     logErrorVideoProcess("Export video", `Erreur: ${error.message}`);
     status.error = error.message;
     status.message = "error";
-    ws.of(process.env.WEBSOCKET_PATH)
-      .to(room)
-      .emit(eventFeedbackPublish.error, status);
+    ws.of(WEBSOCKET_PATH).to(room).emit(eventFeedbackPublish.error, status);
   }
 };
 
@@ -713,7 +711,7 @@ export const files_mapping = (
           logVideoProcess("Export video", `Start mapping files`);
           logVideoProcess("Export video", `command ffmpeg: ${cmdline}`);
           status.message = "start";
-          ws.of(process.env.WEBSOCKET_PATH)
+          ws.of(WEBSOCKET_PATH)
             .to(room)
             .emit(eventFeedbackPublish.export, status);
         })
@@ -731,7 +729,7 @@ export const files_mapping = (
           status.progress = 100;
           clean_file_process(videoFile);
           clean_file_process(audioFile);
-          ws.of(process.env.WEBSOCKET_PATH)
+          ws.of(WEBSOCKET_PATH)
             .to(room)
             .emit(eventFeedbackPublish.export, status);
           resolve(destination);
@@ -743,7 +741,7 @@ export const files_mapping = (
           status.error = error.message;
           clean_file_process(videoFile);
           clean_file_process(audioFile);
-          ws.of(process.env.WEBSOCKET_PATH)
+          ws.of(WEBSOCKET_PATH)
             .to(room)
             .emit(eventFeedbackPublish.error, status);
         })
@@ -757,9 +755,7 @@ export const files_mapping = (
     logErrorVideoProcess("Export video", `Erreur: ${error.message}`);
     status.message = "error";
     status.error = error.message;
-    ws.of(process.env.WEBSOCKET_PATH)
-      .to(room)
-      .emit(eventFeedbackPublish.error, status);
+    ws.of(WEBSOCKET_PATH).to(room).emit(eventFeedbackPublish.error, status);
   }
 };
 
@@ -794,7 +790,7 @@ export const files_mapping_no_audio = (
         .on("start", (cmdline) => {
           //console.log(`start concate`, cmdline);
           status.message = "start";
-          ws.of(process.env.WEBSOCKET_PATH)
+          ws.of(WEBSOCKET_PATH)
             .to(room)
             .emit(eventFeedbackPublish.export, status);
         })
@@ -811,7 +807,7 @@ export const files_mapping_no_audio = (
           status.message = "done";
           status.progress = 100;
           clean_file_process(videoFile);
-          ws.of(process.env.WEBSOCKET_PATH)
+          ws.of(WEBSOCKET_PATH)
             .to(room)
             .emit(eventFeedbackPublish.export, status);
           resolve(destination);
@@ -822,7 +818,7 @@ export const files_mapping_no_audio = (
           clean_file_process(videoFile);
           status.message = "error";
           status.error = error.message;
-          ws.of(process.env.WEBSOCKET_PATH)
+          ws.of(WEBSOCKET_PATH)
             .to(room)
             .emit(eventFeedbackPublish.error, status);
         })
