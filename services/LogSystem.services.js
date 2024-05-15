@@ -1,16 +1,25 @@
 import { createLogger, format, transports } from "winston";
 import path from "path";
+import { chmodSync, existsSync, mkdirSync } from "fs";
+import { DIRECTORY_SEPARATOR } from "../config/constant.config.js";
 const { combine, timestamp, label, simple } = format;
 
 export class LogSystem {
   logger;
   constructor() {
+    const logPath = `${path.resolve()}${DIRECTORY_SEPARATOR}logs${DIRECTORY_SEPARATOR}combined.log`;
+    const logErrorPath = `${path.resolve()}${DIRECTORY_SEPARATOR}logs${DIRECTORY_SEPARATOR}error.log"`;
+
+    /*     if (!existsSync(logPath)) {
+      mkdirSync(logPath, { recursive: true });
+      chmodSync(logPath, "777");
+    } */
     this.logger = createLogger({
       format: combine(timestamp(), simple()),
       transports: [
-        new transports.File({ filename: path.resolve("./logs/combined.log") }),
+        new transports.File({ filename: logPath }),
         new transports.File({
-          filename: path.resolve("./logs/error.log"),
+          filename: logErrorPath,
           level: "error",
         }),
       ],
