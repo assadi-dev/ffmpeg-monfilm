@@ -110,16 +110,14 @@ export const generate_finalOutput = async (
 		final_result = final_video_input;
 	} else {
 		console.log("Concatenation des fichiers audios");
+				const filesAudio = await getDownloadedExportFiles(audios, export_file);
+				audios = filesAudio;
 
-		const filesAudio = await getDownloadedExportFiles(scenes, export_file);
-		audios = filesAudio;
-
-		const final_audio_output = await concate_process_audio(
-			room,
-			audios,
-			projectSlug
-		);
-		console.log("mergedAudio:", final_audio_output);
+				const final_audio_output = await concate_process_audio(
+					room,
+					audios,
+					projectSlug
+				);
 
 		console.log("Mapping fichiers video et audios");
 		const finalOutput = `${projectSlug}.mp4`;
