@@ -10,7 +10,6 @@ export class LogSystem {
     const logPath = `${path.resolve()}${DIRECTORY_SEPARATOR}logs${DIRECTORY_SEPARATOR}combined.log`;
     this.init_path(logPath);
     const logErrorPath = `${path.resolve()}${DIRECTORY_SEPARATOR}logs${DIRECTORY_SEPARATOR}error.log"`;
-    this.init_path(logErrorPath);
 
     this.logger = createLogger({
       format: combine(timestamp(), simple()),
