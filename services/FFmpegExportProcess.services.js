@@ -286,7 +286,7 @@ export const concatenate_combined_videos = (
         const input = scene.src;
         const timeToStart = Number(scene.start);
         const timeToEnd = Number(scene.end);
-        const timeDuration = Math.round(timeToEnd - timeToStart);
+        const timeDuration = Number(timeToEnd - timeToStart).toFixed(2);
         const volumeDefault = scene.volume ? 1 : 0;
         const rotate = scene.rotate
           ? `,transpose=1,transpose=1[v${index}]`
@@ -316,7 +316,7 @@ export const concatenate_combined_videos = (
           "aac",
         ])
         .output(destination)
-        .withDuration(maxDuration + 1)
+        // .withDuration(maxDuration + 1)
         .on("start", (cmdline) => {
           //console.log(`start concate`, cmdline);
           status.message = "start";
