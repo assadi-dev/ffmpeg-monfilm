@@ -20,7 +20,6 @@ import {
   logErrorVideoProcess,
   logVideoProcess,
 } from "./FullProcess.services.js";
-import { rm } from "fs";
 
 /**
  * //Découpage des parties des videos
