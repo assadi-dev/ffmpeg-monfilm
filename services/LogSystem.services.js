@@ -8,12 +8,10 @@ export class LogSystem {
   logger;
   constructor() {
     const logPath = `${path.resolve()}${DIRECTORY_SEPARATOR}logs${DIRECTORY_SEPARATOR}combined.log`;
+    this.init_path(logPath);
     const logErrorPath = `${path.resolve()}${DIRECTORY_SEPARATOR}logs${DIRECTORY_SEPARATOR}error.log"`;
+    this.init_path(logErrorPath);
 
-    /*     if (!existsSync(logPath)) {
-      mkdirSync(logPath, { recursive: true });
-      chmodSync(logPath, "777");
-    } */
     this.logger = createLogger({
       format: combine(timestamp(), simple()),
       transports: [
@@ -58,5 +56,12 @@ export class LogSystem {
       level: "warn",
       message: message,
     });
+  }
+
+  init_path(path) {
+    if (!existsSync(path)) {
+      mkdirSync(path, { recursive: true });
+      chmodSync(path, "777");
+    }
   }
 }
