@@ -1,0 +1,18 @@
+error: Error: ffmpeg exited with code 69: frame=    0 fps=0.0 q=0.0 Lsize=       0kB time=N/A bitrate=N/A speed=N/A    
+Conversion failed!
+ {"label":"Export video","timestamp":"2024-05-15T08:13:46.488Z"}
+error: Error: ffmpeg exited with code 3752568763: frame=    0 fps=0.0 q=0.0 Lsize=       0kB time=N/A bitrate=N/A speed=N/A    
+Conversion failed!
+ {"label":"Export video","timestamp":"2024-05-15T08:18:23.119Z"}
+error: Error: ffmpeg exited with code 4294967284: frame=    0 fps=0.0 q=0.0 Lsize=       0kB time=N/A bitrate=N/A speed=N/A    
+Conversion failed!
+ {"label":"Export video","timestamp":"2024-05-15T08:22:53.910Z"}
+error: Error: ffmpeg exited with code 3752568763: frame=    0 fps=0.0 q=0.0 Lsize=       0kB time=N/A bitrate=N/A speed=N/A    
+Conversion failed!
+ {"label":"Export video","timestamp":"2024-05-15T08:24:10.872Z"}
+error: Error: ffmpeg exited with code 69: frame=    0 fps=0.0 q=0.0 Lsize=       0kB time=N/A bitrate=N/A speed=N/A    
+Conversion failed!
+ {"label":"Export video","timestamp":"2024-05-15T08:27:45.342Z"}
+error: Erreur file mapping no audio: ffmpeg exited with code 4294967294: Error opening output file C:\Users\rapha\OneDrive\Documents\Travail\Tkorp\ffmpeg-traiment-video\uploads\export_file\Test raph\test_raph.mp4.
+Error opening output files: No such file or directory
+ {"label":"Export video","timestamp":"2024-05-15T09:31:43.854Z"}
