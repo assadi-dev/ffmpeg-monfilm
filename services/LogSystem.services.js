@@ -60,7 +60,7 @@ export class LogSystem {
 
   init_path(path) {
     if (!existsSync(path)) {
-      //writeFileSync(path, "");
+      writeFileSync(path, "");
       chmodSync(path, "777");
     }
   }
