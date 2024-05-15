@@ -22,52 +22,51 @@ import {
   postDelayed,
 } from "../services/Filestype.services.js";
 import fetch from "node-fetch";
-import { createWriteStream } from "fs";
 import { toSlugify } from "../services/Filestype.services.js";
 import { logVideoProcess } from "../services/FullProcess.services.js";
 
 export const export_project = (req, res) => {
-  try {
-    const { idProjectVideo, room, projectName, scenes, audios, maxDuration } =
-      req.body;
+	try {
+		const { idProjectVideo, room, projectName, scenes, audios, maxDuration } =
+			req.body;
 
-    generate_finalOutput(
-      room,
-      scenes,
-      audios,
-      projectName,
-      maxDuration,
-      idProjectVideo
-    );
-    const content = {
-      room,
-      message: "process en cours",
-      scenes,
-      audios,
-      maxDuration,
-    };
+		generate_finalOutput(
+			room,
+			scenes,
+			audios,
+			projectName,
+			maxDuration,
+			idProjectVideo
+		);
+		const content = {
+			room,
+			message: "process en cours",
+			scenes,
+			audios,
+			maxDuration,
+		};
 
-    res.json(content);
-  } catch (error) {
-    return res.status(500).json({
-      message: error?.message,
-    });
-  }
+		res.json(content);
+	} catch (error) {
+		return res.status(500).json({
+			message: error?.message,
+		});
+	}
 };
 
 export const merges_input = (req, res) => {
-  try {
-    const { scenes, audios } = req.body;
-    const outputFile = "video-concatenate.mp4";
-    concatenate_inputs(scenes, outputFile);
+	try {
+		const { scenes } = req.body;
+		const outputFile = "video-concatenate.mp4";
+		concatenate_inputs(scenes, outputFile);
 
-    const content = { message: "concatenation en cours", scenes };
-    res.json(content);
-  } catch (error) {
-    return res.status(500).json({
-      message: error?.message,
-    });
-  }
+		const content = { message: "concatenation en cours", scenes };
+		res.json(content);
+	} catch (error) {
+		return res.status(500).json({
+			message: error?.message,
+		});
+	}
 };
 
 export const generate_finalOutput = async (
@@ -93,13 +92,10 @@ export const generate_finalOutput = async (
 
 	const filesVideo = await getDownloadedExportFiles(scenes, export_file);
 	scenes = filesVideo;
-	console.log("scenes ok");
-	// logVideoProcess(`Download file from url:`, JSON.stringify(filesVideo));
 
 	const mergedVideos = await concate_process_videos(room, scenes, projectSlug);
 
 	let final_result = "";
-	console.log("mergedVideos:", mergedVideos);
 
 	if (audios.length == 0) {
 		console.log("Mapping fichiers video no audio");
@@ -112,7 +108,6 @@ export const generate_finalOutput = async (
 			maxDuration
 		);
 		final_result = final_video_input;
-		console.log("final:", final_result);
 	} else {
 		console.log("Concatenation des fichiers audios");
 
@@ -136,9 +131,6 @@ export const generate_finalOutput = async (
 			room,
 			maxDuration
 		);
-		console.log("final:", final_result);
-		//Envoie ovh
-		console.log("send ovh");
 	}
 	const remoteFilename = `${timestamp()}_${projectSlug}.mp4`;
 	const FinalObject = { filePath: final_result, remoteFilename };
@@ -146,6 +138,8 @@ export const generate_finalOutput = async (
 	//Update UserProject
 	const { size } = statSync(final_result);
 
+	//Envoie ovh
+	console.log("send ovh");
 	const resProject = await updateUserProject(
 		idProjectVideo,
 		remoteFilename,
@@ -154,20 +148,14 @@ export const generate_finalOutput = async (
 		size
 	);
 
-	// console.log("url:", url);
-
 	if (resProject.ok) {
 		console.log("Project has been updated with success");
+		postDelayed(10000, () => delete_workspace_export(export_file));
 	} else {
 		resProject.json().then((errorMessage) => {
 			console.log("Error update project", errorMessage);
 		});
 	}
-
-	// 	resProject.ok
-	// 		? console.log("Project has been updated with success")
-	// 		: console.log("Error update project");
-	// 	postDelayed(10000, () => delete_workspace_export(export_file));
 };
 
 //Utilitaire
@@ -298,7 +286,7 @@ const upload_ovh = (room, fileObjetct) => {
 /**
  *
  * @param {*} idProjectVideo id du projet
- * @param {*} exportUrl liex de la video exporté
+ * @param {*} exportUrl lien de la video exporté
  * @returns
  */
 const updateUserProject = (
@@ -308,7 +296,7 @@ const updateUserProject = (
 	duration,
 	size
 ) => {
-	const url = ` ${EVASION_API}/v2/project/update/export`;
+	const url = `${EVASION_API}/v2/project/update/export`;
 	const body = {
 		idProjectVideo,
 		filename,
@@ -322,33 +310,3 @@ const updateUserProject = (
 		body: JSON.stringify(body),
 	});
 };
-// const fetch_videos = (scenes) => {
-// 	return new Promise(async (resolve, reject) => {
-// 		const videos = [];
-// 		try {
-// 			for (const scene of scenes) {
-// 				if (scene.src && scene.filename && scene.id) {
-// 					const response = await fetch(scene.src);
-// 					if (response.ok) {
-// 						const buffer = await response.arrayBuffer();
-// 						const unit8Array = new Uint8Array(buffer);
-// 						const path = `${upload_dir}${DIRECTORY_SEPARATOR}${scene.id}-${scene.filename}`;
-// 						const writeStream = createWriteStream(path);
-// 						writeStream.write(unit8Array, (err) => {
-// 							if (err) {
-// 								reject(err);
-// 							} else {
-// 								videos.push(path);
-// 								if (videos.length === scenes.length) {
-// 									resolve(videos);
-// 								}
-// 							}
-// 						});
-// 					}
-// 				}
-// 			}
-// 		} catch (error) {
-// 			reject(error);
-// 		}
-// 	});
-// };
