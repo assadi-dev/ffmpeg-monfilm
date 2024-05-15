@@ -591,7 +591,8 @@ export const concatenate_combined_audios = (
         ffmpeg
           .addInput(input)
           .seekInput(timeToStart)
-          .inputOptions(["-t", timeDuration]);
+          .inputOptions(["-t", timeDuration])
+          .audioBitrate("192k");
 
         filterCommandIn += `[${index}:a]volume=${volumeDefault}[volume=${index}];`;
         filterConcatOut += `[volume=${index}]`;
@@ -606,6 +607,8 @@ export const concatenate_combined_audios = (
           "1",
           "-c:a",
           "libmp3lame",
+          "-q:a",
+          "2",
           "-map",
           "[aout]",
         ])
@@ -616,7 +619,6 @@ export const concatenate_combined_audios = (
           logVideoProcess("Export video", `command ffmpeg: ${cmdline}`);
           status.message = "start";
           status.elapsed = 0;
-
           ws.of(WEBSOCKET_PATH)
             .to(room)
             .emit(eventFeedbackPublish.export, status);
@@ -696,6 +698,8 @@ export const files_mapping = (
       ffmpeg
         .addInput(videoFile)
         .addInput(audioFile)
+        /*.withDuration(maxDuration)
+        .audioBitrate("192k") */
         .complexFilter(filterComand)
         .outputOptions([
           "-map [out]",
@@ -703,7 +707,9 @@ export const files_mapping = (
           "-c:v",
           "libx264",
           "-c:a",
-          "aac",
+          "libmp3lame",
+          "-q:a",
+          "2",
         ])
         .output(destination)
         .on("start", (cmdline) => {
@@ -863,7 +869,7 @@ const logProgress = (room, progress, event, status) => {
   status.message = "progress";
   status.progress = percent;
   // console.log("progress:", percent);
-  ws.to(room).emit(eventFeedbackPublish.export, status);
+  ws.of(WEBSOCKET_PATH).to(room).emit(eventFeedbackPublish.export, status);
 };
 
 const secToMill = (sec) => {

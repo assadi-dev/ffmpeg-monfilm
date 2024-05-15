@@ -455,6 +455,19 @@ const upload_ovh = (room, fileObjetct) => {
   });
 };
 
+/**
+ * Met le jsonStep du projet en progress
+ * @param {*} idProjectVideo
+ *
+ */
+export const send_progress_project_360 = (idProjectVideo) => {
+  const url = `${EVASION_API}/v2/project/new/progress`;
+  return fetch(url, {
+    method: "POST",
+    body: JSON.stringify({ idProjectVideo }),
+  });
+};
+
 const update_project_360 = (body) => {
   const url = `${EVASION_API}/v2/project/update/import`;
   return fetch(url, {
