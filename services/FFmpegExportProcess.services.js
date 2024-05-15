@@ -20,6 +20,7 @@ import {
   logErrorVideoProcess,
   logVideoProcess,
 } from "./FullProcess.services.js";
+import { rm } from "fs";
 
 /**
  * //Découpage des parties des videos
@@ -249,6 +250,8 @@ export const concatenate_combined_videos = (
   maxDuration
 ) => {
   const export_file = `${upload_dir}${DIRECTORY_SEPARATOR}export_file${DIRECTORY_SEPARATOR}${projetFolder}`;
+
+  console.log("start concat video");
 
   const durationEstimate = secToMill(maxDuration);
 

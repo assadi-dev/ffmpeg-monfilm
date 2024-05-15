@@ -71,126 +71,135 @@ export const merges_input = (req, res) => {
 };
 
 export const generate_finalOutput = async (
-  room,
-  scenes,
-  audios,
-  projectName,
-  maxDuration,
-  idProjectVideo
+	room,
+	scenes,
+	audios,
+	projectName,
+	maxDuration,
+	idProjectVideo
 ) => {
-  console.log(`Export project: ${idProjectVideo}`);
-  console.log("Concatenation des fichiers videos");
-  logVideoProcess(
-    `Export project: ${idProjectVideo}`,
-    `Concatenation des fichiers videos`
-  );
+	console.log(`Export project: ${idProjectVideo}`);
+	console.log("Concatenation des fichiers videos");
+	logVideoProcess(
+		`Export project: ${idProjectVideo}`,
+		`Concatenation des fichiers videos`
+	);
 
-  const export_file = `${upload_dir}${DIRECTORY_SEPARATOR}export_file${DIRECTORY_SEPARATOR}${toSlugify(
-    projectName
-  )}`;
+	const projectSlug = toSlugify(projectName);
 
-  create_workspace_export(export_file);
+	const export_file = `${upload_dir}${DIRECTORY_SEPARATOR}export_file${DIRECTORY_SEPARATOR}${projectSlug}`;
 
-  const filesVideo = await getDownloadedExportFiles(scenes, export_file);
-  console.log("filesVideo:", filesVideo);
-  logVideoProcess(`Download file from url:`, JSON.stringify(filesVideo));
+	create_workspace_export(export_file);
 
-  const mergedVideos = await concate_process_videos(room, scenes, projectName);
+	const filesVideo = await getDownloadedExportFiles(scenes, export_file);
+	scenes = filesVideo;
+	console.log("scenes ok");
+	// logVideoProcess(`Download file from url:`, JSON.stringify(filesVideo));
 
-  let final_result = "";
-  console.log("mergedVideos:", mergedVideos);
+	const mergedVideos = await concate_process_videos(room, scenes, projectSlug);
 
-  if (audios.length == 0) {
-    console.log("Mapping fichiers video no audio");
-    const finalOutput = `${toSlugify(projectName)}.mp4`;
-    const final_video_input = await files_mapping_no_audio(
-      mergedVideos,
-      projectName,
-      finalOutput,
-      room,
-      maxDuration
-    );
-    final_result = final_video_input;
-    console.log("final:", final_result);
-  } else {
-    console.log("Concatenation des fichiers audios");
-    const final_audio_output = await concate_process_audio(
-      room,
-      audios,
-      projectName
-    );
-    console.log("mergedAudio:", final_audio_output);
+	let final_result = "";
+	console.log("mergedVideos:", mergedVideos);
 
-    console.log("Mapping fichiers video et audios");
-    const finalOutput = `${projectName}.mp4`;
-    final_result = await files_mapping(
-      mergedVideos,
-      final_audio_output,
-      projectName,
-      finalOutput,
-      room,
-      maxDuration
-    );
-    console.log("final:", final_result);
-    //Envoie ovh
-    console.log("send ovh");
-  }
-  const remoteFilename = `${timestamp()}_${toSlugify(projectName)}.mp4`;
-  const FinalObject = { filePath: final_result, remoteFilename };
-  const url = await upload_ovh(room, FinalObject);
-  //Update UserProject
-  const { size } = statSync(final_result);
+	if (audios.length == 0) {
+		console.log("Mapping fichiers video no audio");
+		const finalOutput = `${toSlugify(projectName)}.mp4`;
+		const final_video_input = await files_mapping_no_audio(
+			mergedVideos,
+			projectSlug,
+			finalOutput,
+			room,
+			maxDuration
+		);
+		final_result = final_video_input;
+		console.log("final:", final_result);
+	} else {
+		console.log("Concatenation des fichiers audios");
 
-  const resProject = await updateUserProject(
-    idProjectVideo,
-    remoteFilename,
-    url,
-    maxDuration,
-    size
-  );
-  resProject.ok
-    ? console.log("Project has been updated with success")
-    : console.log("Error update project");
-  postDelayed(10000, () => delete_workspace_export(export_file));
+		const filesAudio = await getDownloadedExportFiles(scenes, export_file);
+		audios = filesAudio;
+
+		const final_audio_output = await concate_process_audio(
+			room,
+			audios,
+			projectSlug
+		);
+		console.log("mergedAudio:", final_audio_output);
+
+		console.log("Mapping fichiers video et audios");
+		const finalOutput = `${projectSlug}.mp4`;
+		final_result = await files_mapping(
+			mergedVideos,
+			final_audio_output,
+			projectSlug,
+			finalOutput,
+			room,
+			maxDuration
+		);
+		console.log("final:", final_result);
+		//Envoie ovh
+		console.log("send ovh");
+	}
+	const remoteFilename = `${timestamp()}_${projectSlug}.mp4`;
+	const FinalObject = { filePath: final_result, remoteFilename };
+	const url = await upload_ovh(room, FinalObject);
+	//Update UserProject
+	const { size } = statSync(final_result);
+
+	const resProject = await updateUserProject(
+		idProjectVideo,
+		remoteFilename,
+		url,
+		maxDuration,
+		size
+	);
+	resProject.ok
+		? console.log("Project has been updated with success")
+		: console.log("Error update project");
+	postDelayed(10000, () => delete_workspace_export(export_file));
 };
 
 //Utilitaire
 const retrieveDuration = (inputs) => {
-  return inputs.reduce((a, b) => Math.ceil(a + b));
+	return inputs.reduce((a, b) => Math.ceil(a + b));
 };
 
 const calculatSumDuration = (inputs = []) => {
-  return inputs.reduce((a, b) => Math.ceil(a + b));
+	return inputs.reduce((a, b) => Math.ceil(a + b));
 };
 
 const timestamp = () => {
-  const dt = new Date();
-  return dt.getTime();
+	const dt = new Date();
+	return dt.getTime();
 };
 
 const concate_process_videos = async (room, scenes, projectName) => {
-  const splited_videos = [];
-  const listVideosDurations = [];
+	const splited_videos = [];
+	const listVideosDurations = [];
 
-  for (const scenePos in scenes) {
-    let scene = scenes[scenePos];
+	console.log("start concate_process_videos");
 
-    const { src, start, end, rotate, duration, volume } = scene;
-    const value = { src, start, end, rotate, duration, volume };
-    listVideosDurations.push(duration);
-    splited_videos.push(value);
-  }
-  const outputConcatenateVideo = `final-video-${toSlugify(projectName)}.mp4`;
-  const totalPartVideoDuration = calculatSumDuration(listVideosDurations);
-  const mergedVideos = await concatenate_combined_videos(
-    splited_videos,
-    projectName,
-    outputConcatenateVideo,
-    room,
-    totalPartVideoDuration
-  );
+	for (const scenePos in scenes) {
+		let scene = scenes[scenePos];
 
-  return mergedVideos;
+		const { src, start, end, rotate, duration, volume } = scene;
+		const value = { src, start, end, rotate, duration, volume };
+		listVideosDurations.push(duration);
+		splited_videos.push(value);
+	}
+
+	const outputConcatenateVideo = `final-video-${projectName}.mp4`;
+	const totalPartVideoDuration = calculatSumDuration(listVideosDurations);
+
+	const mergedVideos = await concatenate_combined_videos(
+		splited_videos,
+		projectName,
+		outputConcatenateVideo,
+		room,
+		totalPartVideoDuration
+	);
+
+	return mergedVideos;
 };
 
 const concate_process_audio = async (room, audios, projectName) => {

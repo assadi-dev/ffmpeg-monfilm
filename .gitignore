@@ -4,5 +4,4 @@ uploads/*
 bin/ffmpeg/*
 public/*
 package-lock.json
-logs/error.log
-logs/combined.log
+logs/*
