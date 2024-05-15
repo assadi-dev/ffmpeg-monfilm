@@ -16,3 +16,4 @@ Conversion failed!
 error: Erreur file mapping no audio: ffmpeg exited with code 4294967294: Error opening output file C:\Users\rapha\OneDrive\Documents\Travail\Tkorp\ffmpeg-traiment-video\uploads\export_file\Test raph\test_raph.mp4.
 Error opening output files: No such file or directory
  {"label":"Export video","timestamp":"2024-05-15T09:31:43.854Z"}
+error: Erreur: Error: connect ECONNREFUSED 127.0.0.1:21 (control socket) {"label":"Traitement Video","timestamp":"2024-05-15T13:13:11.891Z"}
