@@ -103,7 +103,7 @@ export const generate_finalOutput = async (
 
 	if (audios.length == 0) {
 		console.log("Mapping fichiers video no audio");
-		const finalOutput = `${toSlugify(projectName)}.mp4`;
+		const finalOutput = `${projectSlug}.mp4`;
 		const final_video_input = await files_mapping_no_audio(
 			mergedVideos,
 			projectSlug,
@@ -153,10 +153,21 @@ export const generate_finalOutput = async (
 		maxDuration,
 		size
 	);
-	resProject.ok
-		? console.log("Project has been updated with success")
-		: console.log("Error update project");
-	postDelayed(10000, () => delete_workspace_export(export_file));
+
+	// console.log("url:", url);
+
+	if (resProject.ok) {
+		console.log("Project has been updated with success");
+	} else {
+		resProject.json().then((errorMessage) => {
+			console.log("Error update project", errorMessage);
+		});
+	}
+
+	// 	resProject.ok
+	// 		? console.log("Project has been updated with success")
+	// 		: console.log("Error update project");
+	// 	postDelayed(10000, () => delete_workspace_export(export_file));
 };
 
 //Utilitaire
@@ -203,83 +214,85 @@ const concate_process_videos = async (room, scenes, projectName) => {
 };
 
 const concate_process_audio = async (room, audios, projectName) => {
-  const splited_audios = [];
-  const listAudiosDurations = [];
+	const splited_audios = [];
+	const listAudiosDurations = [];
 
-  for (const audioPos in audios) {
-    let audio = audios[audioPos];
+	for (const audioPos in audios) {
+		let audio = audios[audioPos];
 
-    const { src, start, end, duration, volume } = audio;
-    const value = { src, start, end, duration, volume };
-    listAudiosDurations.push(duration);
-    splited_audios.push(value);
-  }
-  const outputConcatenateAudio = `final-audio-${toSlugify(projectName)}.mp3`;
-  const totalPartAudioDuration = calculatSumDuration(listAudiosDurations);
+		const { src, start, end, duration, volume } = audio;
+		const value = { src, start, end, duration, volume };
+		listAudiosDurations.push(duration);
+		splited_audios.push(value);
+	}
+	const outputConcatenateAudio = `final-audio-${toSlugify(projectName)}.mp3`;
+	const totalPartAudioDuration = calculatSumDuration(listAudiosDurations);
 
-  const mergedAudio = await concatenate_combined_audios(
-    splited_audios,
-    projectName,
-    outputConcatenateAudio,
-    room,
-    totalPartAudioDuration
-  );
+	const mergedAudio = await concatenate_combined_audios(
+		splited_audios,
+		projectName,
+		outputConcatenateAudio,
+		room,
+		totalPartAudioDuration
+	);
 
-  return mergedAudio;
+	return mergedAudio;
 };
 
 const upload_ovh = (room, fileObjetct) => {
-  return new Promise(async (resolve, reject) => {
-    const { filePath, remoteFilename } = fileObjetct;
+	return new Promise(async (resolve, reject) => {
+		const { filePath, remoteFilename } = fileObjetct;
 
-    const status = {
-      step: "ovh",
-      message: "start",
-      filename: fileObjetct.filename,
-      progress: 0,
-      url: "",
-      error: "",
-    };
+		const status = {
+			step: "ovh",
+			message: "start",
+			filename: fileObjetct.filename,
+			progress: 0,
+			url: "",
+			error: "",
+		};
 
-    try {
-      const ovhStorageServices = new OvhObjectStorageServices(OVH_CREDENTIALS);
+		try {
+			const ovhStorageServices = new OvhObjectStorageServices(OVH_CREDENTIALS);
 
-      const options = {
-        filePath,
-        remoteFilename,
-        containerName: OVH_CONTAINER,
-        segmentSize: 1024 * 1024 * 50,
-      };
-      await ovhStorageServices.connect();
-      ovhStorageServices.uploadLargeFile(options);
-      const listen = (progress) => {
-        const percent = Math.ceil(progress * 100);
-        status.progress = percent;
-        status.message = "progress";
-        ws.of(process.env.WEBSOCKET_PATH)
-          .to(room)
-          .emit("export-project-video", status);
-      };
-      ovhStorageServices.onProgress(listen);
-      const finish = (response) => {
-        status.progress = 100;
-        status.message = "done";
-        status.url = response?.url;
-        ws.of(process.env.WEBSOCKET_PATH)
-          .to(room)
-          .emit("export-project-video", status);
-        resolve(response?.url);
-        clean_file_process(filePath);
-      };
-      ovhStorageServices.onSuccess(finish);
-    } catch (error) {
-      const message = error.message;
-      console.error("Upload error:", message);
-      logErrorVideoProcess("Upload OVH error", `Erreur: ${message}`);
+			const options = {
+				filePath,
+				remoteFilename,
+				containerName: OVH_CONTAINER,
+				segmentSize: 1024 * 1024 * 50,
+			};
+			await ovhStorageServices.connect();
+			ovhStorageServices.uploadLargeFile(options);
+			const listen = (progress) => {
+				const percent = Math.ceil(progress * 100);
+				status.progress = percent;
+				status.message = "progress";
+				ws
+					.of(process.env.WEBSOCKET_PATH)
+					.to(room)
+					.emit("export-project-video", status);
+			};
+			ovhStorageServices.onProgress(listen);
+			const finish = (response) => {
+				status.progress = 100;
+				status.message = "done";
+				status.url = response?.url;
+				ws
+					.of(process.env.WEBSOCKET_PATH)
+					.to(room)
+					.emit("export-project-video", status);
+				resolve(response?.url);
+				clean_file_process(filePath);
+			};
+			ovhStorageServices.onSuccess(finish);
+		} catch (error) {
+			const message = error.message;
+			console.error("Upload error:", message);
+			logVideoProcess("Upload OVH error", `Erreur: ${message}`);
 
-      reject(message);
-    }
-  });
+			reject(message);
+		}
+	});
 };
 
 /**
@@ -289,26 +302,25 @@ const upload_ovh = (room, fileObjetct) => {
  * @returns
  */
 const updateUserProject = (
-  idProjectVideo,
-  filename,
-  exportUrl,
-  duration,
-  size
+	idProjectVideo,
+	filename,
+	exportUrl,
+	duration,
+	size
 ) => {
-  const url = ` ${EVASION_API}/v2/project/update/export`;
+	const url = ` ${EVASION_API}/v2/project/update/export`;
+	const body = {
+		idProjectVideo,
+		filename,
+		exportUrl,
+		duration,
+		size,
+	};
 
-  const body = {
-    idProjectVideo,
-    filename,
-    exportUrl,
-    duration,
-    size,
-  };
-
-  return fetch(url, {
-    method: "POST",
-    body: JSON.stringify(body),
-  });
+	return fetch(url, {
+		method: "POST",
+		body: JSON.stringify(body),
+	});
 };
 // const fetch_videos = (scenes) => {
 // 	return new Promise(async (resolve, reject) => {
