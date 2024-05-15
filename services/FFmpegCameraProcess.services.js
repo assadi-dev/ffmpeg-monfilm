@@ -399,6 +399,7 @@ export const gopro_equirectangular = async (fileObject) => {
   const destination = `${__dirname}${DIRECTORY_SEPARATOR}uploads${DIRECTORY_SEPARATOR}${output}`;
   const room = fileObject?.room;
   let totalDuration = 0;
+  const fps = 25;
 
   const status = {
     id,
@@ -429,6 +430,8 @@ export const gopro_equirectangular = async (fileObject) => {
           },
         ])
         .outputOptions([
+          "-r",
+          fps,
           "-map",
           "[tkorp]",
           "-map",
