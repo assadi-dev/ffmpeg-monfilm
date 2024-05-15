@@ -38,13 +38,17 @@ export const insv_process = (req, res) => {
       // console.log(files);
       switch (model) {
         case "one-x2":
-          full_process_insv(idProjectVideo, { ...fileObject, ...value });
+          full_process_insv(idProjectVideo, { ...fileObject, model, ...value });
           break;
         case "one-x3":
-          full_process_insv_x3(idProjectVideo, { ...fileObject, ...value });
+          full_process_insv_x3(idProjectVideo, {
+            ...fileObject,
+            model,
+            ...value,
+          });
           break;
         default:
-          full_process_insv(idProjectVideo, { ...fileObject, ...value });
+          full_process_insv(idProjectVideo, { ...fileObject, model, ...value });
           break;
       }
     }

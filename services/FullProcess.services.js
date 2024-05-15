@@ -154,7 +154,7 @@ export const full_process_insv = async (idProjectVideo, fileObject) => {
     console.log(`wait fusion insv for ${filename}`);
     logVideoProcess(
       "Traitement video",
-      `wait fusion insv for camera ${camera} - mode: ${model}`
+      `wait fusion insv for camera ${status.camera} - mode: ${status.model}`
     );
     ws.of(WEBSOCKET_PATH).to(room).emit("start", status);
     const fusion = await merge_insv(fileObject);
@@ -274,7 +274,7 @@ export const full_process_insv_x3 = async (idProjectVideo, fileObject) => {
     console.log(`wait fusion insv for ${filename}`);
     logVideoProcess(
       "Traitement video",
-      `wait fusion insv for camera ${camera} - mode: ${model}`
+      `wait fusion insv for camera ${status.camera} - mode: ${status.model}`
     );
     ws.of(WEBSOCKET_PATH).to(room).emit("start", status);
     const fusion = await merge_insv(fileObject);
