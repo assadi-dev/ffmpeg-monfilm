@@ -1,7 +1,7 @@
 node_modules
+logs
 uploads/*
 .env
 bin/ffmpeg/*
 public/*
 package-lock.json
-logs/*
