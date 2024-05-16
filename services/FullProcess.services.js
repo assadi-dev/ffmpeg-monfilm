@@ -13,7 +13,7 @@ import { feedbackStatus } from "../config/ffmpegComand.config.js";
 import { ws } from "../index.js";
 import {
   darwinChmod,
-  extrat_duration,
+  extract_duration,
   generate_thumbnail,
   gopro_equirectangular,
   insv_equirectangular,
@@ -69,7 +69,7 @@ export const full_process_gopro = async (idProjectVideo, fileObject) => {
 
     const high_quality = equirectangular.output;
     const low_quality = compress_response.output;
-    const duration = compress_response.duration;
+    const duration = await extract_duration(low_quality);
 
     //Envoie FTP
     console.log("start send FTP");
@@ -190,9 +190,8 @@ export const full_process_insv = async (idProjectVideo, fileObject) => {
     const compress_response = await video_compress(fileObjetctCompress);
     const high_quality = equirectantangular.output;
     const low_quality = compress_response.output;
-    const duration = compress_response.duration;
+    const duration = await extract_duration(low_quality);
     //Envoie FTP
-    console.log("start send FTP");
     logVideoProcess("Traitement video", `start send FTP`);
     const ftp_destination = `${FTP_DESTINATION_DIR}/${lowFilename}`;
     const URL_LOW = await sendProcess(
@@ -311,8 +310,7 @@ export const full_process_insv_x3 = async (idProjectVideo, fileObject) => {
     const compress_response = await video_compress(fileObjetctCompress);
     const high_quality = equirectantangular.output;
     const low_quality = compress_response.output;
-    const duration = compress_response.duration;
-    console.log(duration);
+    const duration = await extract_duration(low_quality);
     //Envoie FTP
     console.log("start send FTP");
     logVideoProcess("Traitement video", `start send FTP`);

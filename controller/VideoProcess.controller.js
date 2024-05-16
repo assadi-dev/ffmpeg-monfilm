@@ -4,7 +4,8 @@ import { fileInsvObject } from "../config/fileTest.config.js";
 import { ws } from "../index.js";
 import {
   darwinChmod,
-  extrat_duration,
+  extract_duration,
+  extract_metadata,
   generate_thumbnail,
 } from "../services/FFmpegCameraProcess.services.js";
 import {
@@ -158,7 +159,7 @@ export const getMetadataFile = async (req, res) => {
   try {
     const inputPath = req.body.inputPath;
 
-    const result = await extrat_duration(inputPath);
+    const result = await extract_metadata(inputPath);
     res.json(result);
   } catch (error) {
     return res.status(500).json({
