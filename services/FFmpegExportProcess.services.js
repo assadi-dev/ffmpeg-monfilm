@@ -564,6 +564,7 @@ export const concatenate_combined_audios = (
   const destination = `${export_file}${DIRECTORY_SEPARATOR}${output}`;
 
   const durationEstimate = secToMill(maxDuration);
+  const channel = 2;
 
   const status = {
     step: "concat-audio",
@@ -585,7 +586,7 @@ export const concatenate_combined_audios = (
         const timeToStart = Number(audio?.start);
         const timeToEnd = Number(audio?.end);
         const timeDuration = Number(timeToEnd - timeToStart).toFixed();
-        const volumeDefault = audio.volume ? 0.5 : 0;
+        const volumeDefault = audio.volume ? 1 : 0;
 
         const input = audio.src;
         ffmpeg
@@ -605,9 +606,13 @@ export const concatenate_combined_audios = (
           "-async",
           "1",
           "-c:a",
-          "libmp3lame",
-          "-q:a",
-          "2",
+          "aac",
+          "-b:a",
+          "192k",
+          "-ar",
+          "44100",
+          "-ac",
+          channel,
           "-map",
           "[aout]",
         ])
@@ -677,7 +682,7 @@ export const files_mapping = (
   const export_file = `${upload_dir}${DIRECTORY_SEPARATOR}export_file${DIRECTORY_SEPARATOR}${projectName}`;
   const destination = `${export_file}${DIRECTORY_SEPARATOR}${output}`;
   // const filterComand = `[1:a]adelay=1000|1000[a];[0:a]adelay=1000|1000[va];[a][va]amix=inputs=2[out]`;
-  const filterComand = `[1:a][0:a]amix=inputs=2[out]`;
+  const filterComand = `[0:a][1:a]amix=inputs=2[out]`;
 
   const durationEstimate = secToMill(maxDuration);
   const status = {
@@ -699,6 +704,7 @@ export const files_mapping = (
         .addInput(audioFile)
         /*.withDuration(maxDuration)
         .audioBitrate("320k") */
+        .duration(maxDuration)
         .complexFilter(filterComand)
         .outputOptions([
           "-map [out]",
