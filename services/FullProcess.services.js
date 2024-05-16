@@ -123,11 +123,11 @@ export const full_process_gopro = async (idProjectVideo, fileObject) => {
 
     resUpdateProject.ok
       ? emitVideoMade(room, await resUpdateProject.json())
-      : (() => {
+      : (async () => {
           console.log("Une erreur est survenue");
           logErrorVideoProcess(
             "Update projectVideo",
-            `Une erreur est survenue lors de la mise à jour du projet`
+            `Une erreur est survenue lors de la mise à jour du projet: ${await resUpdateProject.json()}`
           );
         })();
   } catch (error) {
@@ -242,11 +242,11 @@ export const full_process_insv = async (idProjectVideo, fileObject) => {
     const resUpdateProject = await update_project_360(projectData);
     resUpdateProject.ok
       ? emitVideoMade(room, await resUpdateProject.json())
-      : (() => {
+      : (async () => {
           console.log("Une erreur est survenue");
           logErrorVideoProcess(
             "Update projectVideo",
-            `Une erreur est survenue lors de la mise à jour du projet`
+            `Une erreur est survenue lors de la mise à jour du projet: ${await resUpdateProject.json()}`
           );
         })();
   } catch (error) {
@@ -364,11 +364,11 @@ export const full_process_insv_x3 = async (idProjectVideo, fileObject) => {
     const resUpdateProject = await update_project_360(projectData);
     resUpdateProject.ok
       ? emitVideoMade(room, await resUpdateProject.json())
-      : (() => {
+      : (async () => {
           console.log("Une erreur est survenue");
           logErrorVideoProcess(
             "Update projectVideo",
-            `Une erreur est survenue lors de la mise à jour du projet`
+            `Une erreur est survenue lors de la mise à jour du projet: ${await resUpdateProject.json()}`
           );
         })();
   } catch (error) {
