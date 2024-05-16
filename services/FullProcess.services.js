@@ -312,6 +312,7 @@ export const full_process_insv_x3 = async (idProjectVideo, fileObject) => {
     const high_quality = equirectantangular.output;
     const low_quality = compress_response.output;
     const duration = compress_response.duration;
+    console.log(duration);
     //Envoie FTP
     console.log("start send FTP");
     logVideoProcess("Traitement video", `start send FTP`);

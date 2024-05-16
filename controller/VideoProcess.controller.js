@@ -4,6 +4,7 @@ import { fileInsvObject } from "../config/fileTest.config.js";
 import { ws } from "../index.js";
 import {
   darwinChmod,
+  extrat_duration,
   generate_thumbnail,
 } from "../services/FFmpegCameraProcess.services.js";
 import {
@@ -146,6 +147,19 @@ export const compress_test = async (req, res) => {
     }
     generate_thumbnail(filePath, destination, filename);
     return res.json({ message: "processus en cours" });
+  } catch (error) {
+    return res.status(500).json({
+      message: error?.message,
+    });
+  }
+};
+
+export const getMetadataFile = async (req, res) => {
+  try {
+    const inputPath = req.body.inputPath;
+
+    const result = await extrat_duration(inputPath);
+    res.json(result);
   } catch (error) {
     return res.status(500).json({
       message: error?.message,

@@ -679,9 +679,10 @@ export const test_ffmpeg = async (req, res) => {
 export const extrat_duration = (input) => {
   const { ffmpeg } = new FFmpegInstance();
   return new Promise((resolve, reject) => {
+    ffmpeg.input(input);
     ffmpeg.ffprobe(input, (err, metadata) => {
       if (err) reject(err);
-      resolve(metadata.format.duration);
+      resolve(metadata);
     });
   });
 };
