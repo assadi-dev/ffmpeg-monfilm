@@ -9,7 +9,10 @@ import {
 } from "../config/constant.config.js";
 import tinyStorageClient from "tiny-storage-client";
 import { ws } from "../index.js";
-import { clean_file_process } from "../services/FFmpegCameraProcess.services.js";
+import {
+  clean_file_process,
+  extract_duration,
+} from "../services/FFmpegCameraProcess.services.js";
 
 export const import_audio = (req, res) => {
   try {
@@ -26,15 +29,15 @@ export const import_audio = (req, res) => {
         "uploads/",
         `${upload_dir}${DIRECTORY_SEPARATOR}`
       );
-      const duration = tmp_audio.duration;
 
       const result = upload_audio_process(room, tmp_audio, idProjectVideo).then(
         async (res) => {
           const { url, filename, size } = res;
+          const duration = await extract_duration(tmp_audio.filepath);
           const audioData = {
             filename,
             urlAudio: url,
-            duration: tmp_audio.duration || 0,
+            duration: duration || tmp_audio.duration,
           };
           const resp = await updateAudioMade360(idProjectVideo, audioData);
           const audioFile = await resp.json();
