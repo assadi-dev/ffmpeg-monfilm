@@ -4,8 +4,6 @@ import { fileInsvObject } from "../config/fileTest.config.js";
 import { ws } from "../index.js";
 import {
   darwinChmod,
-  extract_duration,
-  extract_metadata,
   generate_thumbnail,
 } from "../services/FFmpegCameraProcess.services.js";
 import {
@@ -13,6 +11,7 @@ import {
   generateInsvfilesObject,
 } from "../services/Filestype.services.js";
 import {
+  extract_metadata,
   full_process_gopro,
   full_process_insv,
   full_process_insv_x3,

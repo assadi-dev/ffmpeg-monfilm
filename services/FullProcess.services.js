@@ -27,6 +27,7 @@ import OvhObjectStorageServices from "./OvhObjectStorage.services.js";
 import { postDelayed, removeFile } from "./Filestype.services.js";
 import { DEFAULT_DELETE_FILE_DELAY } from "../config/event.js";
 import { LogSystem } from "./LogSystem.services.js";
+import FFmpegInstance from "./FFmpegInstance.services.js";
 
 export const full_process_gopro = async (idProjectVideo, fileObject) => {
   const room = fileObject?.room;
@@ -69,7 +70,7 @@ export const full_process_gopro = async (idProjectVideo, fileObject) => {
 
     const high_quality = equirectangular.output;
     const low_quality = compress_response.output;
-    const duration = await extract_duration(low_quality);
+    const duration = compress_response.duration; //await extract_duration(low_quality);
 
     //Envoie FTP
     console.log("start send FTP");
@@ -190,7 +191,7 @@ export const full_process_insv = async (idProjectVideo, fileObject) => {
     const compress_response = await video_compress(fileObjetctCompress);
     const high_quality = equirectantangular.output;
     const low_quality = compress_response.output;
-    const duration = await extract_duration(low_quality);
+    const duration = compress_response.duration; // await extract_duration(low_quality);
     //Envoie FTP
     logVideoProcess("Traitement video", `start send FTP`);
     const ftp_destination = `${FTP_DESTINATION_DIR}/${lowFilename}`;
@@ -310,7 +311,7 @@ export const full_process_insv_x3 = async (idProjectVideo, fileObject) => {
     const compress_response = await video_compress(fileObjetctCompress);
     const high_quality = equirectantangular.output;
     const low_quality = compress_response.output;
-    const duration = await extract_duration(low_quality);
+    const duration = compress_response.duration; //await extract_duration(low_quality);
     //Envoie FTP
     console.log("start send FTP");
     logVideoProcess("Traitement video", `start send FTP`);
@@ -530,4 +531,18 @@ export const logErrorVideoProcess = (title, message) => {
   const logger = new LogSystem();
   logger.setLabel(title);
   logger.setError(message);
+};
+
+/**
+ * Obtenir les metadata du fichier
+ */
+export const extract_metadata = (input) => {
+  const { ffmpeg } = new FFmpegInstance();
+  return new Promise((resolve, reject) => {
+    ffmpeg.input(input);
+    ffmpeg.ffprobe(input, (err, metadata) => {
+      if (err) reject(err);
+      resolve(metadata);
+    });
+  });
 };

@@ -100,7 +100,6 @@ export const merge_insv = async (fileObject) => {
         }) */
         .on("codecData", (data) => {
           totalDuration = Number(data.duration.replace(/:/g, ""));
-          status.duration = totalDuration;
         })
         .on(
           "progress",
@@ -186,11 +185,15 @@ export const insv_equirectangular = async (fileObject) => {
   try {
     const { ffmpeg } = new FFmpegInstance();
     const ffmpegCommand = ffmpeg;
+    const fps = 25;
+
+    status.duration = await extract_duration(input);
+
     return new Promise((resolve) => {
       ffmpegCommand
         .addInput(input)
         .videoFilters(instaArgsX2)
-        .outputOptions(["-c:v", "libx264", "-c:a", "aac"])
+        .outputOptions(["-r", fps, "-c:v", "libx264", "-c:a", "aac"])
         .output(output)
         .on("start", (cmdline) => {
           console.log(
@@ -208,7 +211,6 @@ export const insv_equirectangular = async (fileObject) => {
         .on("codecData", (data) => {
           // HERE YOU GET THE TOTAL TIME
           totalDuration = Number(data.duration.replace(/:/g, ""));
-          status.duration = totalDuration;
         })
         /*.on("stderr", function (stderrLine) {
         console.log("Stderr output: " + stderrLine);
@@ -298,11 +300,13 @@ export const insv_equirectangular_x3 = async (fileObject) => {
   try {
     const { ffmpeg } = new FFmpegInstance();
     const ffmpegCommand = ffmpeg;
+    status.duration = await extract_duration(input);
+
     return new Promise((resolve) => {
       ffmpegCommand
         .addInput(input)
         .videoFilters(instaArgsX3)
-        .outputOptions(["-c:v", "libx264", "-c:a", "aac"])
+        .outputOptions(["-r", fps, "-c:v", "libx264", "-c:a", "aac"])
         .output(output)
         .on("start", (cmdline) => {
           console.log(
@@ -320,7 +324,6 @@ export const insv_equirectangular_x3 = async (fileObject) => {
         .on("codecData", (data) => {
           // HERE YOU GET THE TOTAL TIME
           totalDuration = Number(data.duration.replace(/:/g, ""));
-          status.duration = totalDuration;
         })
         /*.on("stderr", function (stderrLine) {
         console.log("Stderr output: " + stderrLine);
@@ -414,6 +417,7 @@ export const gopro_equirectangular = async (fileObject) => {
     type: "video",
     duration: 0,
   };
+  status.duration = await extract_duration(input);
 
   try {
     const { ffmpeg } = new FFmpegInstance();
@@ -460,7 +464,6 @@ export const gopro_equirectangular = async (fileObject) => {
         .on("codecData", (data) => {
           // HERE YOU GET THE TOTAL TIME
           totalDuration = Number(data.duration.replace(/:/g, ""));
-          status.duration = totalDuration;
         })
         .on(
           "progress",
@@ -541,51 +544,53 @@ export const video_compress = (fileObjetct) => {
     const ffmpegCommand = ffmpeg;
 
     return new Promise((resolve) => {
-      const { input, output } = fileObjetct;
-      ffmpegCommand
-        .addInput(input)
-        .size("820x410")
-        .addOutputOptions(["-preset", "fast", "-crf", "22"])
-        .output(output)
-        .on("start", (cmdline) => {
-          status.message = "start";
-          logVideoProcess(
-            "Compression video",
-            `Start compressing for ${input}`
-          );
-          logVideoProcess("Compression video", `command ffmpeg: ${cmdline}`);
-          ws.of(WEBSOCKET_PATH).to(room).emit("start", status);
-        })
-        .on("codecData", (data) => {
-          totalDuration = Number(data.duration.replace(/:/g, ""));
-          status.duration = totalDuration;
-        })
-        .on(
-          "progress",
-          ffmpegOnProgress((progress) => {
-            status.message = "progress";
-            return emitProgress(progress, room, status);
-          }),
-          totalDuration
-        )
-        .on("end", () => {
-          console.log(`Finished compressing for ${input}`);
-          logVideoProcess(
-            "Compression video",
-            `Finished compressing for ${input}`
-          );
-          status.message = "done";
-          status.progress = 100;
-          ws.of(WEBSOCKET_PATH).to(room).emit("end", status);
-          resolve({ input, output, duration: status.duration });
-        })
-        .on("error", (error) => {
-          console.log(error.message);
-          status.message = "erreur";
-          status.error = error.message;
-          ws.of(WEBSOCKET_PATH).to(room).emit("error", status);
-        })
-        .run();
+      (async () => {
+        const { input, output } = fileObjetct;
+        status.duration = await extract_duration(input);
+        ffmpegCommand
+          .addInput(input)
+          .size("820x410")
+          .addOutputOptions(["-preset", "fast", "-crf", "22"])
+          .output(output)
+          .on("start", (cmdline) => {
+            status.message = "start";
+            logVideoProcess(
+              "Compression video",
+              `Start compressing for ${input}`
+            );
+            logVideoProcess("Compression video", `command ffmpeg: ${cmdline}`);
+            ws.of(WEBSOCKET_PATH).to(room).emit("start", status);
+          })
+          .on("codecData", (data) => {
+            totalDuration = Number(data.duration.replace(/:/g, ""));
+          })
+          .on(
+            "progress",
+            ffmpegOnProgress((progress) => {
+              status.message = "progress";
+              return emitProgress(progress, room, status);
+            }),
+            totalDuration
+          )
+          .on("end", () => {
+            console.log(`Finished compressing for ${input}`);
+            logVideoProcess(
+              "Compression video",
+              `Finished compressing for ${input}`
+            );
+            status.message = "done";
+            status.progress = 100;
+            ws.of(WEBSOCKET_PATH).to(room).emit("end", status);
+            resolve({ input, output, duration: status.duration });
+          })
+          .on("error", (error) => {
+            console.log(error.message);
+            status.message = "erreur";
+            status.error = error.message;
+            ws.of(WEBSOCKET_PATH).to(room).emit("error", status);
+          })
+          .run();
+      })();
     });
   } catch (error) {
     console.log(error.message);
@@ -683,20 +688,6 @@ export const extract_duration = (input) => {
     ffmpeg.ffprobe(input, (err, metadata) => {
       if (err) reject(err);
       resolve(metadata.format.duration);
-    });
-  });
-};
-/**
- * Obtenir la durée de la video
- */
-
-export const extract_metadata = (input) => {
-  const { ffmpeg } = new FFmpegInstance();
-  return new Promise((resolve, reject) => {
-    ffmpeg.input(input);
-    ffmpeg.ffprobe(input, (err, metadata) => {
-      if (err) reject(err);
-      resolve(metadata);
     });
   });
 };

@@ -13,4 +13,19 @@ export default class FFmpegInstance {
       .setFfmpegPath(ffmpegPath[platform].ffmpegPath)
       .setFfprobePath(ffmpegPath[platform].ffprobePath);
   }
+
+  /**
+   * Obtenir les metadata du fichier
+   */
+
+  extract_metadata = (input) => {
+    const { ffmpeg } = new FFmpegInstance();
+    return new Promise((resolve, reject) => {
+      ffmpeg.input(input);
+      ffmpeg.ffprobe(input, (err, metadata) => {
+        if (err) reject(err);
+        resolve(metadata);
+      });
+    });
+  };
 }
