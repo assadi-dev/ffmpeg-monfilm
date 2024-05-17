@@ -42,6 +42,11 @@ export const eventFeedbackPublish = {
   error: "error",
 };
 
+export const eventFeedbackExportPublish = {
+  publish: "export-project-video",
+  error: "export-error",
+};
+
 /**
  * Command Insta X3
  */
