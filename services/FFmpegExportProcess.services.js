@@ -16,8 +16,7 @@ import {
 import FFmpegInstance from "./FFmpegInstance.services.js";
 import ffmpegOnProgress from "ffmpeg-on-progress";
 import { ws } from "../index.js";
-import { eventFeedbackPublish } from "../config/ffmpegComand.config.js";
-import slugify from "slugify";
+import { eventFeedbackExportPublish } from "../config/ffmpegComand.config.js";
 import { clean_file_process } from "./FFmpegCameraProcess.services.js";
 import { toSlugify } from "./Filestype.services.js";
 import {
@@ -91,7 +90,7 @@ export const split_videos = async (scene, projectName, output, room) => {
           status.message = "start";
           ws.of(WEBSOCKET_PATH)
             .to(room)
-            .emit(eventFeedbackPublish.export, status);
+            .emit(eventFeedbackExportPublish.publish, status);
         })
         .on("codecData", (data) => {
           totalDuration = parseInt(data.duration.replace(/:/g, ""));
@@ -113,7 +112,7 @@ export const split_videos = async (scene, projectName, output, room) => {
           status.progress = 100;
           ws.of(WEBSOCKET_PATH)
             .to(room)
-            .emit(eventFeedbackPublish.export, status);
+            .emit(eventFeedbackExportPublish.publish, status);
 
           resolve(destination);
         })
@@ -124,7 +123,7 @@ export const split_videos = async (scene, projectName, output, room) => {
           status.message = "error";
           ws.of(WEBSOCKET_PATH)
             .to(room)
-            .emit(eventFeedbackPublish.error, status);
+            .emit(eventFeedbackExportPublish.error, status);
         })
 
         .run();
@@ -196,7 +195,7 @@ export const concatenate_videos = (
           status.message = "start";
           ws.of(WEBSOCKET_PATH)
             .to(room)
-            .emit(eventFeedbackPublish.export, status);
+            .emit(eventFeedbackExportPublish.publish, status);
         })
         .on(
           "progress",
@@ -212,7 +211,7 @@ export const concatenate_videos = (
           status.message = "done";
           ws.of(WEBSOCKET_PATH)
             .to(room)
-            .emit(eventFeedbackPublish.export, status);
+            .emit(eventFeedbackExportPublish.publish, status);
           resolve(destination);
         })
         .on("error", (error) => {
@@ -222,7 +221,7 @@ export const concatenate_videos = (
           status.message = "error";
           ws.of(WEBSOCKET_PATH)
             .to(room)
-            .emit(eventFeedbackPublish.error, status);
+            .emit(eventFeedbackExportPublish.error, status);
         })
         .run();
     });
@@ -233,7 +232,9 @@ export const concatenate_videos = (
     status.error = error.message;
     status.message = "error";
     logErrorVideoProcess("Export video", `Error: ${error.message}`);
-    ws.of(WEBSOCKET_PATH).to(room).emit(eventFeedbackPublish.error, status);
+    ws.of(WEBSOCKET_PATH)
+      .to(room)
+      .emit(eventFeedbackExportPublish.error, status);
   }
 };
 
@@ -272,7 +273,7 @@ export const concatenate_combined_videos = (
       chmodSync(export_file, "777");
     }
 
-    const promise = new Promise((resolve) => {
+    const promise = new Promise((resolve, reject) => {
       const destination = `${export_file}${DIRECTORY_SEPARATOR}${output}`;
       const count = listInput.length;
       let filterCommandIn = "";
@@ -324,7 +325,7 @@ export const concatenate_combined_videos = (
           status.message = "start";
           logVideoProcess("Export video", `Start complex filter concat video`);
           logVideoProcess("Export video", `command ffmpeg ${cmdline}`);
-          ws.to(room).emit(eventFeedbackPublish.export, status);
+          ws.to(room).emit(eventFeedbackExportPublish.publish, status);
         })
         .on(
           "progress",
@@ -341,7 +342,7 @@ export const concatenate_combined_videos = (
             "Export video",
             `Finished complex filter concat video`
           );
-          ws.to(room).emit(eventFeedbackPublish.export, status);
+          ws.to(room).emit(eventFeedbackExportPublish.publish, status);
           resolve(destination);
         })
         .on("error", (error) => {
@@ -349,7 +350,7 @@ export const concatenate_combined_videos = (
           status.error = error.message;
           status.message = "error";
           logErrorVideoProcess("Export video", `Error: ${error.message}`);
-          ws.to(room).emit(eventFeedbackPublish.error, status);
+          ws.to(room).emit(eventFeedbackExportPublish.error, status);
         })
         .run();
     });
@@ -360,7 +361,7 @@ export const concatenate_combined_videos = (
     logErrorVideoProcess("Export video", `Error: ${error.message}`);
     status.error = error.message;
     status.message = "error";
-    ws.to(room).emit(eventFeedbackPublish.error, status);
+    ws.to(room).emit(eventFeedbackExportPublish.error, status);
   }
 };
 
@@ -422,7 +423,7 @@ export const splitAudioPart = (audio, projectName, output, room) => {
         })
         .on("start", () => {
           status.message = "start";
-          ws.to(room).emit(eventFeedbackPublish.export, status);
+          ws.to(room).emit(eventFeedbackExportPublish.publish, status);
         })
         .on(
           "progress",
@@ -438,7 +439,7 @@ export const splitAudioPart = (audio, projectName, output, room) => {
           status.progress = 100;
           status.message = "done";
 
-          ws.to(room).emit(eventFeedbackPublish.export, status);
+          ws.to(room).emit(eventFeedbackExportPublish.publish, status);
 
           resolve(destination);
         })
@@ -446,7 +447,7 @@ export const splitAudioPart = (audio, projectName, output, room) => {
           console.log(error.message);
           status.error = error.message;
           status.message = "error";
-          ws.to(room).emit(eventFeedbackPublish.error, status);
+          ws.to(room).emit(eventFeedbackExportPublish.error, status);
         })
 
         .run();
@@ -508,7 +509,7 @@ export const concatenate_audios = (
           status.message = "start";
           ws.of(WEBSOCKET_PATH)
             .to(room)
-            .emit(eventFeedbackPublish.export, status);
+            .emit(eventFeedbackExportPublish.publish, status);
         })
         .on(
           "progress",
@@ -526,7 +527,7 @@ export const concatenate_audios = (
           status.remain = 0;
           ws.of(WEBSOCKET_PATH)
             .to(room)
-            .emit(eventFeedbackPublish.export, status);
+            .emit(eventFeedbackExportPublish.publish, status);
           resolve(destination);
         })
         .on("error", (error) => {
@@ -536,7 +537,7 @@ export const concatenate_audios = (
           status.message = "error";
           ws.of(WEBSOCKET_PATH)
             .to(room)
-            .emit(eventFeedbackPublish.error, status);
+            .emit(eventFeedbackExportPublish.error, status);
         })
 
         .run();
@@ -548,7 +549,9 @@ export const concatenate_audios = (
     status.error = error.message;
     logErrorVideoProcess("Export video", `Erreur: ${error.message}`);
     status.message = "error";
-    ws.of(WEBSOCKET_PATH).to(room).emit(eventFeedbackPublish.error, status);
+    ws.of(WEBSOCKET_PATH)
+      .to(room)
+      .emit(eventFeedbackExportPublish.error, status);
   }
 };
 export const concatenate_combined_audios = (
@@ -625,7 +628,7 @@ export const concatenate_combined_audios = (
           status.elapsed = 0;
           ws.of(WEBSOCKET_PATH)
             .to(room)
-            .emit(eventFeedbackPublish.export, status);
+            .emit(eventFeedbackExportPublish.publish, status);
         })
         .on(
           "progress",
@@ -645,7 +648,7 @@ export const concatenate_combined_audios = (
           status.remain = 0;
           ws.of(WEBSOCKET_PATH)
             .to(room)
-            .emit(eventFeedbackPublish.export, status);
+            .emit(eventFeedbackExportPublish.publish, status);
           resolve(destination);
         })
         .on("error", (error) => {
@@ -655,7 +658,7 @@ export const concatenate_combined_audios = (
           status.message = "error";
           ws.of(WEBSOCKET_PATH)
             .to(room)
-            .emit(eventFeedbackPublish.error, status);
+            .emit(eventFeedbackExportPublish.error, status);
         })
 
         .run();
@@ -667,7 +670,9 @@ export const concatenate_combined_audios = (
     logErrorVideoProcess("Export video", `Erreur: ${error.message}`);
     status.error = error.message;
     status.message = "error";
-    ws.of(WEBSOCKET_PATH).to(room).emit(eventFeedbackPublish.error, status);
+    ws.of(WEBSOCKET_PATH)
+      .to(room)
+      .emit(eventFeedbackExportPublish.error, status);
   }
 };
 
@@ -724,7 +729,7 @@ export const files_mapping = (
           status.message = "start";
           ws.of(WEBSOCKET_PATH)
             .to(room)
-            .emit(eventFeedbackPublish.export, status);
+            .emit(eventFeedbackExportPublish.publish, status);
         })
         .on(
           "progress",
@@ -742,7 +747,7 @@ export const files_mapping = (
           clean_file_process(audioFile);
           ws.of(WEBSOCKET_PATH)
             .to(room)
-            .emit(eventFeedbackPublish.export, status);
+            .emit(eventFeedbackExportPublish.publish, status);
           resolve(destination);
         })
         .on("error", (error) => {
@@ -754,7 +759,7 @@ export const files_mapping = (
           clean_file_process(audioFile);
           ws.of(WEBSOCKET_PATH)
             .to(room)
-            .emit(eventFeedbackPublish.error, status);
+            .emit(eventFeedbackExportPublish.error, status);
         })
 
         .run();
@@ -766,7 +771,9 @@ export const files_mapping = (
     logErrorVideoProcess("Export video", `Erreur: ${error.message}`);
     status.message = "error";
     status.error = error.message;
-    ws.of(WEBSOCKET_PATH).to(room).emit(eventFeedbackPublish.error, status);
+    ws.of(WEBSOCKET_PATH)
+      .to(room)
+      .emit(eventFeedbackExportPublish.error, status);
   }
 };
 
@@ -803,7 +810,9 @@ export const files_mapping_no_audio = (
           status.message = "start";
           ws.of(WEBSOCKET_PATH)
             .to(room)
-            .emit(eventFeedbackPublish.export, status);
+            .emit(eventFeedbackExportPublish.publish, status);
+          logVideoProcess("Export video", `Start mapping files no audio`);
+          logVideoProcess("Export video", `command ffmpeg: ${cmdline}`);
         })
         .on(
           "progress",
@@ -820,7 +829,7 @@ export const files_mapping_no_audio = (
           clean_file_process(videoFile);
           ws.of(WEBSOCKET_PATH)
             .to(room)
-            .emit(eventFeedbackPublish.export, status);
+            .emit(eventFeedbackExportPublish.publish, status);
           resolve(destination);
         })
         .on("error", (error) => {
@@ -831,7 +840,7 @@ export const files_mapping_no_audio = (
           status.error = error.message;
           ws.of(WEBSOCKET_PATH)
             .to(room)
-            .emit(eventFeedbackPublish.error, status);
+            .emit(eventFeedbackExportPublish.error, status);
         })
         .run();
     });
@@ -842,7 +851,7 @@ export const files_mapping_no_audio = (
     logVideoProcess("Export video", `Erreur: ${error.message}`);
     status.message = "error";
     status.error = error.message;
-    ws.to(room).emit(eventFeedbackPublish.error, status);
+    ws.to(room).emit(eventFeedbackExportPublish.error, status);
   }
 };
 
@@ -865,7 +874,7 @@ const logSplitProgress = (room, progress, event, status) => {
   status.elapsed = timeElapsed;
   status.message = "progress";
   status.progress = percent;
-  ws.to(room).emit(eventFeedbackPublish.export, status);
+  ws.to(room).emit(eventFeedbackExportPublish.publish, status);
 };
 const logProgress = (room, progress, event, status) => {
   const percent = Math.round(progress * 100);
@@ -874,7 +883,9 @@ const logProgress = (room, progress, event, status) => {
   status.message = "progress";
   status.progress = percent;
   // console.log("progress:", percent);
-  ws.of(WEBSOCKET_PATH).to(room).emit(eventFeedbackPublish.export, status);
+  ws.of(WEBSOCKET_PATH)
+    .to(room)
+    .emit(eventFeedbackExportPublish.publish, status);
 };
 
 const secToMill = (sec) => {
