@@ -1,4 +1,10 @@
-import { createWriteStream, existsSync, unlinkSync, write } from "fs";
+import {
+  createReadStream,
+  createWriteStream,
+  existsSync,
+  unlinkSync,
+  write,
+} from "fs";
 import {
   DIRECTORY_SEPARATOR,
   URL_FILE_UPLOAD,
@@ -8,6 +14,7 @@ import {
 } from "../config/constant.config.js";
 import slugify from "slugify";
 import fetch from "node-fetch";
+import { logErrorVideoProcess } from "./FullProcess.services.js";
 
 export const getDelimiter = () => {
   if (platform == "win32") return "\\";
@@ -95,39 +102,60 @@ export const toSlugify = (name) => {
  * @param {string} url
  * @param {string} filename
  * @param {string} path_destination Destination du fichier
+ * @param {void|Function} onProgress function qui r'envoie en paramètre sous forme d'objet la progression du téléchargement
  */
 
-export const writeFileFromUrl = (url, filename, path_destination) => {
+export const writeFileFromUrl = (
+  url,
+  filename,
+  path_destination,
+  onProgress
+) => {
   return new Promise(async (resolve, reject) => {
     try {
       const response = await fetch(url);
-      if (response.ok) {
-        const buffer = await response.arrayBuffer();
-        const unit8Array = new Uint8Array(buffer);
-        const path = `${path_destination}${DIRECTORY_SEPARATOR}${toSlugify(
-          filename
-        )}`;
-
-        const writeStream = createWriteStream(path);
-        writeStream.write(unit8Array, (err) => {
-          if (err) {
-            throw new Error(err);
-          } else {
-            writeStream.end();
-          }
-        });
-
-        writeStream.on("finish", () => {
-          resolve({ path: path, filename: filename });
-        });
-        writeStream.on("error", (err) => {
-          reject(err);
-        });
-      } else {
-        throw new Error("Error fetch video");
+      if (!response.ok) {
+        throw Error("Error downloading file:", response.statusText);
       }
+      const path = `${path_destination}${DIRECTORY_SEPARATOR}${toSlugify(
+        filename
+      )}`;
+      const totalSize = parseInt(response.headers.get("content-length"), 10);
+      let downloadedSize = 0;
+
+      const writeStream = createWriteStream(path);
+      response.body.pipe(writeStream);
+      response.body.on("data", (chunk) => {
+        console.log("Downloading...");
+        const chunkSize = parseInt(chunk.length);
+        downloadedSize += chunkSize;
+        const progress = Math.floor((downloadedSize / totalSize) * 100);
+        console.log("progress:", progress);
+        if (onProgress) {
+          const eventProgress = {
+            progress: progress,
+            progress: filename,
+            path: path_destination,
+          };
+          onProgress(eventProgress);
+        }
+      });
+
+      writeStream.on("finish", () => {
+        console.log("finish download:", path);
+        resolve({ path: path, filename: filename });
+      });
+      writeStream.on("error", (err) => {
+        reject(err);
+      });
     } catch (error) {
-      throw error;
+      console.error("Error downloading file:", error);
+      reject(error);
+      logErrorVideoProcess(
+        "Downloading file",
+        "Error downloading file:",
+        error.message
+      );
     }
   });
 };
