@@ -127,7 +127,6 @@ export const generate_finalOutput = async (
       getProgressDownloaded
     );
     scenes = filesVideo;
-    return;
 
     logVideoProcess(
       `Export project: ${idProjectVideo}`,
