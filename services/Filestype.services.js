@@ -14,7 +14,6 @@ import {
 } from "../config/constant.config.js";
 import slugify from "slugify";
 import fetch from "node-fetch";
-import { logErrorVideoProcess } from "./FullProcess.services.js";
 
 export const getDelimiter = () => {
   if (platform == "win32") return "\\";
@@ -151,11 +150,6 @@ export const writeFileFromUrl = (
     } catch (error) {
       console.error("Error downloading file:", error);
       reject(error);
-      logErrorVideoProcess(
-        "Downloading file",
-        "Error downloading file:",
-        error.message
-      );
     }
   });
 };
