@@ -121,7 +121,7 @@ export const writeFileFromUrl = (
         )}`;
         let downloadedSize = 0;
 
-        if (existsSync(destination)) {
+        /*       if (existsSync(destination)) {
           const existPath = destination;
           const existFileSize = statSync(existPath);
           console.log("download has been skip:", destination);
@@ -138,7 +138,7 @@ export const writeFileFromUrl = (
           }
           return;
         }
-
+ */
         const response = await fetch(url);
         if (!response.ok) {
           reject("Error downloading file: " + response.statusText);
