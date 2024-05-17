@@ -2,6 +2,7 @@ import {
   createReadStream,
   createWriteStream,
   existsSync,
+  statSync,
   unlinkSync,
   write,
 } from "fs";
@@ -11,6 +12,8 @@ import {
   __dirname,
   upload_dir,
   platform,
+  OVH_CREDENTIALS,
+  OVH_CONTAINER,
 } from "../config/constant.config.js";
 import slugify from "slugify";
 import fetch from "node-fetch";
@@ -110,46 +113,69 @@ export const writeFileFromUrl = (
   path_destination,
   onProgress
 ) => {
-  return new Promise(async (resolve, reject) => {
-    try {
-      const response = await fetch(url);
-      if (!response.ok) {
-        throw Error("Error downloading file:", response.statusText);
-      }
-      const path = `${path_destination}${DIRECTORY_SEPARATOR}${toSlugify(
-        filename
-      )}`;
-      const totalSize = parseInt(response.headers.get("content-length"), 10);
-      let downloadedSize = 0;
+  return new Promise((resolve, reject) => {
+    (async () => {
+      try {
+        const destination = `${path_destination}${DIRECTORY_SEPARATOR}${toSlugify(
+          filename
+        )}`;
+        let downloadedSize = 0;
 
-      const writeStream = createWriteStream(path);
-      response.body.pipe(writeStream);
-      response.body.on("data", (chunk) => {
-        //console.log("Downloading...");
-        const chunkSize = parseInt(chunk.length);
-        downloadedSize += chunkSize;
-        const progress = Math.floor((downloadedSize / totalSize) * 100);
-        if (onProgress) {
-          const eventProgress = {
-            progress,
-            filename,
-            path: path_destination,
-          };
-          onProgress(eventProgress);
+        if (existsSync(destination)) {
+          const existPath = destination;
+          const existFileSize = statSync(existPath);
+          console.log("download has been skip:", destination);
+          downloadedSize = existFileSize.size;
+
+          resolve({ path: existPath, filename: filename });
+          if (onProgress) {
+            const eventProgress = {
+              progress: 100,
+              filename,
+              path: destination,
+            };
+            onProgress(eventProgress);
+          }
+          return;
         }
-      });
 
-      writeStream.on("finish", () => {
-        console.log("finish download:", path);
-        resolve({ path: path, filename: filename });
-      });
-      writeStream.on("error", (err) => {
-        reject(err);
-      });
-    } catch (error) {
-      console.error("Error downloading file:", error);
-      reject(error);
-    }
+        const response = await fetch(url);
+        if (!response.ok) {
+          reject("Error downloading file: " + response.statusText);
+        }
+
+        const totalSize = parseInt(response.headers.get("content-length"), 10);
+
+        const writeStream = createWriteStream(destination);
+
+        response.body.pipe(writeStream);
+        response.body.on("data", (chunk) => {
+          //console.log("Downloading...");
+          const chunkSize = parseInt(chunk.length);
+          downloadedSize += chunkSize;
+          const progress = Math.floor((downloadedSize / totalSize) * 100);
+          if (onProgress) {
+            const eventProgress = {
+              progress,
+              filename,
+              path: destination,
+            };
+            onProgress(eventProgress);
+          }
+        });
+
+        writeStream.on("finish", () => {
+          console.log("finish download:", destination);
+          resolve({ path: destination, filename: filename });
+        });
+        writeStream.on("error", (err) => {
+          reject(err);
+        });
+      } catch (error) {
+        console.error("Error downloading file:", error.message);
+        reject(error.message);
+      }
+    })();
   });
 };
 
@@ -165,30 +191,34 @@ export const getDownloadedExportFiles = async (
   destination,
   callback
 ) => {
-  return new Promise(async (resolve, reject) => {
-    const downloadedFiles = [];
+  return new Promise((resolve, reject) => {
+    (async () => {
+      const downloadedFiles = [];
 
-    const logProgressDownload = (data) => {
-      if (callback) {
-        callback(data);
-      }
-    };
-    try {
-      for (const file of files) {
-        if (file.src && file.filename && file.id) {
-          const snapshot = await writeFileFromUrl(
-            file.src,
-            `${file.id}_${file.filename}`,
-            destination,
-            logProgressDownload
-          );
-          downloadedFiles.push({ ...file, src: snapshot.path });
+      const logProgressDownload = (data) => {
+        if (callback) {
+          callback(data);
         }
+      };
+      try {
+        for (const file of files) {
+          const ovhFileName = extractOvhFileName(file.src);
+
+          if (file.src) {
+            const snapshot = await writeFileFromUrl(
+              file.src,
+              `${ovhFileName}`,
+              destination,
+              logProgressDownload
+            );
+            downloadedFiles.push({ ...file, src: snapshot.path });
+          }
+        }
+        resolve(downloadedFiles);
+      } catch (error) {
+        reject(error.message);
       }
-      resolve(downloadedFiles);
-    } catch (error) {
-      reject(error);
-    }
+    })();
   });
 };
 
@@ -206,4 +236,9 @@ export const getTotalFilesSizeFromUrl = (files = []) => {
       resolve(totalSize);
     })();
   });
+};
+
+export const extractOvhFileName = (ovhFileLink = "") => {
+  const ovhUri = `${OVH_CREDENTIALS.endpoint}/${OVH_CONTAINER}/`;
+  return ovhFileLink.replace(encodeURI(ovhUri), "").trim();
 };
