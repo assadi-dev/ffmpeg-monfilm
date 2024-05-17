@@ -202,12 +202,10 @@ export const getDownloadedExportFiles = async (
       };
       try {
         for (const file of files) {
-          const ovhFileName = extractOvhFileName(file.src);
-
           if (file.src) {
             const snapshot = await writeFileFromUrl(
               file.src,
-              `${ovhFileName}`,
+              `${file.filename}`,
               destination,
               logProgressDownload
             );

@@ -204,7 +204,7 @@ export const generate_finalOutput = async (
       });
     }
   } catch (error) {
-    console.log("error", error.message);
+    console.log("error", error);
     console.log(room);
     ws.of(WEBSOCKET_PATH).to(room).emit("export-error", error.message);
     logErrorVideoProcess("Export project", error.message);
