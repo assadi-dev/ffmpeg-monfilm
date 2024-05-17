@@ -13,12 +13,14 @@ import {
   OVH_CONTAINER,
   OVH_CREDENTIALS,
   upload_dir,
+  WEBSOCKET_PATH,
 } from "../config/constant.config.js";
 import { ws } from "../index.js";
 import { statSync } from "fs";
 import { clean_file_process } from "../services/FFmpegCameraProcess.services.js";
 import {
   getDownloadedExportFiles,
+  getTotalFilesSizeFromUrl,
   postDelayed,
 } from "../services/Filestype.services.js";
 import fetch from "node-fetch";
@@ -81,10 +83,10 @@ export const generate_finalOutput = async (
   idProjectVideo
 ) => {
   console.log(`Export project: ${idProjectVideo}`);
-  console.log("Concatenation des fichiers videos");
+  console.log("Téléchargement des fichiers");
   logVideoProcess(
     `Export project: ${idProjectVideo}`,
-    `Concatenation des fichiers videos`
+    `Téléchargement des fichiers videos`
   );
 
   const projectSlug = toSlugify(projectName);
@@ -92,9 +94,35 @@ export const generate_finalOutput = async (
   const export_file = `${upload_dir}${DIRECTORY_SEPARATOR}export_file${DIRECTORY_SEPARATOR}${projectSlug}`;
 
   create_workspace_export(export_file);
+  let finishProgress = 0;
 
-  const filesVideo = await getDownloadedExportFiles(scenes, export_file);
+  const getProgressDownloaded = async (fileDataProgress) => {
+    const totalProgress = scenes.length * 100;
+    fileDataProgress.progress >= 100 ? (finishProgress += 100) : 0;
+    const avgProgress = Math.floor(
+      ((finishProgress + fileDataProgress.progress) / totalProgress) * 100
+    );
+    let finalProgress = avgProgress >= 100 ? 100 : avgProgress;
+
+    const status = {
+      step: "download",
+      progress: finalProgress,
+    };
+
+    ws.of(WEBSOCKET_PATH).to(room).emit("export-project-video", status);
+  };
+
+  const filesVideo = await getDownloadedExportFiles(
+    scenes,
+    export_file,
+    getProgressDownloaded
+  );
   scenes = filesVideo;
+
+  logVideoProcess(
+    `Export project: ${idProjectVideo}`,
+    `Concatenation des fichiers videos`
+  );
 
   const mergedVideos = await concate_process_videos(room, scenes, projectSlug);
 

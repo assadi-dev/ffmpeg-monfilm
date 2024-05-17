@@ -125,15 +125,14 @@ export const writeFileFromUrl = (
       const writeStream = createWriteStream(path);
       response.body.pipe(writeStream);
       response.body.on("data", (chunk) => {
-        console.log("Downloading...");
+        //console.log("Downloading...");
         const chunkSize = parseInt(chunk.length);
         downloadedSize += chunkSize;
         const progress = Math.floor((downloadedSize / totalSize) * 100);
-        console.log("progress:", progress);
         if (onProgress) {
           const eventProgress = {
-            progress: progress,
-            progress: filename,
+            progress,
+            filename,
             path: path_destination,
           };
           onProgress(eventProgress);
@@ -158,18 +157,30 @@ export const writeFileFromUrl = (
  * Retourne la liste des fichiers téléchargés
  * @param {Array} files
  * @param {String} destination Dossier d’empagement à enregistrer
+ * @param {void|Function} callback fonction de recuperation du fichier téléchargé
  */
 
-export const getDownloadedExportFiles = async (files = [], destination) => {
+export const getDownloadedExportFiles = async (
+  files = [],
+  destination,
+  callback
+) => {
   return new Promise(async (resolve, reject) => {
     const downloadedFiles = [];
+
+    const logProgressDownload = (data) => {
+      if (callback) {
+        callback(data);
+      }
+    };
     try {
       for (const file of files) {
         if (file.src && file.filename && file.id) {
           const snapshot = await writeFileFromUrl(
             file.src,
             `${file.id}_${file.filename}`,
-            destination
+            destination,
+            logProgressDownload
           );
           downloadedFiles.push({ ...file, src: snapshot.path });
         }
@@ -178,5 +189,21 @@ export const getDownloadedExportFiles = async (files = [], destination) => {
     } catch (error) {
       reject(error);
     }
+  });
+};
+
+export const getTotalFilesSizeFromUrl = (files = []) => {
+  return new Promise((resolve, reject) => {
+    (async () => {
+      let totalSize = 0;
+      for (const file of files) {
+        const response = await fetch(file.src);
+        if (!response.ok) {
+          reject(response.statusText);
+        }
+        totalSize = +parseInt(response.headers.get("content-length"), 10);
+      }
+      resolve(totalSize);
+    })();
   });
 };
