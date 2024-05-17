@@ -94,8 +94,14 @@ export const generate_finalOutput = async (
   const export_file = `${upload_dir}${DIRECTORY_SEPARATOR}export_file${DIRECTORY_SEPARATOR}${projectSlug}`;
 
   create_workspace_export(export_file);
+
   let finishProgress = 0;
 
+  /**
+   * Notifie la progression du téléchargement
+   * @param {Object} fileDataProgress objet contenant la progression du fichier
+   * @param {number} finishProgress  stockage des progression terminé
+   */
   const getProgressDownloaded = async (fileDataProgress) => {
     const totalProgress = scenes.length * 100;
     fileDataProgress.progress >= 100 ? (finishProgress += 100) : 0;
