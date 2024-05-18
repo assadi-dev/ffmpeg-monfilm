@@ -16,7 +16,7 @@ import {
   WEBSOCKET_PATH,
 } from "../config/constant.config.js";
 import { ws } from "../index.js";
-import { statSync } from "fs";
+import { existsSync, statSync } from "fs";
 import { clean_file_process } from "../services/FFmpegCameraProcess.services.js";
 import {
   getDownloadedExportFiles,
@@ -63,7 +63,7 @@ export const merges_input = (req, res) => {
   try {
     const { scenes } = req.body;
     const outputFile = "video-concatenate.mp4";
-    concatenate_inputs(scenes, outputFile);
+    //concatenate_inputs(scenes, outputFile);
 
     const content = { message: "concatenation en cours", scenes };
     res.json(content);
@@ -83,20 +83,27 @@ export const generate_finalOutput = async (
   idProjectVideo
 ) => {
   try {
-    await postDelayed(3000);
-
     console.log(`Export project: ${idProjectVideo}`);
-    console.log("Téléchargement des fichiers");
     logVideoProcess(
       `Export project: ${idProjectVideo}`,
-      `Téléchargement des fichiers videos`
+      `Start export process project: ${idProjectVideo} room: ${room}`
     );
 
     const projectSlug = toSlugify(projectName);
 
     const export_file = `${upload_dir}${DIRECTORY_SEPARATOR}export_file${DIRECTORY_SEPARATOR}${projectSlug}`;
 
+    if (existsSync(export_file)) {
+      delete_workspace_export(export_file);
+    }
+    await postDelayed(3000);
     create_workspace_export(export_file);
+
+    console.log("Téléchargement des fichiers");
+    logVideoProcess(
+      `Export project: ${idProjectVideo}`,
+      `Téléchargement des fichiers videos`
+    );
 
     let finishProgress = 0;
 
