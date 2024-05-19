@@ -105,39 +105,35 @@ export const toSlugify = (name) => {
  * @param {string} filename
  * @param {string} path_destination Destination du fichier
  * @param {void|Function} onProgress function qui r'envoie en paramètre sous forme d'objet la progression du téléchargement
+ * @param {boolean} rewrite  active la réécriture sur le fichier existant
  */
 
 export const writeFileFromUrl = (
   url,
   filename,
   path_destination,
-  onProgress
+  onProgress,
+  rewrite = true
 ) => {
   return new Promise((resolve, reject) => {
     (async () => {
       try {
+        let downloadedSize = 0;
         const destination = `${path_destination}${DIRECTORY_SEPARATOR}${toSlugify(
           filename
         )}`;
-        let downloadedSize = 0;
+        if (existsSync(destination) && rewrite === false) {
+          const filePath = await skipDownload(
+            destination,
+            filename,
+            onProgress
+          );
+          resolve(filePath);
+          downloadedSize = filePath.size;
 
-        if (existsSync(destination)) {
-          const existPath = destination;
-          const existFileSize = statSync(existPath);
-          console.log("download has been skip:", destination);
-          downloadedSize = existFileSize.size;
-
-          resolve({ path: existPath, filename: filename });
-          if (onProgress) {
-            const eventProgress = {
-              progress: 100,
-              filename,
-              path: destination,
-            };
-            onProgress(eventProgress);
-          }
           return;
         }
+        const writeStream = createWriteStream(destination);
 
         const response = await fetch(url);
         if (!response.ok) {
@@ -145,8 +141,6 @@ export const writeFileFromUrl = (
         }
 
         const totalSize = parseInt(response.headers.get("content-length"), 10);
-
-        const writeStream = createWriteStream(destination);
 
         response.body.pipe(writeStream);
         response.body.on("data", (chunk) => {
@@ -163,12 +157,16 @@ export const writeFileFromUrl = (
             onProgress(eventProgress);
           }
         });
+        response.body.on("end", () => {
+          console.log("finish download:", destination);
+          writeStream.end();
+        });
 
         writeStream.on("finish", () => {
-          console.log("finish download:", destination);
           resolve({ path: destination, filename: filename });
         });
         writeStream.on("error", (err) => {
+          writeStream.end();
           reject(err);
         });
       } catch (error) {
@@ -207,7 +205,8 @@ export const getDownloadedExportFiles = async (
               file.src,
               `${file.filename}`,
               destination,
-              logProgressDownload
+              logProgressDownload,
+              false
             );
             downloadedFiles.push({ ...file, src: snapshot.path });
           }
@@ -239,4 +238,28 @@ export const getTotalFilesSizeFromUrl = (files = []) => {
 export const extractOvhFileName = (ovhFileLink = "") => {
   const ovhUri = `${OVH_CREDENTIALS.endpoint}/${OVH_CONTAINER}/`;
   return ovhFileLink.replace(encodeURI(ovhUri), "").trim();
+};
+
+const skipDownload = (destination, filename, onProgress) => {
+  return new Promise((resolve) => {
+    if (existsSync(destination)) {
+      const existPath = destination;
+      const existFileSize = statSync(existPath);
+      console.log("download has been skip:", destination);
+
+      resolve({
+        path: existPath,
+        filename: filename,
+        size: existFileSize.size,
+      });
+      if (onProgress) {
+        const eventProgress = {
+          progress: 100,
+          filename,
+          path: destination,
+        };
+        onProgress(eventProgress);
+      }
+    }
+  });
 };
