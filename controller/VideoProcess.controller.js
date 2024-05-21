@@ -2,10 +2,7 @@ import { chmodSync, existsSync, mkdirSync } from "fs";
 import { DIRECTORY_SEPARATOR, upload_dir } from "../config/constant.config.js";
 import { fileInsvObject } from "../config/fileTest.config.js";
 import { ws } from "../index.js";
-import {
-  darwinChmod,
-  generate_thumbnail,
-} from "../services/FFmpegCameraProcess.services.js";
+import { generate_thumbnail } from "../services/FFmpegCameraProcess.services.js";
 import {
   generateGoprofilesObject,
   generateInsvfilesObject,
@@ -19,7 +16,7 @@ import {
   logVideoProcess,
 } from "../services/FullProcess.services.js";
 import ObjectFileTest from "../services/ObjectFileTest.services.js";
-import { LogSystem } from "../services/LogSystem.services.js";
+import { injectVideo360Metadata } from "../services/FFmpegExportProcess.services.js";
 
 export const insv_process = (req, res) => {
   try {
@@ -161,6 +158,22 @@ export const getMetadataFile = async (req, res) => {
     const result = await extract_metadata(inputPath);
     res.json(result);
   } catch (error) {
+    return res.status(500).json({
+      message: error?.message,
+    });
+  }
+};
+
+export const injectMetaDataTest = async (req, res) => {
+  try {
+    const input = req.body.inputPath;
+    const output = req.body.outputPath;
+
+    const result = await injectVideo360Metadata(input, output);
+
+    res.json({ message: "Command exécuté", result });
+  } catch (error) {
+    console.log(error.message);
     return res.status(500).json({
       message: error?.message,
     });

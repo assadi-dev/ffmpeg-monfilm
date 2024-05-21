@@ -9,6 +9,7 @@ room */
 
 import { chmodSync, existsSync, mkdirSync, rm, stat } from "fs";
 import {
+  BINARY_DIR,
   DIRECTORY_SEPARATOR,
   upload_dir,
   WEBSOCKET_PATH,
@@ -23,6 +24,7 @@ import {
   logErrorVideoProcess,
   logVideoProcess,
 } from "./FullProcess.services.js";
+import { spawnSync } from "child_process";
 
 /**
  * //Découpage des parties des videos
@@ -927,4 +929,33 @@ export const delete_workspace_export = (path) => {
       console.log("File deleted successfully");
     });
   }
+};
+
+/**
+ * Injection des metadata à la video afin d'avoir  la vue 360
+ * @param {string} input chemin du fichier d'entrée
+ * @param {string} output chemin du fichier de sortie
+ * @returns
+ */
+export const injectVideo360Metadata = (input, output) => {
+  return new Promise((resolve, reject) => {
+    (async () => {
+      const spatialMediaExecutable = `${BINARY_DIR}${DIRECTORY_SEPARATOR}spatialmedia`;
+      const pythonProcess = spawnSync("python", [
+        spatialMediaExecutable,
+        "-i",
+        input,
+        output,
+      ]);
+      const error = pythonProcess.stderr?.toString()?.trim();
+      if (error) {
+        console.log(error);
+        logErrorVideoProcess("Injection Métadonnée 360", error);
+        reject({ message: error });
+      }
+      const result = pythonProcess.stdout?.toString()?.trim();
+      logVideoProcess("Injection Métadonnée 360", result);
+      resolve(result);
+    })();
+  });
 };

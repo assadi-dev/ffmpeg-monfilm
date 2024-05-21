@@ -3,6 +3,7 @@ import {
   compress_test,
   getMetadataFile,
   gopro_process,
+  injectMetaDataTest,
   insv_process,
   test_gopro_process,
   test_insv_process,
@@ -23,6 +24,7 @@ videoProcessRouter.get("/test/process/insv", test_insv_process);
 videoProcessRouter.get("/test/process/gopro", test_gopro_process);
 videoProcessRouter.post("/test/compress", compress_test);
 videoProcessRouter.post("/test/metadata", getMetadataFile);
+videoProcessRouter.post("/test/injectMetadata", injectMetaDataTest);
 
 //Upload
 videoProcessRouter.post("/upload/gopro", upload.any("file"), upload_gopro);

@@ -23,6 +23,11 @@ export const DIRECTORY_SEPARATOR = getDelimiter();
  */
 export const upload_dir = `${__dirname}${DIRECTORY_SEPARATOR}uploads`;
 
+/**
+ * Emplacement du dossier bin contenant les fichiers executable
+ */
+export const BINARY_DIR = `${__dirname}${DIRECTORY_SEPARATOR}bin`;
+
 export const domain = `${process.env.SERVER_HOST}:${process.env.PORT || 5500}`;
 
 //TODO : Fix Temporaire pour la suppression des fichiers .360 et .insv
