@@ -5,6 +5,7 @@ import {
   files_mapping_no_audio,
   delete_workspace_export,
   create_workspace_export,
+  injectVideo360Metadata,
 } from "../services/FFmpegExportProcess.services.js";
 import OvhObjectStorageServices from "../services/OvhObjectStorage.services.js";
 import {
@@ -16,12 +17,13 @@ import {
   WEBSOCKET_PATH,
 } from "../config/constant.config.js";
 import { ws } from "../index.js";
-import { existsSync, statSync } from "fs";
+import { existsSync, renameSync, statSync } from "fs";
 import { clean_file_process } from "../services/FFmpegCameraProcess.services.js";
 import {
   getDownloadedExportFiles,
   getTotalFilesSizeFromUrl,
   postDelayed,
+  removeFile,
 } from "../services/Filestype.services.js";
 import fetch from "node-fetch";
 import { toSlugify } from "../services/Filestype.services.js";
@@ -181,10 +183,23 @@ export const generate_finalOutput = async (
         maxDuration
       );
     }
+
+    console.log("Injection metadata 360");
+    const injectOutput = final_result.replace(".mp4", "-injected-metadata.mp4");
+    await injectVideo360Metadata(final_result, injectOutput);
+    removeFile(final_result);
+    const final_injected = injectOutput.replace(
+      "-injected-metadata.mp4",
+      ".mp4"
+    );
+    renameSync(injectOutput, final_injected);
+
+    console.log("Metadata 360 injected !");
     const remoteFilename = `${timestamp()}_${projectSlug}.mp4`;
-    const FinalObject = { filePath: final_result, remoteFilename };
+    const FinalObject = { filePath: final_injected, remoteFilename };
+
     const url = await upload_ovh(room, FinalObject);
-    //Update UserProject
+
     const { size } = statSync(final_result);
 
     //Envoie ovh
