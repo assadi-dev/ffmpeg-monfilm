@@ -263,3 +263,12 @@ const skipDownload = (destination, filename, onProgress) => {
     }
   });
 };
+
+/**
+ *
+ * @returns {string} retourne la date et l'heur du jour en millisecond
+ */
+export const getTimestamp = () => {
+  const date = new Date();
+  return date.getTime();
+};

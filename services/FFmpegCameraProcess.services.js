@@ -631,7 +631,7 @@ export const generate_thumbnail = (input, destination) => {
         logVideoProcess("Génération des thumbnail", `finish extract frame`);
         const files = readdirSync(destination);
         const jpegOutput = `${destination}${DIRECTORY_SEPARATOR}thumbnail.jpeg`;
-        const finalPic = await concate_frames(
+        const finalPic = await concat_frames_to_file(
           `${destination}${DIRECTORY_SEPARATOR}%d.jpeg`,
           files.length,
           jpegOutput
@@ -707,12 +707,47 @@ const emitProgress = (progress, room, status) => {
 
 /**
  * concatenation des frame jpeg
+ * @param {string} framesDir
+ * @param {string} totalFrames
+ * @param {string} output
+ * @returns retourne l'emplacement de l'image
+ */
+export const concat_frames_to_file = (framesDir, totalFrames, output) => {
+  return new Promise((resolve) => {
+    const { ffmpeg } = new FFmpegInstance();
+
+    if (totalFrames > 60) totalFrames = 220;
+
+    try {
+      ffmpeg
+        .input(framesDir)
+        .complexFilter(`scale=200:200,tile=${totalFrames}x1`)
+        .outputOptions(["-frames:v 1"])
+        .output(`${output}`)
+        .run();
+
+      ffmpeg.on("end", () => {
+        logVideoProcess(`Concat frames","finish concat frames`);
+        resolve(output);
+      });
+
+      ffmpeg.on("error", (err) => {
+        console.log(err);
+        logErrorVideoProcess(`Concat frames","Erreur: ${err.message}`);
+      });
+    } catch (error) {
+      console.log(error);
+    }
+  });
+};
+/**
+ * concatenation des frame jpeg
  * @param {*} framesDir
  * @param {*} totalFrames
  * @param {*} output
  * @returns retourne l'image en base64
  */
-export const concate_frames = (framesDir, totalFrames, output) => {
+export const concat_frames_to_base64 = (framesDir, totalFrames, output) => {
   return new Promise((resolve, reject) => {
     const { ffmpeg } = new FFmpegInstance();
 

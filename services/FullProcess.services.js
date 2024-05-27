@@ -1,4 +1,5 @@
 import {
+  CONTAINER_EVASION,
   DIRECTORY_SEPARATOR,
   EVASION_API,
   FTP_CREDENTIALS,
@@ -24,7 +25,7 @@ import {
 import { chmodSync, existsSync, mkdirSync, unlinkSync } from "fs";
 import FTPServices from "./FTPServices.services.js";
 import OvhObjectStorageServices from "./OvhObjectStorage.services.js";
-import { postDelayed, removeFile } from "./Filestype.services.js";
+import { getTimestamp, postDelayed, removeFile } from "./Filestype.services.js";
 import { DEFAULT_DELETE_FILE_DELAY } from "../config/event.js";
 import { LogSystem } from "./LogSystem.services.js";
 import FFmpegInstance from "./FFmpegInstance.services.js";
@@ -70,6 +71,7 @@ export const full_process_gopro = async (idProjectVideo, fileObject) => {
 
     const high_quality = equirectangular.output;
     const low_quality = compress_response.output;
+
     const duration = compress_response.duration; //await extract_duration(low_quality);
 
     //Envoie FTP
@@ -93,8 +95,18 @@ export const full_process_gopro = async (idProjectVideo, fileObject) => {
       //if (platform == "darwin") await darwinChmod(thumbDestination);
     }
 
-    const thumbnails = await generate_thumbnail(low_quality, thumbDestination);
+    const thumbnailsPath = await generate_thumbnail(
+      low_quality,
+      thumbDestination
+    );
+    //Upload vignette vers ovh
+    console.log("upload thumbnail to ovh");
+    const thumbnails = await upload_thumbnail_to_ovh(
+      thumbnailsPath,
+      folderName + ".jpeg"
+    );
     remove_file_delayed(low_quality, DEFAULT_DELETE_FILE_DELAY);
+
     //Envoie OVH
     console.log("start send OVH");
     logVideoProcess("Traitement video", `start send OVH`);
@@ -455,6 +467,42 @@ const upload_ovh = (room, fileObjetct) => {
   });
 };
 
+/**
+ *
+ * @param {string} thumbnailPath
+ * @param {string} thumbnailFileName
+ * @return {Promise<string>} retourne le lien ovh du thumbnail
+ *
+ */
+const upload_thumbnail_to_ovh = (thumbnailPath, thumbnailFileName) => {
+  return new Promise((resolve) => {
+    try {
+      const ovhStorageServices = new OvhObjectStorageServices(OVH_CREDENTIALS);
+      ovhStorageServices.setContainer(CONTAINER_EVASION);
+
+      (async () => {
+        if (!existsSync(thumbnailPath)) {
+          console.log(thumbnailPath.toString());
+          console.log("Fichier introuvable");
+          throw new Error("File not found");
+        }
+
+        await ovhStorageServices.connect();
+        const ovhLink = await ovhStorageServices.singleUploadByPath(
+          thumbnailPath,
+          thumbnailFileName
+        );
+        resolve(ovhLink);
+      })();
+    } catch (error) {
+      console.log("Error upload thumbnail: ", error.message);
+      logErrorVideoProcess(
+        "Error Upload thumbnail OVH",
+        `Erreur: ${error.message}`
+      );
+    }
+  });
+};
 /**
  * Met le jsonStep du projet en progress
  * @param {*} idProjectVideo
