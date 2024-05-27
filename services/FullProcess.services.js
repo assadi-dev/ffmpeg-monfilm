@@ -105,6 +105,7 @@ export const full_process_gopro = async (idProjectVideo, fileObject) => {
       thumbnailsPath,
       folderName + ".jpeg"
     );
+    console.log("Finish upload thumbnail");
     remove_file_delayed(low_quality, DEFAULT_DELETE_FILE_DELAY);
 
     //Envoie OVH
@@ -482,7 +483,6 @@ const upload_thumbnail_to_ovh = (thumbnailPath, thumbnailFileName) => {
 
       (async () => {
         if (!existsSync(thumbnailPath)) {
-          console.log(thumbnailPath.toString());
           console.log("Fichier introuvable");
           throw new Error("File not found");
         }
@@ -493,6 +493,9 @@ const upload_thumbnail_to_ovh = (thumbnailPath, thumbnailFileName) => {
           thumbnailFileName
         );
         resolve(ovhLink);
+        logVideoProcess(
+          `Upload thumbnail", "Finish upload thumbnail ovh: ${ovhLink}`
+        );
       })();
     } catch (error) {
       console.log("Error upload thumbnail: ", error.message);

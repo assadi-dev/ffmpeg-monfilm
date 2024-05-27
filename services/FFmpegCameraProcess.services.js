@@ -631,10 +631,11 @@ export const generate_thumbnail = (input, destination) => {
         logVideoProcess("Génération des thumbnail", `finish extract frame`);
         const files = readdirSync(destination);
         const jpegOutput = `${destination}${DIRECTORY_SEPARATOR}thumbnail.jpeg`;
+        const pngOutput = `${destination}${DIRECTORY_SEPARATOR}thumbnail.png`;
         const finalPic = await concat_frames_to_file(
           `${destination}${DIRECTORY_SEPARATOR}%d.jpeg`,
           files.length,
-          jpegOutput
+          pngOutput
         );
         resolve(finalPic);
       });
@@ -716,7 +717,7 @@ export const concat_frames_to_file = (framesDir, totalFrames, output) => {
   return new Promise((resolve) => {
     const { ffmpeg } = new FFmpegInstance();
 
-    if (totalFrames > 60) totalFrames = 220;
+    // if (totalFrames > 60) totalFrames = 220;
 
     try {
       ffmpeg
