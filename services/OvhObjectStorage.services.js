@@ -367,4 +367,39 @@ export default class OvhObjectStorageServices {
     const dt = new Date();
     return dt.getTime();
   };
+
+  /**
+   * upload simple des fichiers vers ovh
+   * @param {string} path emplacement du fichier
+   * @param {string} remoteFilename nom du fichier
+   * @return {Promise<string>} retourne le lien ovh du fichier
+   */
+  singleUploadByPath(path, remoteFilename) {
+    return new Promise((resolve) => {
+      this.clientStorage.uploadFile(
+        this.container,
+        remoteFilename,
+        path,
+        (err, resp) => {
+          if (err) {
+            // handle error
+            console.log(err);
+          }
+          /**
+           * Response details:
+           * - resp.headers
+           * - resp.statusCode
+           * - resp.body
+           **/
+          if (resp.statusCode === 201) {
+            const url = `${this.endpoint}/${encodeURI(
+              this.container
+            )}/${remoteFilename}`;
+
+            resolve(url);
+          }
+        }
+      );
+    });
+  }
 }

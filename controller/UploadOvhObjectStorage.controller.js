@@ -3,6 +3,7 @@ import {
   __dirname,
   OVH_CREDENTIALS,
   upload_dir,
+  CONTAINER_EVASION,
 } from "../config/constant.config.js";
 import OvhObjectStorageServices from "../services/OvhObjectStorage.services.js";
 import { config } from "dotenv";
@@ -36,5 +37,26 @@ export const upload_ovh = async (req, res) => {
     const message = error.message;
     console.error("Upload error:", message);
     res.json({ message });
+  }
+};
+
+export const upload_single_ovh = async (req, res) => {
+  try {
+    const ovhStorageServices = new OvhObjectStorageServices(OVH_CREDENTIALS);
+
+    const filePath = req.body.filePath;
+    const remoteFilename = req.body.remoteFilename;
+    const containerName = CONTAINER_EVASION;
+    ovhStorageServices.setContainer(containerName);
+
+    await ovhStorageServices.connect();
+    const url = await ovhStorageServices.singleUploadByPath(
+      filePath,
+      remoteFilename
+    );
+
+    res.json(url);
+  } catch (error) {
+    console.log(error);
   }
 };

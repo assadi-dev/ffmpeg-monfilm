@@ -15,6 +15,7 @@ import {
   export_project,
   merges_input,
 } from "../controller/VideoExport.controller.js";
+import { upload_single_ovh } from "../controller/UploadOvhObjectStorage.controller.js";
 
 const videoProcessRouter = Router();
 
@@ -28,6 +29,7 @@ videoProcessRouter.post("/test/injectMetadata", injectMetaDataTest);
 
 //Upload
 videoProcessRouter.post("/upload/gopro", upload.any("file"), upload_gopro);
+videoProcessRouter.post("/upload/ovh/single", upload_single_ovh);
 
 //Process
 videoProcessRouter.post("/process/insv", insv_process);
