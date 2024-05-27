@@ -356,7 +356,17 @@ export const full_process_insv_x3 = async (idProjectVideo, fileObject) => {
       //if (platform == "darwin") await darwinChmod(thumbDestination);
     }
 
-    const thumbnails = await generate_thumbnail(low_quality, thumbDestination);
+    const thumbnailsPath = await generate_thumbnail(
+      low_quality,
+      thumbDestination
+    );
+    //Upload vignette vers ovh
+    console.log("upload thumbnail to ovh");
+    const thumbnails = await upload_thumbnail_to_ovh(
+      thumbnailsPath,
+      folderName + ".jpeg"
+    );
+    console.log("Finish upload thumbnail");
     remove_file_delayed(low_quality, DEFAULT_DELETE_FILE_DELAY);
 
     //Envoie OVH
