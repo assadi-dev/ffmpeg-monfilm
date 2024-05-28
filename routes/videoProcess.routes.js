@@ -24,6 +24,7 @@ videoProcessRouter.get("/process/test", test_ffmpeg);
 videoProcessRouter.get("/test/process/insv", test_insv_process);
 videoProcessRouter.get("/test/process/gopro", test_gopro_process);
 videoProcessRouter.post("/test/compress", compress_test);
+
 videoProcessRouter.post("/test/metadata", getMetadataFile);
 videoProcessRouter.post("/test/injectMetadata", injectMetaDataTest);
 
