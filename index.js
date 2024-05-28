@@ -17,13 +17,15 @@ const port = process.env.PORT || 5500;
 const swaggerOptions = {
 	swaggerDefinition: {
 		info: {
-			title: "Video Converter API",
-			description: "API for video converter",
+			title: "FFMPEG Traitement Video API",
+			description:
+				"API for video converter. Attention : base URL is http://localhost:5500/api",
 			contact: {
 				name: "FFMPEG Traitement Video",
 			},
 			servers: ["http://localhost:5500"],
 		},
+		basePath: "/api",
 	},
 	apis: ["./routes/*.js"],
 };

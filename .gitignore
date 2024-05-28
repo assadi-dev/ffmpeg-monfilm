@@ -5,3 +5,4 @@ uploads/*
 bin/ffmpeg/*
 public/*
 package-lock.json
+**/__pycache__/

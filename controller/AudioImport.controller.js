@@ -13,117 +13,111 @@ import {
   clean_file_process,
   extract_duration,
 } from "../services/FFmpegCameraProcess.services.js";
+import process from "process";
 
 export const import_audio = (req, res) => {
-  try {
-    const room = req.body?.room?.toString();
-    const idProjectVideo = req.body?.idProjectVideo;
-    const audioFiles = req.body.files;
+	try {
+		const room = req.body?.room?.toString();
+		const idProjectVideo = req.body?.idProjectVideo;
+		const audioFiles = req.body.files;
 
-    const filesProcess = [];
+		const filesProcess = [];
 
-    for (const audio of audioFiles) {
-      const tmp_audio = { ...audio };
+		for (const audio of audioFiles) {
+			const tmp_audio = { ...audio };
 
-      tmp_audio.filepath = tmp_audio.path.replace(
-        "uploads/",
-        `${upload_dir}${DIRECTORY_SEPARATOR}`
-      );
+			tmp_audio.filepath = tmp_audio.path.replace(
+				"uploads/",
+				`${upload_dir}${DIRECTORY_SEPARATOR}`
+			);
 
-      const result = upload_audio_process(room, tmp_audio, idProjectVideo).then(
-        async (res) => {
-          const { url, filename, size } = res;
-          const duration = await extract_duration(tmp_audio.filepath);
-          const audioData = {
-            filename,
-            urlAudio: url,
-            duration: duration || tmp_audio.duration,
-          };
-          const resp = await updateAudioMade360(idProjectVideo, audioData);
-          const audioFile = await resp.json();
+			const result = upload_audio_process(room, tmp_audio).then(async (res) => {
+				const { url, filename } = res;
+				const duration = await extract_duration(tmp_audio.filepath);
+				const audioData = {
+					filename,
+					urlAudio: url,
+					duration: duration || tmp_audio.duration,
+				};
+				const resp = await updateAudioMade360(idProjectVideo, audioData);
+				const audioFile = await resp.json();
 
-          ws.of(process.env.WEBSOCKET_PATH)
-            .to(room)
-            .emit("audio-import-data", audioFile);
-        }
-      );
+				ws
+					.of(process.env.WEBSOCKET_PATH)
+					.to(room)
+					.emit("audio-import-data", audioFile);
+			});
 
-      filesProcess.push(result);
-    }
+			filesProcess.push(result);
+		}
 
-    res.json({
-      idProjectVideo,
-      room,
-      files: audioFiles,
-      count: audioFiles.length,
-    });
-  } catch (error) {
-    const message = error.message;
-    console.error("Upload error:", message);
-    res.json({ message });
-  }
+		res.json({
+			idProjectVideo,
+			room,
+			files: audioFiles,
+			count: audioFiles.length,
+		});
+	} catch (error) {
+		const message = error.message;
+		console.error("Upload error:", message);
+		res.json({ message });
+	}
 };
 
-const upload_audio_process = async (room, audioObject, idProjectVideo) => {
-  const status = {
-    id: audioObject.id,
-    step: "ovh",
-    message: "start",
-    filename: audioObject.filename,
-    progress: 0,
-    url: "",
-    error: "",
-    type: "audio",
-  };
+const upload_audio_process = async (room, audioObject) => {
+	const status = {
+		id: audioObject.id,
+		step: "ovh",
+		message: "start",
+		filename: audioObject.filename,
+		progress: 0,
+		url: "",
+		error: "",
+		type: "audio",
+	};
 
-  const clientStorage = tinyStorageClient(OVH_CREDENTIALS);
-  const { filepath, filename } = audioObject;
-  const { size } = statSync(filepath);
-  const readStream = createReadStream(filepath);
+	const clientStorage = tinyStorageClient(OVH_CREDENTIALS);
+	const { filepath, filename } = audioObject;
+	const { size } = statSync(filepath);
+	const readStream = createReadStream(filepath);
 
-  return new Promise((resolve) => {
-    try {
-      clientStorage.connection(() => {
-        const stream = () => {
-          let read = 0;
-          readStream.on("data", (chunk) => {
-            read += chunk.length;
-            const progress = Math.round((100 * read) / size);
-            listen(room, status, progress);
-          });
+	return new Promise((resolve) => {
+		try {
+			clientStorage.connection(() => {
+				const stream = () => {
+					let read = 0;
+					readStream.on("data", (chunk) => {
+						read += chunk.length;
+						const progress = Math.round((100 * read) / size);
+						listen(room, status, progress);
+					});
 
-          return readStream;
-        };
+					return readStream;
+				};
 
-        clientStorage.uploadFile(
-          CONTAINER_EVASION,
-          filename,
-          stream,
-          (err, res) => {
-            if (err) {
-              return "Error send file OVH";
-            }
-            // console.log("code: ", res.statusCode);
-            const url = `${OVH_CREDENTIALS.endpoint}/${encodeURI(
-              CONTAINER_EVASION
-            )}/${filename}`;
+				clientStorage.uploadFile(CONTAINER_EVASION, filename, stream, (err) => {
+					if (err) {
+						return "Error send file OVH";
+					}
+					const url = `${OVH_CREDENTIALS.endpoint}/${encodeURI(
+						CONTAINER_EVASION
+					)}/${filename}`;
 
-            finish(room, status, filepath);
-            status.progress = 100;
-            ws.of(WEBSOCKET_PATH).to(room).emit("end", status);
+					finish(room, status, filepath);
+					status.progress = 100;
+					ws.of(WEBSOCKET_PATH).to(room).emit("end", status);
 
-            resolve({
-              url: url,
-              filename,
-              size,
-            });
-          }
-        );
-      });
-    } catch (error) {
-      throw new Error(error.message);
-    }
-  });
+					resolve({
+						url: url,
+						filename,
+						size,
+					});
+				});
+			});
+		} catch (error) {
+			throw new Error(error.message);
+		}
+	});
 };
 
 const listen = (room, status, progress) => {

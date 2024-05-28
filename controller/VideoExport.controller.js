@@ -61,180 +61,171 @@ export const export_project = (req, res) => {
 };
 
 export const merges_input = (req, res) => {
-  try {
-    const { scenes } = req.body;
-    const outputFile = "video-concatenate.mp4";
-    //concatenate_inputs(scenes, outputFile);
+	try {
+		const { scenes } = req.body;
 
-    const content = { message: "concatenation en cours", scenes };
-    res.json(content);
-  } catch (error) {
-    return res.status(500).json({
-      message: error?.message,
-    });
-  }
+		const content = { message: "concatenation en cours", scenes };
+		res.json(content);
+	} catch (error) {
+		return res.status(500).json({
+			message: error?.message,
+		});
+	}
 };
 
 export const generate_finalOutput = async (
-  room,
-  scenes,
-  audios,
-  projectName,
-  maxDuration,
-  idProjectVideo
+	room,
+	scenes,
+	audios,
+	projectName,
+	maxDuration,
+	idProjectVideo
 ) => {
-  try {
-    console.log(`Export project: ${idProjectVideo}`);
-    logVideoProcess(
-      `Export project: ${idProjectVideo}`,
-      `Start export process project: ${idProjectVideo} room: ${room}`
-    );
+	try {
+		console.log(`Export project: ${idProjectVideo}`);
+		logVideoProcess(
+			`Export project: ${idProjectVideo}`,
+			`Start export process project: ${idProjectVideo} room: ${room}`
+		);
 
-    const projectSlug = toSlugify(projectName);
+		const projectSlug = toSlugify(projectName);
 
-    const export_file = `${upload_dir}${DIRECTORY_SEPARATOR}export_file${DIRECTORY_SEPARATOR}${projectSlug}`;
+		const export_file = `${upload_dir}${DIRECTORY_SEPARATOR}export_file${DIRECTORY_SEPARATOR}${projectSlug}`;
 
-    if (existsSync(export_file)) {
-      delete_workspace_export(export_file);
-    }
-    await postDelayed(3000);
-    create_workspace_export(export_file);
+		if (existsSync(export_file)) {
+			delete_workspace_export(export_file);
+		}
+		await postDelayed(3000);
+		create_workspace_export(export_file);
 
-    console.log("Téléchargement des fichiers");
-    logVideoProcess(
-      `Export project: ${idProjectVideo}`,
-      `Téléchargement des fichiers videos`
-    );
+		console.log("Téléchargement des fichiers");
+		logVideoProcess(
+			`Export project: ${idProjectVideo}`,
+			`Téléchargement des fichiers videos`
+		);
 
-    let finishProgress = 0;
+		let finishProgress = 0;
 
-    /**
-     * Notifie la progression du téléchargement
-     * @param {Object} fileDataProgress objet contenant la progression du fichier
-     * @param {number} finishProgress  stockage des progression terminé
-     */
-    const getProgressDownloaded = async (fileDataProgress) => {
-      const totalProgress = scenes.length * 100;
-      fileDataProgress.progress >= 100 ? (finishProgress += 100) : 0;
-      const avgProgress = Math.floor(
-        ((finishProgress + fileDataProgress.progress) / totalProgress) * 100
-      );
-      let finalProgress = avgProgress >= 100 ? 100 : avgProgress;
+		/**
+		 * Notifie la progression du téléchargement
+		 * @param {Object} fileDataProgress objet contenant la progression du fichier
+		 * @param {number} finishProgress  stockage des progression terminé
+		 */
+		const getProgressDownloaded = async (fileDataProgress) => {
+			const totalProgress = scenes.length * 100;
+			fileDataProgress.progress >= 100 ? (finishProgress += 100) : 0;
+			const avgProgress = Math.floor(
+				((finishProgress + fileDataProgress.progress) / totalProgress) * 100
+			);
+			let finalProgress = avgProgress >= 100 ? 100 : avgProgress;
 
-      const status = {
-        step: "download",
-        progress: finalProgress,
-      };
+			const status = {
+				step: "download",
+				progress: finalProgress,
+			};
 
-      ws.of(WEBSOCKET_PATH).to(room).emit("export-project-video", status);
-    };
+			ws.of(WEBSOCKET_PATH).to(room).emit("export-project-video", status);
+		};
 
-    const filesVideo = await getDownloadedExportFiles(
-      scenes,
-      export_file,
-      getProgressDownloaded
-    );
-    scenes = filesVideo;
+		const filesVideo = await getDownloadedExportFiles(
+			scenes,
+			export_file,
+			getProgressDownloaded
+		);
+		scenes = filesVideo;
 
-    logVideoProcess(
-      `Export project: ${idProjectVideo}`,
-      `Concatenation des fichiers videos`
-    );
+		logVideoProcess(
+			`Export project: ${idProjectVideo}`,
+			`Concatenation des fichiers videos`
+		);
 
-    const mergedVideos = await concate_process_videos(
-      room,
-      scenes,
-      projectSlug
-    );
+		const mergedVideos = await concate_process_videos(room, scenes, projectSlug);
 
-    let final_result = "";
+		let final_result = "";
 
-    if (audios.length == 0) {
-      console.log("Mapping fichiers video no audio");
-      const finalOutput = `${projectSlug}.mp4`;
-      const final_video_input = await files_mapping_no_audio(
-        mergedVideos,
-        projectSlug,
-        finalOutput,
-        room,
-        maxDuration
-      );
-      final_result = final_video_input;
-    } else {
-      console.log("Concatenation des fichiers audios");
-      const filesAudio = await getDownloadedExportFiles(audios, export_file);
-      audios = filesAudio;
+		if (audios.length == 0) {
+			console.log("Mapping fichiers video no audio");
+			const finalOutput = `${projectSlug}.mp4`;
+			const final_video_input = await files_mapping_no_audio(
+				mergedVideos,
+				projectSlug,
+				finalOutput,
+				room,
+				maxDuration
+			);
+			final_result = final_video_input;
+		} else {
+			console.log("Concatenation des fichiers audios");
+			const filesAudio = await getDownloadedExportFiles(audios, export_file);
+			audios = filesAudio;
 
-      const final_audio_output = await concate_process_audio(
-        room,
-        audios,
-        projectSlug
-      );
+			const final_audio_output = await concate_process_audio(
+				room,
+				audios,
+				projectSlug
+			);
 
-      console.log("Mapping fichiers video et audios");
-      const finalOutput = `${projectSlug}.mp4`;
-      final_result = await files_mapping(
-        mergedVideos,
-        final_audio_output,
-        projectSlug,
-        finalOutput,
-        room,
-        maxDuration
-      );
-    }
+			console.log("Mapping fichiers video et audios");
+			const finalOutput = `${projectSlug}.mp4`;
+			final_result = await files_mapping(
+				mergedVideos,
+				final_audio_output,
+				projectSlug,
+				finalOutput,
+				room,
+				maxDuration
+			);
+		}
 
-    console.log("Injection metadata 360");
-    const injectOutput = final_result.replace(".mp4", "-injected-metadata.mp4");
-    await injectVideo360Metadata(final_result, injectOutput);
-    removeFile(final_result);
-    const final_injected = injectOutput.replace(
-      "-injected-metadata.mp4",
-      ".mp4"
-    );
-    renameSync(injectOutput, final_injected);
+		console.log("Injection metadata 360");
+		const injectOutput = final_result.replace(".mp4", "-injected-metadata.mp4");
+		await injectVideo360Metadata(final_result, injectOutput);
+		removeFile(final_result);
+		const final_injected = injectOutput.replace("-injected-metadata.mp4", ".mp4");
+		renameSync(injectOutput, final_injected);
 
-    console.log("Metadata 360 injected !");
-    const remoteFilename = `${timestamp()}_${projectSlug}.mp4`;
-    const FinalObject = { filePath: final_injected, remoteFilename };
+		console.log("Metadata 360 injected !");
+		const remoteFilename = `${timestamp()}_${projectSlug}.mp4`;
+		const FinalObject = { filePath: final_injected, remoteFilename };
 
-    const url = await upload_ovh(room, FinalObject);
+		const url = await upload_ovh(room, FinalObject);
 
-    const { size } = statSync(final_result);
+		const { size } = statSync(final_result);
 
-    //Envoie ovh
-    console.log("send ovh");
-    const resProject = await updateUserProject(
-      idProjectVideo,
-      remoteFilename,
-      url,
-      maxDuration,
-      size
-    );
+		//Envoie ovh
+		console.log("send ovh");
+		const resProject = await updateUserProject(
+			idProjectVideo,
+			remoteFilename,
+			url,
+			maxDuration,
+			size
+		);
 
-    if (resProject.ok) {
-      console.log("Project has been updated with success");
-      postDelayed(10000, () => delete_workspace_export(export_file));
-      logVideoProcess();
-    } else {
-      resProject.json().then((errorMessage) => {
-        console.log("Error update project", errorMessage);
-        logErrorVideoProcess(
-          "Export project",
-          "Error update project: " + errorMessage
-        );
-      });
-    }
-  } catch (error) {
-    console.log("error", error);
-    console.log(room);
-    ws.of(WEBSOCKET_PATH).to(room).emit("export-error", error.message);
-    logErrorVideoProcess("Export project", error.message);
-  }
+		if (resProject.ok) {
+			console.log("Project has been updated with success");
+			postDelayed(10000, () => delete_workspace_export(export_file));
+			logVideoProcess();
+		} else {
+			resProject.json().then((errorMessage) => {
+				console.log("Error update project", errorMessage);
+				logErrorVideoProcess(
+					"Export project",
+					"Error update project: " + errorMessage
+				);
+			});
+		}
+	} catch (error) {
+		console.log("error", error);
+		console.log(room);
+		ws.of(WEBSOCKET_PATH).to(room).emit("export-error", error.message);
+		logErrorVideoProcess("Export project", error.message);
+	}
 };
 
 //Utilitaire
-const retrieveDuration = (inputs) => {
-  return inputs.reduce((a, b) => Math.ceil(a + b));
+export const retrieveDuration = (inputs) => {
+	return inputs.reduce((a, b) => Math.ceil(a + b));
 };
 
 const calculatSumDuration = (inputs = []) => {
