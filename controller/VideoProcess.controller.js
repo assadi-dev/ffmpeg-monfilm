@@ -1,21 +1,18 @@
 import { chmodSync, existsSync, mkdirSync } from "fs";
 import { DIRECTORY_SEPARATOR, upload_dir } from "../config/constant.config.js";
-import { fileInsvObject } from "../config/fileTest.config.js";
-import { ws } from "../index.js";
 import { generate_thumbnail } from "../services/FFmpegCameraProcess.services.js";
 import {
-  generateGoprofilesObject,
-  generateInsvfilesObject,
+	generateGoprofilesObject,
+	generateInsvfilesObject,
 } from "../services/Filestype.services.js";
 import {
-  extract_metadata,
-  full_process_gopro,
-  full_process_insv,
-  full_process_insv_x3,
-  logErrorVideoProcess,
-  logVideoProcess,
+	extract_metadata,
+	full_process_gopro,
+	full_process_insv,
+	full_process_insv_x3,
+	logErrorVideoProcess,
+	logVideoProcess,
 } from "../services/FullProcess.services.js";
-import ObjectFileTest from "../services/ObjectFileTest.services.js";
 import { injectVideo360Metadata } from "../services/FFmpegExportProcess.services.js";
 
 export const insv_process = (req, res) => {

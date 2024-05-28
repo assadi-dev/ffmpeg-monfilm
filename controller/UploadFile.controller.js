@@ -1,16 +1,12 @@
 import {
-  DIRECTORY_SEPARATOR,
-  __dirname,
-  domain,
-  upload_dir,
+	DIRECTORY_SEPARATOR,
+	domain,
+	upload_dir,
 } from "../config/constant.config.js";
 import TinyStorage from "tiny-storage-client";
-import fs, { createWriteStream, writeFileSync } from "fs";
+import fs from "fs";
 
 import fetch from "node-fetch";
-import request from "request";
-import { writeFile } from "fs/promises";
-import path from "path";
 
 export const upload_gopro = (req, res) => {
   const idProjectvideo = req.body?.idProjectvideo;

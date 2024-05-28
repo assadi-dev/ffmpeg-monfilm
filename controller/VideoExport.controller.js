@@ -20,10 +20,9 @@ import { ws } from "../index.js";
 import { existsSync, renameSync, statSync } from "fs";
 import { clean_file_process } from "../services/FFmpegCameraProcess.services.js";
 import {
-  getDownloadedExportFiles,
-  getTotalFilesSizeFromUrl,
-  postDelayed,
-  removeFile,
+	getDownloadedExportFiles,
+	postDelayed,
+	removeFile,
 } from "../services/Filestype.services.js";
 import fetch from "node-fetch";
 import { toSlugify } from "../services/Filestype.services.js";
