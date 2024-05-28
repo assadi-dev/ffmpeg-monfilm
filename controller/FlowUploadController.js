@@ -4,14 +4,8 @@ import fs, { existsSync } from "fs";
 import { toSlugify } from "../services/Filestype.services.js";
 
 export const flow_upload = (req, res) => {
-	const {
-		flowChunkNumber,
-		// flowChunkSize,
-		// flowTotalSize,
-		flowIdentifier,
-		flowFilename,
-		flowTotalChunks,
-	} = req.body;
+	const { flowChunkNumber, flowIdentifier, flowFilename, flowTotalChunks } =
+		req.body;
 
 	const chunkDirectory = `${upload_dir}${DIRECTORY_SEPARATOR}chunk`;
 	const completeDirectory = `${upload_dir}`;
