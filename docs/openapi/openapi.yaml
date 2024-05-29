@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: FFMPEG Traitement Video API
   description: |-
-    API for video converter. Attention : base URL is [http://localhost:5500/api](http://localhost:5500/api)
+    API traitement des videos avec ffmpeg 
   termsOfService: http://swagger.io/terms/
 
   license:
