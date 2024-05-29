@@ -1,0 +1,35 @@
+paths:
+  /upload/ovh/multiparts:
+      post:
+        tags:
+          - UploadFiles
+        summary: Upload de fichiers
+        description: Test upload ovh en multipart
+        operationId: upload_ovh
+        requestBody:
+          content:
+            application/json:
+              schema:
+                $ref: '#/definitions/UploadMultipartOvh'
+        responses:
+          '200':
+            description: Successful operation
+            content:
+              application/json:
+                schema:
+                  type: string
+                  example: "ok"
+                  
+
+definitions:
+    UploadMultipartOvh:
+        type: object
+        properties:
+          file:
+            type: string
+            description: Emplacement du fichier stocker dans le serveur
+          filename:
+            type: string
+            description: nom du fichier à enregistrer
+        xml:
+          name: UploadMultipartOvh

@@ -6,53 +6,8 @@ import { sendFTP } from "../controller/UploadFtp.controller.js";
 
 const uploadFiles = Router();
 
-/**
- * @swagger
- * /upload/ovh/multiparts:
- *   post:
- *     tags:
- *       - UploadFiles
- *     description: Upload a large file to OVH
- *     responses:
- *       200:
- *         description: Success
- *         content:
- *           text/plain:
- *             schema:
- *               type: string
- *               example: ok
- *       500:
- *         description: Error
- *         schema:
- *           type: object
- *           properties:
- *             message:
- *               type: string
- */
 uploadFiles.post("/upload/ovh/multiparts", upload_ovh);
 
-/**
- * @swagger
- * /upload/ftp:
- *   post:
- *     tags:
- *       - UploadFiles
- *     description: Send a file to FTP server
- *     responses:
- *       200:
- *         description: Success
- *         content:
- *           text/plain:
- *             schema:
- *               type: string
- *               example: "envoie du fichier en cours"
- *       500:
- *         description: Error
- *         content:
- *           text/plain:
- *             schema:
- *               type: string
- */
 uploadFiles.post("/upload/ftp", sendFTP);
 
 /**
@@ -106,6 +61,10 @@ uploadFiles.post("/upload/ftp", sendFTP);
  *             message:
  *               type: string
  */
-uploadFiles.post("/upload/flow/upload", flow_multer.single("file"), flow_upload);
+uploadFiles.post(
+  "/upload/flow/upload",
+  flow_multer.single("file"),
+  flow_upload
+);
 
 export default uploadFiles;

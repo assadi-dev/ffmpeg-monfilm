@@ -1,8 +1,8 @@
 import {
-	DIRECTORY_SEPARATOR,
-	OVH_CREDENTIALS,
-	upload_dir,
-	CONTAINER_EVASION,
+  DIRECTORY_SEPARATOR,
+  OVH_CREDENTIALS,
+  upload_dir,
+  CONTAINER_EVASION,
 } from "../config/constant.config.js";
 import OvhObjectStorageServices from "../services/OvhObjectStorage.services.js";
 import { config } from "dotenv";
