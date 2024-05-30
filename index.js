@@ -15,19 +15,18 @@ dotenv.config();
 const port = process.env.PORT || 5500;
 
 const swaggerOptions = {
-	swaggerDefinition: {
-		info: {
-			title: "FFMPEG Traitement Video API",
-			description:
-				"API for video converter. Attention : base URL is http://localhost:5500/api",
-			contact: {
-				name: "FFMPEG Traitement Video",
-			},
-			servers: ["http://localhost:5500"],
-		},
-		basePath: "/api",
-	},
-	apis: ["./routes/*.js"],
+  swaggerDefinition: {
+    info: {
+      title: "FFMPEG Traitement Video API",
+      description:
+        "API for video converter. Attention : base URL is http://localhost:5500/api",
+      contact: {
+        name: "FFMPEG Traitement Video",
+      },
+      servers: ["http://localhost:5500"],
+    },
+  },
+  apis: ["./routes/*.js"],
 };
 
 export const server = http.createServer(app);
@@ -37,18 +36,18 @@ export const server = http.createServer(app);
 export const ws = new Server(server, { cors: corsOptions });
 
 ws.of(process.env.WEBSOCKET_PATH).on("connection", (socket) => {
-	socket.on("join_server", (data) => {
-		const room = data;
-		socket.join(room);
-		let message = `client with id ${socket.id} has join the room ${room}`;
-		console.log(message);
-	});
+  socket.on("join_server", (data) => {
+    const room = data;
+    socket.join(room);
+    let message = `client with id ${socket.id} has join the room ${room}`;
+    console.log(message);
+  });
 });
 
 //Init folder
 if (!existsSync(upload_dir)) {
-	mkdirSync(upload_dir);
-	chmodSync(upload_dir, "777");
+  mkdirSync(upload_dir);
+  chmodSync(upload_dir, "777");
 }
 
 /* const proxy = httpProxy.createProxyServer({

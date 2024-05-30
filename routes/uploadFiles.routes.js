@@ -57,7 +57,7 @@ uploadFiles.post("/upload/ftp", sendFTP);
 
 /**
  * @swagger
- * /upload/flow/upload:
+ * /flow/upload:
  *   post:
  *     tags:
  *       - UploadFiles
@@ -106,6 +106,6 @@ uploadFiles.post("/upload/ftp", sendFTP);
  *             message:
  *               type: string
  */
-uploadFiles.post("/upload/flow/upload", flow_multer.single("file"), flow_upload);
+uploadFiles.post("/flow/upload", flow_multer.single("file"), flow_upload);
 
 export default uploadFiles;
