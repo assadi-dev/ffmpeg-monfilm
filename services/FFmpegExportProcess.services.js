@@ -9,10 +9,10 @@ room */
 
 import { chmodSync, existsSync, mkdirSync, rm } from "fs";
 import {
-	BINARY_DIR,
-	DIRECTORY_SEPARATOR,
-	upload_dir,
-	WEBSOCKET_PATH,
+  BINARY_DIR,
+  DIRECTORY_SEPARATOR,
+  upload_dir,
+  WEBSOCKET_PATH,
 } from "../config/constant.config.js";
 import FFmpegInstance from "./FFmpegInstance.services.js";
 import ffmpegOnProgress from "ffmpeg-on-progress";
@@ -20,8 +20,8 @@ import { ws } from "../index.js";
 import { eventFeedbackExportPublish } from "../config/ffmpegComand.config.js";
 import { clean_file_process } from "./FFmpegCameraProcess.services.js";
 import {
-	logErrorVideoProcess,
-	logVideoProcess,
+  logErrorVideoProcess,
+  logVideoProcess,
 } from "./FullProcess.services.js";
 import { spawnSync } from "child_process";
 
@@ -32,109 +32,107 @@ import { spawnSync } from "child_process";
  * @param {*} output
  */
 export const split_videos = async (scene, projectName, output, room) => {
-	const { ffmpeg } = new FFmpegInstance();
+  const { ffmpeg } = new FFmpegInstance();
 
-	const export_file = `${upload_dir}${DIRECTORY_SEPARATOR}export_file${DIRECTORY_SEPARATOR}${projectName}`;
+  const export_file = `${upload_dir}${DIRECTORY_SEPARATOR}export_file${DIRECTORY_SEPARATOR}${projectName}`;
 
-	if (!existsSync(export_file)) {
-		mkdirSync(export_file, { recursive: true });
-		chmodSync(export_file, "777");
-	}
+  if (!existsSync(export_file)) {
+    mkdirSync(export_file, { recursive: true });
+    chmodSync(export_file, "777");
+  }
 
-	const destination = `${export_file}${DIRECTORY_SEPARATOR}${output}`;
-	const timeToStart = Number(scene?.start);
-	const timeToEnd = Number(scene?.end);
-	const timeDuration = Math.round(timeToEnd - timeToStart);
+  const destination = `${export_file}${DIRECTORY_SEPARATOR}${output}`;
+  const timeToStart = Number(scene?.start);
+  const timeToEnd = Number(scene?.end);
+  const timeDuration = Math.round(timeToEnd - timeToStart);
 
-	const input = scene.src;
-	const durationEstimate = secToMill(timeDuration);
+  const input = scene.src;
+  const durationEstimate = secToMill(timeDuration);
 
-	const status = {
-		step: "split-video",
-		id: scene.id,
-		message: "wait",
-		progress: 0,
-		filename: scene.filename,
-		duration: timeDuration,
-		error: "",
-	};
+  const status = {
+    step: "split-video",
+    id: scene.id,
+    message: "wait",
+    progress: 0,
+    filename: scene.filename,
+    duration: timeDuration,
+    error: "",
+  };
 
-	try {
-		const volumeDefault = scene.volume ? 1 : 0;
+  try {
+    const volumeDefault = scene.volume ? 1 : 0;
 
-		return new Promise((resolve) => {
-			ffmpeg.input(input).withAudioFilters([`volume=${volumeDefault}`]);
+    return new Promise((resolve) => {
+      ffmpeg.input(input).withAudioFilters([`volume=${volumeDefault}`]);
 
-			scene.rotate
-				? ffmpeg.withVideoFilter(["transpose=1", "transpose=1"])
-				: ffmpeg;
+      scene.rotate
+        ? ffmpeg.withVideoFilter(["transpose=1", "transpose=1"])
+        : ffmpeg;
 
-			ffmpeg
-				.seekInput(timeToStart)
-				.withDuration(timeDuration)
-				.outputOptions([
-					"-avoid_negative_ts",
-					"make_zero",
-					"-async",
-					"1",
-					"-r",
-					"30",
-					"-c:v",
-					"libx264",
-					"-c:a",
-					"aac",
-				])
-				.output(destination)
-				.on("start", (cmdLine) => {
-					logVideoProcess("Export video", "start split");
-					logVideoProcess("command ffmpeg", cmdLine);
-					status.message = "start";
-					ws
-						.of(WEBSOCKET_PATH)
-						.to(room)
-						.emit(eventFeedbackExportPublish.publish, status);
-				})
-				// .on("codecData", (data) => {
-				//   totalDuration = parseInt(data.duration.replace(/:/g, ""));
-				// })
-				.on(
-					"progress",
-					ffmpegOnProgress(
-						(progress, event) => logSplitProgress(room, progress, event, status),
-						durationEstimate
-					)
-				)
+      ffmpeg
+        .seekInput(timeToStart)
+        .withDuration(timeDuration)
+        .outputOptions([
+          "-avoid_negative_ts",
+          "make_zero",
+          "-async",
+          "1",
+          "-r",
+          "30",
+          "-c:v",
+          "libx264",
+          "-c:a",
+          "aac",
+        ])
+        .output(destination)
+        .on("start", (cmdLine) => {
+          logVideoProcess("Export video", "start split");
+          logVideoProcess("command ffmpeg", cmdLine);
+          status.message = "start";
+          ws.of(WEBSOCKET_PATH)
+            .to(room)
+            .emit(eventFeedbackExportPublish.publish, status);
+        })
+        // .on("codecData", (data) => {
+        //   totalDuration = parseInt(data.duration.replace(/:/g, ""));
+        // })
+        .on(
+          "progress",
+          ffmpegOnProgress(
+            (progress, event) =>
+              logSplitProgress(room, progress, event, status),
+            durationEstimate
+          )
+        )
 
-				.on("end", () => {
-					console.log(`Finished split`);
-					logVideoProcess("Export video", "finish split");
-					console.log(100);
-					status.message = "done";
-					status.progress = 100;
-					ws
-						.of(WEBSOCKET_PATH)
-						.to(room)
-						.emit(eventFeedbackExportPublish.publish, status);
+        .on("end", () => {
+          console.log(`Finished split`);
+          logVideoProcess("Export video", "finish split");
+          console.log(100);
+          status.message = "done";
+          status.progress = 100;
+          ws.of(WEBSOCKET_PATH)
+            .to(room)
+            .emit(eventFeedbackExportPublish.publish, status);
 
-					resolve(destination);
-				})
-				.on("error", (error) => {
-					console.log(error.message);
-					logErrorVideoProcess("Export video", `Error: ${error.message}`);
-					status.error = error.message;
-					status.message = "error";
-					ws
-						.of(WEBSOCKET_PATH)
-						.to(room)
-						.emit(eventFeedbackExportPublish.error, status);
-				})
+          resolve(destination);
+        })
+        .on("error", (error) => {
+          console.log(error.message);
+          logErrorVideoProcess("Export video", `Error: ${error.message}`);
+          status.error = error.message;
+          status.message = "error";
+          ws.of(WEBSOCKET_PATH)
+            .to(room)
+            .emit(eventFeedbackExportPublish.error, status);
+        })
 
-				.run();
-		});
-	} catch (error) {
-		console.log(error.message);
-		logErrorVideoProcess("Export video", `Error: ${error.message}`);
-	}
+        .run();
+    });
+  } catch (error) {
+    console.log(error.message);
+    logErrorVideoProcess("Export video", `Error: ${error.message}`);
+  }
 };
 
 /**
@@ -144,102 +142,119 @@ export const split_videos = async (scene, projectName, output, room) => {
  * @param {*} output
  */
 export const concatenate_videos = (
-	listInput,
-	projetFolder,
-	output,
-	room,
-	maxDuration
+  listInput,
+  projetFolder,
+  output,
+  room,
+  maxDuration
 ) => {
-	const export_file = `${upload_dir}${DIRECTORY_SEPARATOR}export_file${DIRECTORY_SEPARATOR}${projetFolder}`;
+  const export_file = `${upload_dir}${DIRECTORY_SEPARATOR}export_file${DIRECTORY_SEPARATOR}${projetFolder}`;
 
-	const durationEstimate = secToMill(maxDuration);
+  const durationEstimate = secToMill(maxDuration);
 
-	const status = {
-		step: "concat-video",
-		message: "wait",
-		progress: 0,
-		duration: maxDuration,
-		elapsed: 0,
-		error: "",
-	};
+  const status = {
+    step: "concat-video",
+    message: "wait",
+    progress: 0,
+    duration: maxDuration,
+    elapsed: 0,
+    error: "",
+  };
 
-	try {
-		const { ffmpeg } = new FFmpegInstance();
-		if (!existsSync(export_file)) {
-			mkdirSync(export_file, { recursive: true });
-			chmodSync(export_file, "777");
-		}
+  try {
+    const { ffmpeg } = new FFmpegInstance();
+    if (!existsSync(export_file)) {
+      mkdirSync(export_file, { recursive: true });
+      chmodSync(export_file, "777");
+    }
 
-		const promise = new Promise((resolve) => {
-			const destination = `${export_file}${DIRECTORY_SEPARATOR}${output}`;
-			const count = listInput.length;
-			let filterCommandIn = "";
-			let filterCommandOut = "";
-			let filterConcatCommand = `concat=n=${count}:v=1:a=1`;
-			const resolution = "720:406";
+    const promise = new Promise((resolve) => {
+      const destination = `${export_file}${DIRECTORY_SEPARATOR}${output}`;
+      const count = listInput.length;
+      let filterCommandIn = "";
+      let filterCommandOut = "";
+      let filterConcatCommand = `concat=n=${count}:v=1:a=1`;
+      const resolution = "720:406";
 
-			for (const index in listInput) {
-				const input = listInput[index];
-				ffmpeg.addInput(input);
+      for (const index in listInput) {
+        const input = listInput[index];
+        ffmpeg.addInput(input);
 
-				filterCommandIn += `scale=${resolution},pad=${resolution},setsar=1[v${index}];`;
-				filterCommandOut += `[v${index}][${index}:a]`;
-			}
-			filterConcatCommand = `${filterCommandIn}${filterCommandOut}${filterConcatCommand}[v][a]`;
+        filterCommandIn += `scale=${resolution},pad=${resolution},setsar=1[v${index}];`;
+        filterCommandOut += `[v${index}][${index}:a]`;
+      }
+      filterConcatCommand = `${filterCommandIn}${filterCommandOut}${filterConcatCommand}[v][a]`;
 
-			ffmpeg
-				.complexFilter(filterConcatCommand)
-				.outputOptions(["-map [v]", "-map [a]", "-vsync 2"])
-				.output(destination)
-				.on("start", (cmdline) => {
-					//console.log(`start concate`, cmdline);
-					logVideoProcess("Export video", `Start concat video`);
-					logVideoProcess("Export video", `command ffmpeg ${cmdline}`);
-					status.message = "start";
-					ws
-						.of(WEBSOCKET_PATH)
-						.to(room)
-						.emit(eventFeedbackExportPublish.publish, status);
-				})
-				.on(
-					"progress",
-					ffmpegOnProgress(
-						(progress, event) => logProgress(room, progress, event, status),
-						durationEstimate
-					)
-				)
-				.on("end", () => {
-					console.log("Finished concat for project", projetFolder);
-					logVideoProcess("Export video", `Finished concat video for project` + projetFolder);
-					status.progress = 100;
-					status.message = "done";
-					ws
-						.of(WEBSOCKET_PATH)
-						.to(room)
-						.emit(eventFeedbackExportPublish.publish, status);
-					resolve(destination);
-				})
-				.on("error", (error) => {
-					console.log("[Error] Concatenate video", error.message, " on project ", projetFolder);
-					logErrorVideoProcess("Export video", `Error: ${error.message}`, " on project ", projetFolder);
-					status.error = error.message;
-					status.message = "error";
-					ws
-						.of(WEBSOCKET_PATH)
-						.to(room)
-						.emit(eventFeedbackExportPublish.error, status);
-				})
-				.run();
-		});
+      ffmpeg
+        .complexFilter(filterConcatCommand)
+        .outputOptions(["-map [v]", "-map [a]", "-vsync 2"])
+        .output(destination)
+        .on("start", (cmdline) => {
+          //console.log(`start concate`, cmdline);
+          logVideoProcess("Export video", `Start concat video`);
+          logVideoProcess("Export video", `command ffmpeg ${cmdline}`);
+          status.message = "start";
+          ws.of(WEBSOCKET_PATH)
+            .to(room)
+            .emit(eventFeedbackExportPublish.publish, status);
+        })
+        .on(
+          "progress",
+          ffmpegOnProgress(
+            (progress, event) => logProgress(room, progress, event, status),
+            durationEstimate
+          )
+        )
+        .on("end", () => {
+          console.log("Finished concat for project", projetFolder);
+          logVideoProcess(
+            "Export video",
+            `Finished concat video for project` + projetFolder
+          );
+          status.progress = 100;
+          status.message = "done";
+          ws.of(WEBSOCKET_PATH)
+            .to(room)
+            .emit(eventFeedbackExportPublish.publish, status);
+          resolve(destination);
+        })
+        .on("error", (error) => {
+          console.log(
+            "[Error] Concatenate video",
+            error.message,
+            " on project ",
+            projetFolder
+          );
+          logErrorVideoProcess(
+            "Export video",
+            `Error: ${error.message}`,
+            " on project ",
+            projetFolder
+          );
+          status.error = error.message;
+          status.message = "error";
+          ws.of(WEBSOCKET_PATH)
+            .to(room)
+            .emit(eventFeedbackExportPublish.error, status);
+        })
+        .run();
+    });
 
-		return promise;
-	} catch (error) {
-		console.log(error.message , "on project", projetFolder);
-		status.error = error.message;
-		status.message = "error";
-		logErrorVideoProcess("Export video", `Error: ${error.message}`, " on project ", projetFolder);
-		ws.of(WEBSOCKET_PATH).to(room).emit(eventFeedbackExportPublish.error, status);
-	}
+    return promise;
+  } catch (error) {
+    console.log(error.message, "on project", projetFolder);
+    status.error = error.message;
+    status.message = "error";
+    logErrorVideoProcess(
+      "Export video",
+      `Error: ${error.message}`,
+      " on project ",
+      projetFolder
+    );
+    ws.of(WEBSOCKET_PATH)
+      .to(room)
+      .emit(eventFeedbackExportPublish.error, status);
+  }
 };
 
 /**
@@ -249,121 +264,142 @@ export const concatenate_videos = (
  * @param {*} output
  */
 export const concatenate_combined_videos = (
-	listInput,
-	projetFolder,
-	output,
-	room,
-	maxDuration
+  listInput,
+  projetFolder,
+  output,
+  room,
+  maxDuration
 ) => {
-	const export_file = `${upload_dir}${DIRECTORY_SEPARATOR}export_file${DIRECTORY_SEPARATOR}${projetFolder}`;
+  const export_file = `${upload_dir}${DIRECTORY_SEPARATOR}export_file${DIRECTORY_SEPARATOR}${projetFolder}`;
 
-	console.log("Start concatenate combined videos for project ", projetFolder);
+  console.log("Start concatenate combined videos for project ", projetFolder);
 
-	const durationEstimate = secToMill(maxDuration);
+  const durationEstimate = secToMill(maxDuration);
 
-	const status = {
-		step: "concat-video",
-		message: "wait",
-		elapsed: 0,
-		progress: 0,
-		duration: maxDuration,
-		error: "",
-	};
+  const status = {
+    step: "concat-video",
+    message: "wait",
+    elapsed: 0,
+    progress: 0,
+    duration: maxDuration,
+    error: "",
+  };
 
-	try {
-		const { ffmpeg } = new FFmpegInstance();
-		if (!existsSync(export_file)) {
-			mkdirSync(export_file, { recursive: true });
-			chmodSync(export_file, "777");
-		}
+  try {
+    const { ffmpeg } = new FFmpegInstance();
+    if (!existsSync(export_file)) {
+      mkdirSync(export_file, { recursive: true });
+      chmodSync(export_file, "777");
+    }
 
-		const promise = new Promise((resolve /*reject*/) => {
-			const destination = `${export_file}${DIRECTORY_SEPARATOR}${output}`;
-			const count = listInput.length;
-			let filterCommandIn = "";
-			let filterCommandOut = "";
-			let filterCommandAudio = "";
-			let filterConcatCommand = `concat=n=${count}:v=1:a=1`;
-			const resolution = "4096:2048";
-			const fps = 25;
+    const promise = new Promise((resolve /*reject*/) => {
+      const destination = `${export_file}${DIRECTORY_SEPARATOR}${output}`;
+      const count = listInput.length;
+      let filterCommandIn = "";
+      let filterCommandOut = "";
+      let filterCommandAudio = "";
+      let filterConcatCommand = `concat=n=${count}:v=1:a=1`;
+      const resolution = "4096:2048";
+      const fps = 25;
 
-			for (const index in listInput) {
-				const scene = listInput[index];
+      for (const index in listInput) {
+        const scene = listInput[index];
 
-				const input = scene.src;
-				const timeToStart = Number(scene.start);
-				const timeToEnd = Number(scene.end);
-				const timeDuration = Number(timeToEnd - timeToStart).toFixed(2);
-				const volumeDefault = scene.volume ? 1 : 0;
-				const rotate = scene.rotate
-					? `,transpose=1,transpose=1[v${index}]`
-					: `[v${index}]`;
+        const input = scene.src;
+        const timeToStart = Number(scene.start);
+        //const timeToEnd = Number(scene.end);
+        const timeDuration = Number(scene.duration).toFixed(2);
+        const volumeDefault = scene.volume ? 1 : 0;
+        const rotate = scene.rotate
+          ? `,transpose=1,transpose=1[v${index}]`
+          : `[v${index}]`;
 
-				ffmpeg
-					.addInput(input)
-					.seekInput(timeToStart)
-					.inputOptions(["-t", timeDuration]);
+        ffmpeg
+          .addInput(input)
+          .seekInput(timeToStart)
+          .inputOptions(["-t", timeDuration]);
 
-				filterCommandIn += `[${index}:v]scale=${resolution},pad=${resolution},setsar=1${rotate};`;
-				filterCommandAudio += `[${index}:a]volume=${volumeDefault}[volume${index}];`;
-				filterCommandOut += `[v${index}][volume${index}]`;
-			}
-			filterConcatCommand = `${filterCommandIn}${filterCommandAudio}${filterCommandOut}${filterConcatCommand}[v][a]`;
+        filterCommandIn += `[${index}:v]scale=${resolution},pad=${resolution},setsar=1${rotate};`;
+        filterCommandAudio += `[${index}:a]volume=${volumeDefault}[volume${index}];`;
+        filterCommandOut += `[v${index}][volume${index}]`;
+      }
+      filterConcatCommand = `${filterCommandIn}${filterCommandAudio}${filterCommandOut}${filterConcatCommand}[v][a]`;
 
-			ffmpeg
-				.complexFilter(filterConcatCommand)
-				.outputOptions([
-					"-map [v]",
-					"-map [a]",
-					"-r",
-					fps,
-					"-c:v",
-					"libx264",
-					"-c:a",
-					"aac",
-				])
-				.output(destination)
-				// .withDuration(maxDuration + 1)
-				.on("start", (cmdLine) => {
+      ffmpeg
+        .complexFilter(filterConcatCommand)
+        .outputOptions([
+          "-map [v]",
+          "-map [a]",
+          "-r",
+          fps,
+          "-c:v",
+          "libx264",
+          "-c:a",
+          "aac",
+        ])
+        .output(destination)
+        // .withDuration(maxDuration + 1)
+        .on("start", (cmdLine) => {
+          status.message = "start";
+          logVideoProcess("Export video", `Start complex filter concat video`);
+          logVideoProcess("Export video", `command ffmpeg ${cmdLine}`);
+          ws.to(room).emit(eventFeedbackExportPublish.publish, status);
+        })
+        .on(
+          "progress",
+          ffmpegOnProgress(
+            (progress, event) => logProgress(room, progress, event, status),
+            durationEstimate
+          )
+        )
+        .on("end", () => {
+          console.log(
+            `Finished concatenated combined videos for project`,
+            projetFolder
+          );
+          status.progress = 100;
+          status.message = "done";
+          logVideoProcess(
+            "Export video",
+            `Finished complex filter concat video for project`,
+            projetFolder
+          );
+          ws.to(room).emit(eventFeedbackExportPublish.publish, status);
+          resolve(destination);
+        })
+        .on("error", (error) => {
+          console.log(
+            "[Error] Concatenate combined video",
+            error.message,
+            " on project ",
+            projetFolder
+          );
+          status.error = error.message;
+          status.message = "error";
+          logErrorVideoProcess(
+            "Export video",
+            `Error: ${error.message}`,
+            " on project ",
+            projetFolder
+          );
+          ws.to(room).emit(eventFeedbackExportPublish.error, status);
+        })
+        .run();
+    });
 
-					status.message = "start";
-					logVideoProcess("Export video", `Start complex filter concat video`);
-					logVideoProcess("Export video", `command ffmpeg ${cmdLine}`);
-					ws.to(room).emit(eventFeedbackExportPublish.publish, status);
-				})
-				.on(
-					"progress",
-					ffmpegOnProgress(
-						(progress, event) => logProgress(room, progress, event, status),
-						durationEstimate
-					)
-				)
-				.on("end", () => {
-					console.log(`Finished concatenated combined videos for project`, projetFolder);
-					status.progress = 100;
-					status.message = "done";
-					logVideoProcess("Export video", `Finished complex filter concat video for project`, projetFolder);
-					ws.to(room).emit(eventFeedbackExportPublish.publish, status);
-					resolve(destination);
-				})
-				.on("error", (error) => {
-					console.log("[Error] Concatenate combined video", error.message, " on project ", projetFolder);
-					status.error = error.message;
-					status.message = "error";
-					logErrorVideoProcess("Export video", `Error: ${error.message}`, " on project ", projetFolder);
-					ws.to(room).emit(eventFeedbackExportPublish.error, status);
-				})
-				.run();
-		});
-
-		return promise;
-	} catch (error) {
-		console.log(error.message, "on project", projetFolder);
-		logErrorVideoProcess("Export video", `Error: ${error.message}`, " on project ", projetFolder);
-		status.error = error.message;
-		status.message = "error";
-		ws.to(room).emit(eventFeedbackExportPublish.error, status);
-	}
+    return promise;
+  } catch (error) {
+    console.log(error.message, "on project", projetFolder);
+    logErrorVideoProcess(
+      "Export video",
+      `Error: ${error.message}`,
+      " on project ",
+      projetFolder
+    );
+    status.error = error.message;
+    status.message = "error";
+    ws.to(room).emit(eventFeedbackExportPublish.error, status);
+  }
 };
 
 /**
@@ -373,93 +409,93 @@ export const concatenate_combined_videos = (
  * @param {*} output
  */
 export const splitAudioPart = (audio, projectName, output, room) => {
-	const { ffmpeg } = new FFmpegInstance();
+  const { ffmpeg } = new FFmpegInstance();
 
-	const export_file = `${upload_dir}${DIRECTORY_SEPARATOR}export_file${DIRECTORY_SEPARATOR}${projectName}`;
+  const export_file = `${upload_dir}${DIRECTORY_SEPARATOR}export_file${DIRECTORY_SEPARATOR}${projectName}`;
 
-	if (!existsSync(export_file)) {
-		mkdirSync(export_file, { recursive: true });
-		chmodSync(export_file, "777");
-	}
+  if (!existsSync(export_file)) {
+    mkdirSync(export_file, { recursive: true });
+    chmodSync(export_file, "777");
+  }
 
-	const destination = `${export_file}${DIRECTORY_SEPARATOR}${output}`;
+  const destination = `${export_file}${DIRECTORY_SEPARATOR}${output}`;
 
-	const timeToStart = Number(audio?.start);
-	const timeToEnd = Number(audio?.end);
-	const timeDuration = Math.round(timeToEnd - timeToStart);
+  const timeToStart = Number(audio?.start);
+  const timeToEnd = Number(audio?.end);
+  const timeDuration = Math.round(timeToEnd - timeToStart);
 
-	const input = audio.src;
-	const durationEstimate = timeDuration * 1000;
+  const input = audio.src;
+  const durationEstimate = timeDuration * 1000;
 
-	const status = {
-		step: "split-audio",
-		id: audio.id,
-		message: "wait",
-		elapsed: 0,
-		progress: 0,
-		filename: "",
-		duration: timeDuration,
-		error: "",
-	};
+  const status = {
+    step: "split-audio",
+    id: audio.id,
+    message: "wait",
+    elapsed: 0,
+    progress: 0,
+    filename: "",
+    duration: timeDuration,
+    error: "",
+  };
 
-	try {
-		const volumeDefault = audio.volume ? 1 : 0;
-		const promise = new Promise((resolve) => {
-			ffmpeg
-				.addInput(input)
-				.seekInput(timeToStart)
-				.withDuration(timeDuration)
-				.withAudioFilters([`volume=${volumeDefault}`])
-				.outputOptions([
-					"-avoid_negative_ts",
-					"make_zero",
-					"-async",
-					"1",
-					"-c:a",
-					"libmp3lame",
-				])
-				.output(destination)
-				// .on("codecData", (data) => {
-				//   totalDuration = parseInt(data.duration.replace(/:/g, ""));
-				// })
-				.on("start", () => {
-					status.message = "start";
-					ws.to(room).emit(eventFeedbackExportPublish.publish, status);
-				})
-				.on(
-					"progress",
-					ffmpegOnProgress((progress, event) =>
-						logSplitProgress(room, progress, event, status)
-					),
-					durationEstimate
-				)
+  try {
+    const volumeDefault = audio.volume ? 1 : 0;
+    const promise = new Promise((resolve) => {
+      ffmpeg
+        .addInput(input)
+        .seekInput(timeToStart)
+        .withDuration(timeDuration)
+        .withAudioFilters([`volume=${volumeDefault}`])
+        .outputOptions([
+          "-avoid_negative_ts",
+          "make_zero",
+          "-async",
+          "1",
+          "-c:a",
+          "libmp3lame",
+        ])
+        .output(destination)
+        // .on("codecData", (data) => {
+        //   totalDuration = parseInt(data.duration.replace(/:/g, ""));
+        // })
+        .on("start", () => {
+          status.message = "start";
+          ws.to(room).emit(eventFeedbackExportPublish.publish, status);
+        })
+        .on(
+          "progress",
+          ffmpegOnProgress((progress, event) =>
+            logSplitProgress(room, progress, event, status)
+          ),
+          durationEstimate
+        )
 
-				.on("end", () => {
-					console.log(`Finished split audio for project `, projectName);
-					status.progress = 100;
-					status.message = "done";
+        .on("end", () => {
+          console.log(`Finished split audio for project `, projectName);
+          status.progress = 100;
+          status.message = "done";
 
-					ws.to(room).emit(eventFeedbackExportPublish.publish, status);
+          ws.to(room).emit(eventFeedbackExportPublish.publish, status);
 
-					resolve(destination);
-				})
-				.on("error", (error) => {
-					console.log(error.message + " on project ", projectName);
-					status.error = error.message;
-					status.message = "error";
-					ws.to(room).emit(eventFeedbackExportPublish.error, status);
-				})
+          resolve(destination);
+        })
+        .on("error", (error) => {
+          console.log(error.message + " on project ", projectName);
+          status.error = error.message;
+          status.message = "error";
+          ws.to(room).emit(eventFeedbackExportPublish.error, status);
+        })
 
-				.run();
-		});
+        .run();
+    });
 
-		return promise;
-	} catch (error) {
-		console.log(error.message + " on project ", projectName);
-		status.error = error.message;
-		status.message = "error";
-		ws.to(room).emit("error", status);
-	}
+    return promise;
+  } catch (error) {
+    console.log(error.message + " on project ", projectName);
+    status.error = error.message;
+    status.message = "error";
+    ws.to(room).emit("error", status);
+  }
 };
 
 export const concatenate_audios = (
@@ -504,7 +540,11 @@ export const concatenate_audios = (
         .output(destination)
         .on("start", (cmdLine) => {
           console.log(`Start audio concat for project ${projectName}`);
-          logVideoProcess("Export video", `Start concat audio`, `for project ${projectName}`);
+          logVideoProcess(
+            "Export video",
+            `Start concat audio`,
+            `for project ${projectName}`
+          );
           logVideoProcess("Export video", `command ${cmdLine}`);
           status.message = "start";
           ws.of(WEBSOCKET_PATH)
@@ -520,7 +560,11 @@ export const concatenate_audios = (
         )
         .on("end", () => {
           console.log(`Finished audio concat for project ${projectName}`);
-          logVideoProcess("Export video", `Finnish concat audio`, `for project ${projectName}`);
+          logVideoProcess(
+            "Export video",
+            `Finnish concat audio`,
+            `for project ${projectName}`
+          );
 
           status.progress = 100;
           status.message = "done";
@@ -532,7 +576,11 @@ export const concatenate_audios = (
         })
         .on("error", (error) => {
           console.log(error.message + " on project ", projectName);
-          logErrorVideoProcess("Export video", `Erreur: ${error.message}` + " on project ", projectName);
+          logErrorVideoProcess(
+            "Export video",
+            `Erreur: ${error.message}` + " on project ",
+            projectName
+          );
           status.error = error.message;
           status.message = "error";
           ws.of(WEBSOCKET_PATH)
@@ -547,7 +595,11 @@ export const concatenate_audios = (
   } catch (error) {
     console.log(error.message);
     status.error = error.message;
-    logErrorVideoProcess("Export video", `Erreur: ${error.message}` + " on project ", projectName);
+    logErrorVideoProcess(
+      "Export video",
+      `Erreur: ${error.message}` + " on project ",
+      projectName
+    );
     status.message = "error";
     ws.of(WEBSOCKET_PATH)
       .to(room)
@@ -622,7 +674,11 @@ export const concatenate_combined_audios = (
         .output(destination)
         .on("start", (cmdLine) => {
           console.log(`Start audio concat for project ${projectName}`);
-          logVideoProcess("Export video", `Start complex filter concat audio`, `for project ${projectName}`);
+          logVideoProcess(
+            "Export video",
+            `Start complex filter concat audio`,
+            `for project ${projectName}`
+          );
           logVideoProcess("Export video", `command ffmpeg: ${cmdLine}`);
           status.message = "start";
           status.elapsed = 0;
@@ -654,7 +710,11 @@ export const concatenate_combined_audios = (
         })
         .on("error", (error) => {
           console.log(error.message + " on project ", projectName);
-          logErrorVideoProcess("Export video", `Erreur: ${error.message}` + " on project ", projectName);
+          logErrorVideoProcess(
+            "Export video",
+            `Erreur: ${error.message}` + " on project ",
+            projectName
+          );
           status.error = error.message;
           status.message = "error";
           ws.of(WEBSOCKET_PATH)
@@ -668,7 +728,11 @@ export const concatenate_combined_audios = (
     return promise;
   } catch (error) {
     console.log(error.message + " on project ", projectName);
-    logErrorVideoProcess("Export video", `Erreur: ${error.message}` + " on project ", projectName);
+    logErrorVideoProcess(
+      "Export video",
+      `Erreur: ${error.message}` + " on project ",
+      projectName
+    );
     status.error = error.message;
     status.message = "error";
     ws.of(WEBSOCKET_PATH)
@@ -725,8 +789,14 @@ export const files_mapping = (
         .output(destination)
         .on("start", (cmdLine) => {
           console.log(`Start mapping files on project ${projectName}`);
-          logVideoProcess("Export video", `Start mapping files` + `on project ${projectName}`);
-          logVideoProcess("Export video", `command ffmpeg: ${cmdLine}` + `on project ${projectName}`);
+          logVideoProcess(
+            "Export video",
+            `Start mapping files` + `on project ${projectName}`
+          );
+          logVideoProcess(
+            "Export video",
+            `command ffmpeg: ${cmdLine}` + `on project ${projectName}`
+          );
           status.message = "start";
           ws.of(WEBSOCKET_PATH)
             .to(room)
@@ -741,7 +811,10 @@ export const files_mapping = (
         )
         .on("end", () => {
           console.log(`Finished mapping files` + `on project ${projectName}`);
-          logVideoProcess("Export video", `Finished mapping files` + `on project ${projectName}`);
+          logVideoProcess(
+            "Export video",
+            `Finished mapping files` + `on project ${projectName}`
+          );
           status.message = "done";
           status.progress = 100;
           clean_file_process(videoFile);
@@ -753,7 +826,11 @@ export const files_mapping = (
         })
         .on("error", (error) => {
           console.log(error.message + " on project ", projectName);
-          logErrorVideoProcess("Export video", `Erreur: ${error.message}` + " on project ", projectName);
+          logErrorVideoProcess(
+            "Export video",
+            `Erreur: ${error.message}` + " on project ",
+            projectName
+          );
           status.message = "error";
           status.error = error.message;
           clean_file_process(videoFile);
@@ -769,7 +846,11 @@ export const files_mapping = (
     return promise;
   } catch (error) {
     console.log(error.message + " on project ", projectName);
-    logErrorVideoProcess("Export video", `Erreur: ${error.message}` + " on project ", projectName);
+    logErrorVideoProcess(
+      "Export video",
+      `Erreur: ${error.message}` + " on project ",
+      projectName
+    );
     status.message = "error";
     status.error = error.message;
     ws.of(WEBSOCKET_PATH)
@@ -824,7 +905,10 @@ export const files_mapping_no_audio = (
         )
         .on("end", () => {
           console.log(`Finished mapping files` + `on project ${projectName}`);
-          logVideoProcess("Export video", `Finished mapping files` + `on project ${projectName}`);
+          logVideoProcess(
+            "Export video",
+            `Finished mapping files` + `on project ${projectName}`
+          );
           status.message = "done";
           status.progress = 100;
           clean_file_process(videoFile);
@@ -835,7 +919,10 @@ export const files_mapping_no_audio = (
         })
         .on("error", (error) => {
           console.log(error.message + " on project ", projectName);
-          logErrorVideoProcess("Export video", `Finished mapping files` + `on project ${projectName}`);
+          logErrorVideoProcess(
+            "Export video",
+            `Finished mapping files` + `on project ${projectName}`
+          );
           clean_file_process(videoFile);
           status.message = "error";
           status.error = error.message;
@@ -849,7 +936,11 @@ export const files_mapping_no_audio = (
     return promise;
   } catch (error) {
     console.log(error.message + " on project ", projectName);
-    logVideoProcess("Export video", `Erreur: ${error.message}` + " on project ", projectName);
+    logVideoProcess(
+      "Export video",
+      `Erreur: ${error.message}` + " on project ",
+      projectName
+    );
     status.message = "error";
     status.error = error.message;
     ws.to(room).emit(eventFeedbackExportPublish.error, status);

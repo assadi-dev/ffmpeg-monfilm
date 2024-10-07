@@ -73,6 +73,9 @@ export const merges_input = (req, res) => {
   }
 };
 
+/**
+ * Traitement de l'export video **actuellement utilisé**
+ */
 export const generate_finalOutput = async (
   room,
   scenes,
@@ -92,10 +95,9 @@ export const generate_finalOutput = async (
 
     const export_file = `${upload_dir}${DIRECTORY_SEPARATOR}export_file${DIRECTORY_SEPARATOR}${projectSlug}`;
 
-    //TODO décomenté le bloc de si dessous pour activer le nettoyage des fichiers d'export
-    /* 	if (existsSync(export_file)) {
-			delete_workspace_export(export_file);
-		} */
+    if (existsSync(export_file)) {
+      delete_workspace_export(export_file);
+    }
     await postDelayed(3000);
     create_workspace_export(export_file);
 
